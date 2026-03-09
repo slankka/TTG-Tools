@@ -1,6 +1,6 @@
 # TTG Tools by Den Em and Pashok6798
 
-TTG Tools is a powerful utility for modifying files from Telltale Games, including texts (.landb, .langdb, and .dlog for *Sam & Max*, and .prop containing texts in *The Walking Dead*), textures (.d3dtx) for PC, Xbox 360, PS4, PS3, PS Vita, Nintendo Switch, IOS and Android, fonts (.font), as well as extracting and creating archive files (.ttarch and .ttarch2). It also allows decryption of .lua and .lenc files used by Telltale Games.
+TTG Tools is a powerful utility for modifying files from Telltale Games, including texts (.landb, .langdb, and .dlog for *Sam & Max*, and .prop containing texts in *The Walking Dead*), textures (.d3dtx) for PC, Xbox 360, PS4, PS3, PS Vita, Nintendo Switch, IOS and Android, fonts (.font), as well as extracting and creating archive files (.ttarch, .ttarch2 and obb). It also allows decryption of .lua and .lenc files used by Telltale Games.
 
 This version of TTG Tools includes some modifications and has been uploaded with the permission of Den Em and Pashok6798 agreement.
 
@@ -61,6 +61,7 @@ TTG Tools makes it easier to translate and modify Telltale Games and Skunkape Ga
 - Sam & Max: Beyond Time and Space - Remastered  
 - Sam & Max: The Devil's Playhouse - Remastered
 - Poker Night at the Inventory - Remastered
+
 
 
 

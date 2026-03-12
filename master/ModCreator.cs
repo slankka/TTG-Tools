@@ -663,7 +663,7 @@ namespace TTG_Tools
 
             public string BuildLuaFileName(string modName, ModLayoutOption layoutOption)
             {
-                return "_resdesc_64_" + layoutOption.ArchiveSegment + "_" + modName + ".lua";
+                return "_resdesc_50_" + modName + ".lua";
             }
 
             public string BuildLuaDescriptor(string modName, string archiveFileName, ModLayoutOption layoutOption)

@@ -690,10 +690,10 @@ namespace TTG_Tools
             {
                 return new List<ModLayoutOption>
                 {
-                    new ModLayoutOption { DisplayName = "Boot", ArchiveSegment = "Boot", LogicalName = "Boot", Priority = 10, EnableMode = "bootable", GameDataPriority = 0 },
-                    new ModLayoutOption { DisplayName = "UI", ArchiveSegment = "UI", LogicalName = "UI", Priority = 30, EnableMode = "bootable", GameDataPriority = 0 },
+                    new ModLayoutOption { DisplayName = "Boot", ArchiveSegment = "Boot", LogicalName = "Boot", Priority = 100, EnableMode = "bootable", GameDataPriority = 0 },
+                    new ModLayoutOption { DisplayName = "UI", ArchiveSegment = "UI", LogicalName = "UI", Priority = 100, EnableMode = "bootable", GameDataPriority = 0 },
                     new ModLayoutOption { DisplayName = "Common", ArchiveSegment = "Common", LogicalName = "Common", Priority = 100, EnableMode = "bootable", GameDataPriority = 0 },
-                    new ModLayoutOption { DisplayName = "Menu", ArchiveSegment = "Menu", LogicalName = "Menu", Priority = 20, EnableMode = "bootable", GameDataPriority = 0 },
+                    new ModLayoutOption { DisplayName = "Menu", ArchiveSegment = "Menu", LogicalName = "Menu", Priority = 100, EnableMode = "bootable", GameDataPriority = 0 },
                     new ModLayoutOption { DisplayName = "Project", ArchiveSegment = "Project", LogicalName = "Project", Priority = -8888, EnableMode = "constant", GameDataPriority = 0 },
                     new ModLayoutOption { DisplayName = "SamMax101", ArchiveSegment = "SamMax101", LogicalName = "SamMax101", Priority = 101, EnableMode = "bootable", GameDataPriority = 101, AppendArchiveSegmentToName = true },
                     new ModLayoutOption { DisplayName = "SamMax102", ArchiveSegment = "SamMax102", LogicalName = "SamMax102", Priority = 102, EnableMode = "bootable", GameDataPriority = 102, AppendArchiveSegmentToName = true },

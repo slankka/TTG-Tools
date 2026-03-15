@@ -29,6 +29,9 @@
             this.outputFolderLabel = new System.Windows.Forms.Label();
             this.outputFolderTextBox = new System.Windows.Forms.TextBox();
             this.browseOutputButton = new System.Windows.Forms.Button();
+            this.modLayoutLabel = new System.Windows.Forms.Label();
+            this.modLayoutComboBox = new System.Windows.Forms.ComboBox();
+            this.createProgressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // inputFolderLabel
@@ -90,6 +93,7 @@
             this.gameComboBox.Name = "gameComboBox";
             this.gameComboBox.Size = new System.Drawing.Size(407, 21);
             this.gameComboBox.TabIndex = 6;
+            this.gameComboBox.SelectedIndexChanged += new System.EventHandler(this.gameComboBox_SelectedIndexChanged);
             // 
             // createModButton
             // 
@@ -104,7 +108,7 @@
             // logListBox
             // 
             this.logListBox.FormattingEnabled = true;
-            this.logListBox.Location = new System.Drawing.Point(15, 136);
+            this.logListBox.Location = new System.Drawing.Point(15, 158);
             this.logListBox.Name = "logListBox";
             this.logListBox.Size = new System.Drawing.Size(576, 147);
             this.logListBox.TabIndex = 8;
@@ -135,11 +139,39 @@
             this.browseOutputButton.UseVisualStyleBackColor = true;
             this.browseOutputButton.Click += new System.EventHandler(this.browseOutputButton_Click);
             // 
+            // modLayoutLabel
+            // 
+            this.modLayoutLabel.AutoSize = true;
+            this.modLayoutLabel.Location = new System.Drawing.Point(19, 129);
+            this.modLayoutLabel.Name = "modLayoutLabel";
+            this.modLayoutLabel.Size = new System.Drawing.Size(62, 13);
+            this.modLayoutLabel.TabIndex = 12;
+            this.modLayoutLabel.Text = "Mod layout:";
+            // 
+            // modLayoutComboBox
+            // 
+            this.modLayoutComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.modLayoutComboBox.FormattingEnabled = true;
+            this.modLayoutComboBox.Location = new System.Drawing.Point(103, 126);
+            this.modLayoutComboBox.Name = "modLayoutComboBox";
+            this.modLayoutComboBox.Size = new System.Drawing.Size(407, 21);
+            this.modLayoutComboBox.TabIndex = 13;
+            // 
+            // createProgressBar
+            // 
+            this.createProgressBar.Location = new System.Drawing.Point(15, 312);
+            this.createProgressBar.Name = "createProgressBar";
+            this.createProgressBar.Size = new System.Drawing.Size(576, 12);
+            this.createProgressBar.TabIndex = 14;
+            // 
             // ModCreator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(606, 299);
+            this.ClientSize = new System.Drawing.Size(606, 332);
+            this.Controls.Add(this.createProgressBar);
+            this.Controls.Add(this.modLayoutComboBox);
+            this.Controls.Add(this.modLayoutLabel);
             this.Controls.Add(this.browseOutputButton);
             this.Controls.Add(this.outputFolderTextBox);
             this.Controls.Add(this.outputFolderLabel);
@@ -176,5 +208,8 @@
         private System.Windows.Forms.Label outputFolderLabel;
         private System.Windows.Forms.TextBox outputFolderTextBox;
         private System.Windows.Forms.Button browseOutputButton;
+        private System.Windows.Forms.Label modLayoutLabel;
+        private System.Windows.Forms.ComboBox modLayoutComboBox;
+        private System.Windows.Forms.ProgressBar createProgressBar;
     }
 }

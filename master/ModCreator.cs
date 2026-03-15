@@ -13,6 +13,7 @@ namespace TTG_Tools
     {
         private readonly CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
         private readonly PokerNightRemasterProfile pokerNightProfile = new PokerNightRemasterProfile();
+        private readonly SamAndMaxSaveWorldRemasterProfile samAndMaxSaveWorldProfile = new SamAndMaxSaveWorldRemasterProfile();
 
         public ModCreator()
         {
@@ -32,13 +33,13 @@ namespace TTG_Tools
         {
             gameComboBox.Items.Clear();
             gameComboBox.Items.Add(pokerNightProfile.GameDisplayName);
+            gameComboBox.Items.Add(samAndMaxSaveWorldProfile.GameDisplayName);
             gameComboBox.SelectedIndex = 0;
-            gameComboBox.Enabled = false; // estrutura preparada, mas bloqueada para este jogo nesta fase.
+            gameComboBox.Enabled = true;
 
-            if (string.IsNullOrWhiteSpace(outputFolderTextBox.Text) && Directory.Exists(inputFolderTextBox.Text))
-            {
-                outputFolderTextBox.Text = Path.Combine(inputFolderTextBox.Text, "ModCreator_Output");
-            }
+            UpdateLayoutOptions();
+
+            SetProgress(0);
         }
 
         private void browseInputButton_Click(object sender, EventArgs e)
@@ -47,10 +48,6 @@ namespace TTG_Tools
             {
                 inputFolderTextBox.Text = folderDialog.FileName;
 
-                if (string.IsNullOrWhiteSpace(outputFolderTextBox.Text))
-                {
-                    outputFolderTextBox.Text = Path.Combine(folderDialog.FileName, "ModCreator_Output");
-                }
             }
         }
 
@@ -65,9 +62,25 @@ namespace TTG_Tools
 
         private async void createModButton_Click(object sender, EventArgs e)
         {
+            IModCreatorProfile selectedProfile = GetSelectedProfile();
+            if (selectedProfile == null)
+            {
+                MessageBox.Show("Please select a supported game.", "Error");
+                return;
+            }
+
+            ModLayoutOption selectedLayoutOption = GetSelectedLayoutOption(selectedProfile);
+            if (selectedLayoutOption == null)
+            {
+                MessageBox.Show("Please select a valid mod layout.", "Error");
+                return;
+            }
+
             string inputFolder = inputFolderTextBox.Text.Trim();
-            string outputFolder = outputFolderTextBox.Text.Trim();
+            string outputFolder = ResolveOutputFolder(inputFolder, outputFolderTextBox.Text.Trim());
             string modName = NormalizeModName(modNameTextBox.Text.Trim());
+
+            outputFolderTextBox.Text = outputFolder;
 
             if (!Directory.Exists(inputFolder))
             {
@@ -86,17 +99,19 @@ namespace TTG_Tools
                 return;
             }
 
-            string archiveFileName = pokerNightProfile.BuildArchiveFileName(modName);
+            string archiveFileName = selectedProfile.BuildArchiveFileName(modName, selectedLayoutOption);
             string archivePath = Path.Combine(outputFolder, archiveFileName);
-            string luaPath = Path.Combine(outputFolder, pokerNightProfile.BuildLuaFileName(modName));
+            string luaPath = Path.Combine(outputFolder, selectedProfile.BuildLuaFileName(modName, selectedLayoutOption));
 
             SetUiEnabled(false);
+            SetProgress(0);
             logListBox.Items.Clear();
-            AddLog("Starting mod creation for Poker Night at the Inventory - Remastered...");
+            AddLog("Starting mod creation for " + selectedProfile.GameDisplayName + "...");
 
             try
             {
-                await Task.Run(() => CreateModPackage(inputFolder, outputFolder, archivePath, luaPath, modName, archiveFileName));
+                await Task.Run(() => CreateModPackage(inputFolder, outputFolder, archivePath, luaPath, modName, archiveFileName, selectedProfile, selectedLayoutOption));
+                SetProgress(100);
                 AddLog("Mod created successfully.");
                 MessageBox.Show("Mod created successfully.", "Success");
             }
@@ -107,26 +122,41 @@ namespace TTG_Tools
             }
             finally
             {
+                if (createProgressBar.Value < 100)
+                {
+                    SetProgress(0);
+                }
+
                 SetUiEnabled(true);
             }
         }
 
-        private void CreateModPackage(string inputFolder, string outputFolder, string archivePath, string luaPath, string modName, string archiveFileName)
+        private void CreateModPackage(
+            string inputFolder,
+            string outputFolder,
+            string archivePath,
+            string luaPath,
+            string modName,
+            string archiveFileName,
+            IModCreatorProfile profile,
+            ModLayoutOption layoutOption)
         {
-            byte[] gameKey = GetEncryptionKeyForGame(pokerNightProfile.GameDisplayName);
+            byte[] gameKey = GetEncryptionKeyForGame(profile.GameDisplayName);
 
             AddLog("Output folder: " + outputFolder);
             AddLog("Creating archive: " + Path.GetFileName(archivePath));
+            SetProgress(5);
 
             ttarch2BuilderLegacy1132(
                 inputFolder,
                 archivePath,
-                pokerNightProfile.CompressArchive,
-                pokerNightProfile.EncryptArchive,
-                pokerNightProfile.EncryptLuaInsideArchive,
+                profile.CompressArchive,
+                profile.EncryptArchive,
+                profile.EncryptLuaInsideArchive,
                 gameKey,
-                pokerNightProfile.Ttarch2Version,
-                pokerNightProfile.NewEngineLua,
+                profile.Ttarch2Version,
+                profile.NewEngineLua,
+                SetProgress,
                 new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                 {
                     Path.GetFullPath(archivePath),
@@ -134,13 +164,98 @@ namespace TTG_Tools
                 });
 
             AddLog("Generating Lua descriptor: " + Path.GetFileName(luaPath));
-            string luaContent = pokerNightProfile.BuildLuaDescriptor(modName, archiveFileName);
+            SetProgress(90);
+            string luaContent = profile.BuildLuaDescriptor(modName, archiveFileName, layoutOption);
 
             File.WriteAllText(luaPath, luaContent, new UTF8Encoding(false));
 
             AddLog("Encrypting Lua descriptor in-place (Lua Scripts for New Engine / method 7-9)...");
-            byte[] encryptedLua = Methods.encryptLua(File.ReadAllBytes(luaPath), gameKey, pokerNightProfile.NewEngineLua, 7);
+            SetProgress(95);
+            byte[] encryptedLua = Methods.encryptLua(File.ReadAllBytes(luaPath), gameKey, profile.NewEngineLua, 7);
             File.WriteAllBytes(luaPath, encryptedLua);
+            SetProgress(100);
+        }
+
+        private void SetProgress(int value)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<int>(SetProgress), value);
+                return;
+            }
+
+            int normalized = Math.Max(createProgressBar.Minimum, Math.Min(createProgressBar.Maximum, value));
+            createProgressBar.Value = normalized;
+        }
+
+        private IModCreatorProfile GetSelectedProfile()
+        {
+            string selectedGame = gameComboBox.SelectedItem as string;
+
+            if (string.Equals(selectedGame, pokerNightProfile.GameDisplayName, StringComparison.Ordinal))
+            {
+                return pokerNightProfile;
+            }
+
+            if (string.Equals(selectedGame, samAndMaxSaveWorldProfile.GameDisplayName, StringComparison.Ordinal))
+            {
+                return samAndMaxSaveWorldProfile;
+            }
+
+            return null;
+        }
+
+        private ModLayoutOption GetSelectedLayoutOption(IModCreatorProfile profile)
+        {
+            if (profile == null)
+            {
+                return null;
+            }
+
+            if (!profile.RequiresLayoutSelection)
+            {
+                return profile.GetLayoutOptions().FirstOrDefault();
+            }
+
+            return modLayoutComboBox.SelectedItem as ModLayoutOption;
+        }
+
+        private void UpdateLayoutOptions()
+        {
+            IModCreatorProfile selectedProfile = GetSelectedProfile();
+
+            modLayoutComboBox.Items.Clear();
+            if (selectedProfile == null)
+            {
+                modLayoutComboBox.Enabled = false;
+                modLayoutLabel.Enabled = false;
+                return;
+            }
+
+            List<ModLayoutOption> options = selectedProfile.GetLayoutOptions();
+            for (int i = 0; i < options.Count; i++)
+            {
+                modLayoutComboBox.Items.Add(options[i]);
+            }
+
+            bool requiresLayout = selectedProfile.RequiresLayoutSelection;
+            modLayoutComboBox.Enabled = requiresLayout;
+            modLayoutLabel.Enabled = requiresLayout;
+
+            if (modLayoutComboBox.Items.Count > 0)
+            {
+                modLayoutComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private static string ResolveOutputFolder(string inputFolder, string selectedOutputFolder)
+        {
+            if (!string.IsNullOrWhiteSpace(selectedOutputFolder))
+            {
+                return selectedOutputFolder;
+            }
+
+            return Path.Combine(inputFolder, "ModCreator_Output");
         }
 
         private static string NormalizeModName(string modName)
@@ -181,7 +296,14 @@ namespace TTG_Tools
             outputFolderTextBox.Enabled = enabled;
             browseOutputButton.Enabled = enabled;
             createModButton.Enabled = enabled;
-            gameComboBox.Enabled = false;
+            gameComboBox.Enabled = enabled;
+            modLayoutComboBox.Enabled = enabled && GetSelectedProfile() != null && GetSelectedProfile().RequiresLayoutSelection;
+            modLayoutLabel.Enabled = enabled && GetSelectedProfile() != null && GetSelectedProfile().RequiresLayoutSelection;
+        }
+
+        private void gameComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateLayoutOptions();
         }
 
 
@@ -218,10 +340,6 @@ namespace TTG_Tools
             {
                 inputFolderTextBox.Text = droppedPath;
 
-                if (string.IsNullOrWhiteSpace(outputFolderTextBox.Text))
-                {
-                    outputFolderTextBox.Text = Path.Combine(droppedPath, "ModCreator_Output");
-                }
             }
         }
 
@@ -234,13 +352,12 @@ namespace TTG_Tools
             byte[] key,
             int versionArchive,
             bool newEngine,
+            Action<int> progressCallback,
             ISet<string> excludedPaths)
         {
             DirectoryInfo di = new DirectoryInfo(inputFolder);
             FileInfo[] fi = di.GetFiles("*", SearchOption.AllDirectories)
                 .Where(f => excludedPaths == null || !excludedPaths.Contains(Path.GetFullPath(f.FullName)))
-                .GroupBy(f => f.Name)
-                .Select(g => g.First())
                 .ToArray();
 
             ulong[] nameCrc = new ulong[fi.Length];
@@ -257,73 +374,84 @@ namespace TTG_Tools
                 {
                     name[i] = fi[i].Name;
                 }
+
                 nameCrc[i] = CRCs.CRC64(0, name[i].ToLower());
             }
 
-            for (int i = 0; i < fi.Length - 1; i++)
+            for (int k = 0; k < fi.Length - 1; k++)
             {
-                for (int j = i + 1; j < fi.Length; j++)
+                for (int l = k + 1; l < fi.Length; l++)
                 {
-                    if (nameCrc[j] < nameCrc[i])
+                    if (nameCrc[l] < nameCrc[k])
                     {
-                        FileInfo tempFi = fi[i];
-                        fi[i] = fi[j];
-                        fi[j] = tempFi;
+                        FileInfo temp = fi[k];
+                        fi[k] = fi[l];
+                        fi[l] = temp;
 
-                        ulong tempCrc = nameCrc[i];
-                        nameCrc[i] = nameCrc[j];
-                        nameCrc[j] = tempCrc;
+                        string tempStr = name[k];
+                        name[k] = name[l];
+                        name[l] = tempStr;
 
-                        string tempName = name[i];
-                        name[i] = name[j];
-                        name[j] = tempName;
+                        ulong tempCrc = nameCrc[k];
+                        nameCrc[k] = nameCrc[l];
+                        nameCrc[l] = tempCrc;
                     }
                 }
             }
 
-            uint nameSize = 0;
-            for (int i = 0; i < fi.Length; i++)
-            {
-                nameSize += (uint)name[i].Length + 1;
-            }
-
-            ulong infoSize = (ulong)fi.Length * 28;
+            uint infoSize = (uint)fi.Length * (8 + 8 + 4 + 4 + 2 + 2);
             uint dataSize = 0;
-            for (int i = 0; i < fi.Length; i++)
+            uint nameSize = 0;
+
+            for (int j = 0; j < fi.Length; j++)
             {
-                dataSize += (uint)fi[i].Length;
+                nameSize += (uint)name[j].Length + 1;
+                dataSize += (uint)fi[j].Length;
             }
 
-            ulong commonSize = infoSize + nameSize + dataSize + 24;
-            byte[] ncttHeader = Encoding.ASCII.GetBytes("NCTT");
-            byte[] att = { 65, 84, 84, 84 };
+            nameSize = (uint)Methods.pad_it(nameSize, 0x10000);
             byte[] infoTable = new byte[infoSize];
             byte[] namesTable = new byte[nameSize];
 
-            uint fileOffset = 0;
-            uint ns = 0;
+            uint nameOffset = 0;
+            for (int d = 0; d < fi.Length; d++)
+            {
+                name[d] += "\0";
+                Array.Copy(Encoding.ASCII.GetBytes(name[d]), 0, namesTable, nameOffset, name[d].Length);
+                nameOffset += (uint)name[d].Length;
+            }
+
+            byte[] ncttHeader = Encoding.ASCII.GetBytes("NCTT");
+            byte[] att = versionArchive == 1 ? Encoding.ASCII.GetBytes("3ATT") : Encoding.ASCII.GetBytes("4ATT");
+            ulong commonSize = versionArchive == 1 ? dataSize + infoSize + nameSize + 16UL : dataSize + infoSize + nameSize + 12UL;
+
+            uint ns = nameSize;
+            uint tmp;
+            ulong fileOffset = 0;
 
             for (int k = 0; k < fi.Length; k++)
             {
-                byte[] tmpName = Encoding.ASCII.GetBytes(name[k]);
-                Array.Copy(tmpName, 0, namesTable, ns, tmpName.Length);
-                ns += (uint)tmpName.Length + 1;
-
                 Array.Copy(BitConverter.GetBytes(nameCrc[k]), 0, infoTable, (long)offset, 8);
                 offset += 8;
-                Array.Copy(BitConverter.GetBytes((ulong)fileOffset), 0, infoTable, (long)offset, 8);
+                Array.Copy(BitConverter.GetBytes(fileOffset), 0, infoTable, (long)offset, 8);
                 offset += 8;
-                Array.Copy(BitConverter.GetBytes((uint)fi[k].Length), 0, infoTable, (long)offset, 4);
+                Array.Copy(BitConverter.GetBytes((int)fi[k].Length), 0, infoTable, (long)offset, 4);
                 offset += 4;
                 Array.Copy(BitConverter.GetBytes(0), 0, infoTable, (long)offset, 4);
                 offset += 4;
-
-                uint tmp = ns - nameSize;
+                tmp = ns - nameSize;
                 Array.Copy(BitConverter.GetBytes((ushort)(tmp / 0x10000)), 0, infoTable, (long)offset, 2);
                 offset += 2;
                 Array.Copy(BitConverter.GetBytes((ushort)(tmp % 0x10000)), 0, infoTable, (long)offset, 2);
                 offset += 2;
+                ns += (uint)name[k].Length;
                 fileOffset += (uint)fi[k].Length;
+
+                if (fi.Length > 0 && progressCallback != null)
+                {
+                    int p = 5 + (int)Math.Round(((k + 1) / (double)fi.Length) * 40.0);
+                    progressCallback(p);
+                }
             }
 
             string format = Methods.GetExtension(outputPath).ToLower() == ".obb" ? ".obb" : ".ttarch2";
@@ -355,6 +483,12 @@ namespace TTG_Tools
                     }
 
                     fs.Write(file, 0, file.Length);
+
+                    if (fi.Length > 0 && progressCallback != null)
+                    {
+                        int p = 45 + (int)Math.Round(((l + 1) / (double)fi.Length) * 20.0);
+                        progressCallback(p);
+                    }
                 }
             }
 
@@ -383,7 +517,7 @@ namespace TTG_Tools
                 fs.Write(BitConverter.GetBytes(blocksCount), 0, 4);
                 fs.Write(chunkTable, 0, chunkTable.Length);
 
-                tempFr.Seek(12, SeekOrigin.Begin);
+                tempFr.Seek(versionArchive == 1 ? 16 : 12, SeekOrigin.Begin);
 
                 for (int i = 0; i < blocksCount; i++)
                 {
@@ -399,6 +533,12 @@ namespace TTG_Tools
                     offset += (uint)compressedBlock.Length;
                     Array.Copy(BitConverter.GetBytes(offset), 0, chunkTable, 8 + (i * 8), 8);
                     fs.Write(compressedBlock, 0, compressedBlock.Length);
+
+                    if (blocksCount > 0 && progressCallback != null)
+                    {
+                        int p = 65 + (int)Math.Round(((i + 1) / (double)blocksCount) * 25.0);
+                        progressCallback(p);
+                    }
                 }
 
                 fs.Seek(12, SeekOrigin.Begin);
@@ -432,7 +572,40 @@ namespace TTG_Tools
             return enc.Crypt_ECB(bytes, archiveVersion, false);
         }
 
-        private class PokerNightRemasterProfile
+        private class ModLayoutOption
+        {
+            public string DisplayName { get; set; }
+            public string ArchiveSegment { get; set; }
+            public string LogicalName { get; set; }
+            public int Priority { get; set; }
+            public string EnableMode { get; set; }
+            public int GameDataPriority { get; set; }
+            public int DescriptionPriority { get; set; }
+            public bool AppendArchiveSegmentToName { get; set; }
+
+            public override string ToString()
+            {
+                return DisplayName;
+            }
+        }
+
+        private interface IModCreatorProfile
+        {
+            string GameDisplayName { get; }
+            bool CompressArchive { get; }
+            bool EncryptArchive { get; }
+            bool EncryptLuaInsideArchive { get; }
+            bool NewEngineLua { get; }
+            int Ttarch2Version { get; }
+            bool RequiresLayoutSelection { get; }
+
+            List<ModLayoutOption> GetLayoutOptions();
+            string BuildArchiveFileName(string modName, ModLayoutOption layoutOption);
+            string BuildLuaFileName(string modName, ModLayoutOption layoutOption);
+            string BuildLuaDescriptor(string modName, string archiveFileName, ModLayoutOption layoutOption);
+        }
+
+        private class PokerNightRemasterProfile : IModCreatorProfile
         {
             public string GameDisplayName => "Poker Night at the Inventory - Remastered";
             public bool CompressArchive => true;
@@ -440,18 +613,35 @@ namespace TTG_Tools
             public bool EncryptLuaInsideArchive => true;
             public bool NewEngineLua => true;
             public int Ttarch2Version => 2;
+            public bool RequiresLayoutSelection => false;
 
-            public string BuildArchiveFileName(string modName)
+            public List<ModLayoutOption> GetLayoutOptions()
+            {
+                return new List<ModLayoutOption>
+                {
+                    new ModLayoutOption
+                    {
+                        DisplayName = "Project",
+                        ArchiveSegment = "Project",
+                        LogicalName = "Project",
+                        Priority = -8888,
+                        EnableMode = "constant",
+                        GameDataPriority = 0
+                    }
+                };
+            }
+
+            public string BuildArchiveFileName(string modName, ModLayoutOption layoutOption)
             {
                 return "CP_pc_" + modName + ".ttarch2";
             }
 
-            public string BuildLuaFileName(string modName)
+            public string BuildLuaFileName(string modName, ModLayoutOption layoutOption)
             {
                 return "_resdesc_50_" + modName + ".lua";
             }
 
-            public string BuildLuaDescriptor(string modName, string archiveFileName)
+            public string BuildLuaDescriptor(string modName, string archiveFileName, ModLayoutOption layoutOption)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("local set = {}");
@@ -467,6 +657,82 @@ namespace TTG_Tools
                 sb.AppendLine("set.descriptionPriority = 0");
                 sb.AppendLine("set.gameDataName = \"" + modName + " Game Data\"");
                 sb.AppendLine("set.gameDataPriority = 0");
+                sb.AppendLine("set.gameDataEnableMode = \"constant\"");
+                sb.AppendLine("set.localDirIncludeBase = true");
+                sb.AppendLine("set.localDirRecurse = false");
+                sb.AppendLine("set.localDirIncludeOnly = nil");
+                sb.AppendLine("set.localDirExclude =");
+                sb.AppendLine("{");
+                sb.AppendLine("    \"Packaging/\",");
+                sb.AppendLine("    \"_dev/\"");
+                sb.AppendLine("}");
+                sb.AppendLine("set.gameDataArchives =");
+                sb.AppendLine("{");
+                sb.AppendLine("    _currentDirectory .. \"" + archiveFileName + "\"");
+                sb.AppendLine("}");
+                sb.AppendLine("RegisterSetDescription(set)");
+
+                return sb.ToString();
+            }
+        }
+
+        private class SamAndMaxSaveWorldRemasterProfile : IModCreatorProfile
+        {
+            public string GameDisplayName => "Sam & Max: Save the World - Remastered";
+            public bool CompressArchive => true;
+            public bool EncryptArchive => true;
+            public bool EncryptLuaInsideArchive => false;
+            public bool NewEngineLua => true;
+            public int Ttarch2Version => 2;
+            public bool RequiresLayoutSelection => true;
+
+            public List<ModLayoutOption> GetLayoutOptions()
+            {
+                return new List<ModLayoutOption>
+                {
+                    new ModLayoutOption { DisplayName = "Boot", ArchiveSegment = "Boot", LogicalName = "Boot", Priority = 10, EnableMode = "bootable", GameDataPriority = 10, DescriptionPriority = 10 },
+                    new ModLayoutOption { DisplayName = "UI", ArchiveSegment = "UI", LogicalName = "UI", Priority = 30, EnableMode = "bootable", GameDataPriority = 30, DescriptionPriority = 30 },
+                    new ModLayoutOption { DisplayName = "Common", ArchiveSegment = "Common", LogicalName = "Common", Priority = 100, EnableMode = "bootable", GameDataPriority = 0 },
+                    new ModLayoutOption { DisplayName = "Menu", ArchiveSegment = "Menu", LogicalName = "Menu", Priority = 20, EnableMode = "bootable", GameDataPriority = 20, DescriptionPriority = 20 },
+                    new ModLayoutOption { DisplayName = "Project", ArchiveSegment = "Project", LogicalName = "Project", Priority = -8888, EnableMode = "constant", GameDataPriority = 0 },
+                    new ModLayoutOption { DisplayName = "SamMax101", ArchiveSegment = "SamMax101", LogicalName = "SamMax101", Priority = 101, EnableMode = "bootable", GameDataPriority = 101, AppendArchiveSegmentToName = true },
+                    new ModLayoutOption { DisplayName = "SamMax102", ArchiveSegment = "SamMax102", LogicalName = "SamMax102", Priority = 102, EnableMode = "bootable", GameDataPriority = 102, AppendArchiveSegmentToName = true },
+                    new ModLayoutOption { DisplayName = "SamMax103", ArchiveSegment = "SamMax103", LogicalName = "SamMax103", Priority = 103, EnableMode = "bootable", GameDataPriority = 103, AppendArchiveSegmentToName = true },
+                    new ModLayoutOption { DisplayName = "SamMax104", ArchiveSegment = "SamMax104", LogicalName = "SamMax104", Priority = 104, EnableMode = "bootable", GameDataPriority = 104, AppendArchiveSegmentToName = true },
+                    new ModLayoutOption { DisplayName = "SamMax105", ArchiveSegment = "SamMax105", LogicalName = "SamMax105", Priority = 105, EnableMode = "bootable", GameDataPriority = 105, AppendArchiveSegmentToName = true },
+                    new ModLayoutOption { DisplayName = "SamMax106", ArchiveSegment = "SamMax106", LogicalName = "SamMax106", Priority = 106, EnableMode = "bootable", GameDataPriority = 106, AppendArchiveSegmentToName = true }
+                };
+            }
+
+            public string BuildArchiveFileName(string modName, ModLayoutOption layoutOption)
+            {
+                return "SM1_pc_" + layoutOption.ArchiveSegment + "_" + modName + ".ttarch2";
+            }
+
+            public string BuildLuaFileName(string modName, ModLayoutOption layoutOption)
+            {
+                return "_resdesc_50_" + modName + ".lua";
+            }
+
+            public string BuildLuaDescriptor(string modName, string archiveFileName, ModLayoutOption layoutOption)
+            {
+                string descriptorName = layoutOption.AppendArchiveSegmentToName ? modName + layoutOption.ArchiveSegment.Replace("SamMax", string.Empty) : modName;
+                string gameDataName = descriptorName + " Game Data";
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("local set = {}");
+                sb.AppendLine("set.name = \"" + descriptorName + "\"");
+                sb.AppendLine("set.setName = \"" + descriptorName + "\"");
+                sb.AppendLine("set.descriptionFilenameOverride = \"\"");
+                sb.AppendLine("set.logicalName = \"<" + layoutOption.LogicalName + ">\"");
+                sb.AppendLine("set.logicalDestination = \"<>\"");
+                sb.AppendLine("set.priority = " + layoutOption.Priority);
+                sb.AppendLine("set.localDir = _currentDirectory");
+                sb.AppendLine("set.enableMode = \"" + layoutOption.EnableMode + "\"");
+                sb.AppendLine("set.version = \"trunk\"");
+                sb.AppendLine("set.descriptionPriority = " + layoutOption.DescriptionPriority);
+                sb.AppendLine("set.gameDataName = \"" + gameDataName + "\"");
+                sb.AppendLine("set.gameDataPriority = " + layoutOption.GameDataPriority);
                 sb.AppendLine("set.gameDataEnableMode = \"constant\"");
                 sb.AppendLine("set.localDirIncludeBase = true");
                 sb.AppendLine("set.localDirRecurse = false");

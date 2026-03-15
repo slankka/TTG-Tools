@@ -37,17 +37,17 @@
             // inputFolderLabel
             // 
             this.inputFolderLabel.AutoSize = true;
-            this.inputFolderLabel.Location = new System.Drawing.Point(12, 15);
+            this.inputFolderLabel.Location = new System.Drawing.Point(16, 15);
             this.inputFolderLabel.Name = "inputFolderLabel";
-            this.inputFolderLabel.Size = new System.Drawing.Size(65, 13);
+            this.inputFolderLabel.Size = new System.Drawing.Size(63, 13);
             this.inputFolderLabel.TabIndex = 0;
             this.inputFolderLabel.Text = "Input folder:";
             // 
             // inputFolderTextBox
             // 
-            this.inputFolderTextBox.Location = new System.Drawing.Point(103, 12);
+            this.inputFolderTextBox.Location = new System.Drawing.Point(85, 12);
             this.inputFolderTextBox.Name = "inputFolderTextBox";
-            this.inputFolderTextBox.Size = new System.Drawing.Size(407, 20);
+            this.inputFolderTextBox.Size = new System.Drawing.Size(425, 20);
             this.inputFolderTextBox.TabIndex = 1;
             // 
             // browseInputButton
@@ -63,17 +63,17 @@
             // modNameLabel
             // 
             this.modNameLabel.AutoSize = true;
-            this.modNameLabel.Location = new System.Drawing.Point(22, 73);
+            this.modNameLabel.Location = new System.Drawing.Point(19, 73);
             this.modNameLabel.Name = "modNameLabel";
-            this.modNameLabel.Size = new System.Drawing.Size(58, 13);
+            this.modNameLabel.Size = new System.Drawing.Size(60, 13);
             this.modNameLabel.TabIndex = 3;
             this.modNameLabel.Text = "Mod name:";
             // 
             // modNameTextBox
             // 
-            this.modNameTextBox.Location = new System.Drawing.Point(103, 70);
+            this.modNameTextBox.Location = new System.Drawing.Point(87, 70);
             this.modNameTextBox.Name = "modNameTextBox";
-            this.modNameTextBox.Size = new System.Drawing.Size(196, 20);
+            this.modNameTextBox.Size = new System.Drawing.Size(132, 20);
             this.modNameTextBox.TabIndex = 4;
             // 
             // gameLabel
@@ -89,9 +89,9 @@
             // 
             this.gameComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.gameComboBox.FormattingEnabled = true;
-            this.gameComboBox.Location = new System.Drawing.Point(103, 99);
+            this.gameComboBox.Location = new System.Drawing.Point(87, 99);
             this.gameComboBox.Name = "gameComboBox";
-            this.gameComboBox.Size = new System.Drawing.Size(407, 21);
+            this.gameComboBox.Size = new System.Drawing.Size(423, 21);
             this.gameComboBox.TabIndex = 6;
             this.gameComboBox.SelectedIndexChanged += new System.EventHandler(this.gameComboBox_SelectedIndexChanged);
             // 
@@ -108,25 +108,25 @@
             // logListBox
             // 
             this.logListBox.FormattingEnabled = true;
-            this.logListBox.Location = new System.Drawing.Point(15, 158);
+            this.logListBox.Location = new System.Drawing.Point(15, 174);
             this.logListBox.Name = "logListBox";
-            this.logListBox.Size = new System.Drawing.Size(576, 147);
+            this.logListBox.Size = new System.Drawing.Size(576, 160);
             this.logListBox.TabIndex = 8;
             // 
             // outputFolderLabel
             // 
             this.outputFolderLabel.AutoSize = true;
-            this.outputFolderLabel.Location = new System.Drawing.Point(3, 44);
+            this.outputFolderLabel.Location = new System.Drawing.Point(10, 44);
             this.outputFolderLabel.Name = "outputFolderLabel";
-            this.outputFolderLabel.Size = new System.Drawing.Size(74, 13);
+            this.outputFolderLabel.Size = new System.Drawing.Size(71, 13);
             this.outputFolderLabel.TabIndex = 9;
             this.outputFolderLabel.Text = "Output folder:";
             // 
             // outputFolderTextBox
             // 
-            this.outputFolderTextBox.Location = new System.Drawing.Point(103, 41);
+            this.outputFolderTextBox.Location = new System.Drawing.Point(87, 41);
             this.outputFolderTextBox.Name = "outputFolderTextBox";
-            this.outputFolderTextBox.Size = new System.Drawing.Size(407, 20);
+            this.outputFolderTextBox.Size = new System.Drawing.Size(423, 20);
             this.outputFolderTextBox.TabIndex = 10;
             // 
             // browseOutputButton
@@ -152,23 +152,23 @@
             // 
             this.modLayoutComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.modLayoutComboBox.FormattingEnabled = true;
-            this.modLayoutComboBox.Location = new System.Drawing.Point(103, 126);
+            this.modLayoutComboBox.Location = new System.Drawing.Point(87, 126);
             this.modLayoutComboBox.Name = "modLayoutComboBox";
-            this.modLayoutComboBox.Size = new System.Drawing.Size(407, 21);
+            this.modLayoutComboBox.Size = new System.Drawing.Size(423, 21);
             this.modLayoutComboBox.TabIndex = 13;
             // 
             // createProgressBar
             // 
-            this.createProgressBar.Location = new System.Drawing.Point(15, 312);
+            this.createProgressBar.Location = new System.Drawing.Point(15, 153);
             this.createProgressBar.Name = "createProgressBar";
-            this.createProgressBar.Size = new System.Drawing.Size(576, 12);
+            this.createProgressBar.Size = new System.Drawing.Size(576, 19);
             this.createProgressBar.TabIndex = 14;
             // 
             // ModCreator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(606, 332);
+            this.ClientSize = new System.Drawing.Size(606, 346);
             this.Controls.Add(this.createProgressBar);
             this.Controls.Add(this.modLayoutComboBox);
             this.Controls.Add(this.modLayoutLabel);

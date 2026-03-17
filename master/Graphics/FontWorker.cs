@@ -9,6 +9,18 @@ namespace TTG_Tools.Graphics
         public static string DoWork(string inputFile, bool extract)
         {
             FileInfo fi = new FileInfo(inputFile);
+
+            string wiiResult;
+            if (MainMenu.settings.swizzleNintendoWii && extract && WiiSupport.TryExtractWiiContainer(inputFile, MainMenu.settings.pathForOutputFolder, out wiiResult))
+            {
+                return wiiResult;
+            }
+
+            if (MainMenu.settings.swizzleNintendoWii && !extract && WiiSupport.TryRepackWiiContainer(inputFile, fi.DirectoryName, MainMenu.settings.pathForOutputFolder, out wiiResult))
+            {
+                return wiiResult;
+            }
+
             byte[] vectorFont = null;
             int vecFontSize = -1;
             string modFile = Methods.GetNameOfFileOnly(inputFile, ".font") + ".ttf";

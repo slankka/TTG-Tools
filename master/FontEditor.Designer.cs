@@ -91,6 +91,7 @@
             this.rbPS4Swizzle = new System.Windows.Forms.RadioButton();
             this.rbXbox360Swizzle = new System.Windows.Forms.RadioButton();
             this.rbPSVitaSwizzle = new System.Windows.Forms.RadioButton();
+            this.rbWiiSwizzle = new System.Windows.Forms.RadioButton();
             this.rbNoSwizzle = new System.Windows.Forms.RadioButton();
             this.pictureBoxTexturePreview = new System.Windows.Forms.PictureBox();
             this.labelTexturePreview = new System.Windows.Forms.Label();
@@ -674,10 +675,11 @@
             this.groupBox4.Controls.Add(this.rbPS4Swizzle);
             this.groupBox4.Controls.Add(this.rbXbox360Swizzle);
             this.groupBox4.Controls.Add(this.rbPSVitaSwizzle);
+            this.groupBox4.Controls.Add(this.rbWiiSwizzle);
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
             this.groupBox4.Location = new System.Drawing.Point(1005, 28);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(122, 149);
+            this.groupBox4.Size = new System.Drawing.Size(122, 173);
             this.groupBox4.TabIndex = 30;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Swizzle methods";
@@ -729,6 +731,19 @@
             this.rbPSVitaSwizzle.Text = "PS Vita";
             this.rbPSVitaSwizzle.UseVisualStyleBackColor = true;
             this.rbPSVitaSwizzle.CheckedChanged += new System.EventHandler(this.rbPSVitaSwizzle_CheckedChanged);
+            // 
+            // 
+            // rbWiiSwizzle
+            // 
+            this.rbWiiSwizzle.AutoSize = true;
+            this.rbWiiSwizzle.Location = new System.Drawing.Point(7, 149);
+            this.rbWiiSwizzle.Name = "rbWiiSwizzle";
+            this.rbWiiSwizzle.Size = new System.Drawing.Size(84, 17);
+            this.rbWiiSwizzle.TabIndex = 5;
+            this.rbWiiSwizzle.TabStop = true;
+            this.rbWiiSwizzle.Text = "Nintendo Wii";
+            this.rbWiiSwizzle.UseVisualStyleBackColor = true;
+            this.rbWiiSwizzle.CheckedChanged += new System.EventHandler(this.rbWiiSwizzle_CheckedChanged);
             // 
             // rbNoSwizzle
             // 
@@ -853,6 +868,7 @@
         private System.Windows.Forms.RadioButton rbPS4Swizzle;
         private System.Windows.Forms.RadioButton rbXbox360Swizzle;
         private System.Windows.Forms.RadioButton rbPSVitaSwizzle;
+        private System.Windows.Forms.RadioButton rbWiiSwizzle;
         private System.Windows.Forms.RadioButton rbNoSwizzle;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;

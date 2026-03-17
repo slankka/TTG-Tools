@@ -39,6 +39,7 @@
             this.rbPS4Swizzle = new System.Windows.Forms.RadioButton();
             this.rbXbox360Swizzle = new System.Windows.Forms.RadioButton();
             this.rbPSVitaSwizzle = new System.Windows.Forms.RadioButton();
+            this.rbWiiSwizzle = new System.Windows.Forms.RadioButton();
             this.rbNoSwizzle = new System.Windows.Forms.RadioButton();
             this.labelUnicode = new System.Windows.Forms.Label();
             this.checkIOS = new System.Windows.Forms.CheckBox();
@@ -140,10 +141,11 @@
             this.groupBox2.Controls.Add(this.rbPS4Swizzle);
             this.groupBox2.Controls.Add(this.rbXbox360Swizzle);
             this.groupBox2.Controls.Add(this.rbPSVitaSwizzle);
+            this.groupBox2.Controls.Add(this.rbWiiSwizzle);
             this.groupBox2.Controls.Add(this.rbNoSwizzle);
             this.groupBox2.Location = new System.Drawing.Point(276, 15);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(126, 130);
+            this.groupBox2.Size = new System.Drawing.Size(126, 152);
             this.groupBox2.TabIndex = 17;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Swizzle methods";
@@ -195,6 +197,19 @@
             this.rbPSVitaSwizzle.Text = "PS Vita";
             this.rbPSVitaSwizzle.UseVisualStyleBackColor = true;
             this.rbPSVitaSwizzle.CheckedChanged += new System.EventHandler(this.rbPSVitaSwizzle_CheckedChanged);
+            // 
+            // 
+            // rbWiiSwizzle
+            // 
+            this.rbWiiSwizzle.AutoSize = true;
+            this.rbWiiSwizzle.Location = new System.Drawing.Point(16, 129);
+            this.rbWiiSwizzle.Name = "rbWiiSwizzle";
+            this.rbWiiSwizzle.Size = new System.Drawing.Size(84, 17);
+            this.rbWiiSwizzle.TabIndex = 5;
+            this.rbWiiSwizzle.TabStop = true;
+            this.rbWiiSwizzle.Text = "Nintendo Wii";
+            this.rbWiiSwizzle.UseVisualStyleBackColor = true;
+            this.rbWiiSwizzle.CheckedChanged += new System.EventHandler(this.rbWiiSwizzle_CheckedChanged);
             // 
             // rbNoSwizzle
             // 
@@ -403,6 +418,7 @@
         private System.Windows.Forms.RadioButton rbPS4Swizzle;
         private System.Windows.Forms.RadioButton rbXbox360Swizzle;
         private System.Windows.Forms.RadioButton rbPSVitaSwizzle;
+        private System.Windows.Forms.RadioButton rbWiiSwizzle;
         private System.Windows.Forms.RadioButton rbNoSwizzle;
         private System.Windows.Forms.Label sortLabel;
     }

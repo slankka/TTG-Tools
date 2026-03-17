@@ -39,6 +39,7 @@ namespace TTG_Tools
         bool AddInfo;
         string droppedFontPath;
         private Bitmap basePreviewBitmap;
+        private Graphics.WiiSupport.WiiFontData wiiFontData;
 
         private void EnableDragDropForControls(Control parent)
         {
@@ -95,11 +96,12 @@ namespace TTG_Tools
         {
             edited = false; //Tell a program about first launch window form so font is not modified.
             
-            if(MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita)
+            if(MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita || MainMenu.settings.swizzleNintendoWii)
             {
                 if (MainMenu.settings.swizzlePS4) rbPS4Swizzle.Checked = true;
                 else if (MainMenu.settings.swizzlePSVita) rbPSVitaSwizzle.Checked = true;
                 else if (MainMenu.settings.swizzleXbox360) rbXbox360Swizzle.Checked = true;
+                else if (MainMenu.settings.swizzleNintendoWii) rbWiiSwizzle.Checked = true;
                 else rbSwitchSwizzle.Checked = true;
             }
             else
@@ -1118,6 +1120,69 @@ namespace TTG_Tools
                     {
                     try
                     {
+                        if (MainMenu.settings.swizzleNintendoWii
+                            && Path.GetExtension(selectedFontPath).Equals(".font", StringComparison.OrdinalIgnoreCase)
+                            && Graphics.WiiSupport.TryLoadWiiFontForEditor(selectedFontPath, out wiiFontData))
+                        {
+                            fontFlags = null;
+                            font = new FontClass.ClassFont();
+                            font.NewFormat = false;
+                            font.blockSize = wiiFontData.IsBlockSizeFont;
+                            font.hasScaleValue = wiiFontData.HasScaleValue;
+                            font.FontName = wiiFontData.FontName;
+                            font.BaseSize = wiiFontData.BaseSize;
+                            font.TexCount = Math.Max(1, wiiFontData.TexCount);
+                            font.glyph.CharCount = wiiFontData.CharCount;
+                            font.glyph.chars = new FontClass.ClassFont.TRect[font.glyph.CharCount];
+
+                            int maxTex = 0;
+                            for (int i = 0; i < wiiFontData.Glyphs.Count; i++)
+                            {
+                                var g = wiiFontData.Glyphs[i];
+                                maxTex = Math.Max(maxTex, g.TexNum);
+                                font.glyph.chars[i] = new FontClass.ClassFont.TRect
+                                {
+                                    TexNum = g.TexNum,
+                                    XStart = g.XStart,
+                                    XEnd = g.XEnd,
+                                    YStart = g.YStart,
+                                    YEnd = g.YEnd,
+                                    CharWidth = g.CharWidth,
+                                    CharHeight = g.CharHeight
+                                };
+                            }
+
+                            font.TexCount = Math.Max(font.TexCount, maxTex + 1);
+                            font.tex = new TextureClass.OldT3Texture[font.TexCount];
+                            for (int i = 0; i < font.TexCount; i++)
+                            {
+                                font.tex[i] = new TextureClass.OldT3Texture
+                                {
+                                    Width = wiiFontData.TextureWidth,
+                                    Height = wiiFontData.TextureHeight,
+                                    OriginalWidth = wiiFontData.TextureWidth,
+                                    OriginalHeight = wiiFontData.TextureHeight,
+                                    TexSize = 0,
+                                    Content = new byte[0]
+                                };
+                            }
+
+                            check_header = Encoding.ASCII.GetBytes("ERTM");
+                            fillTableofCoordinates(font, false);
+                            fillTableofTextures(font);
+                            UpdateTexturePreview();
+                            saveToolStripMenuItem.Enabled = true;
+                            saveAsToolStripMenuItem.Enabled = true;
+                            exportCoordinatesToolStripMenuItem1.Enabled = true;
+                            rbKerning.Enabled = false;
+                            rbNoKerning.Enabled = false;
+                            edited = false;
+                            FileInfo fiWii = new FileInfo(FileName);
+                            if (Form.ActiveForm != null) Form.ActiveForm.Text = "Font Editor. Opened file " + fiWii.Name + " (Wii)";
+                            return;
+                        }
+
+                        wiiFontData = null;
                         fontFlags = null;
 
                         byte[] header = new byte[4];
@@ -1683,6 +1748,28 @@ namespace TTG_Tools
 
         private void SaveFont(Stream fs, ClassesStructs.FontClass.ClassFont font)
         {
+            if (wiiFontData != null)
+            {
+                fs.Close();
+                for (int i = 0; i < font.glyph.CharCount && i < wiiFontData.Glyphs.Count; i++)
+                {
+                    var src = font.glyph.chars[i];
+                    var dst = wiiFontData.Glyphs[i];
+                    dst.TexNum = src.TexNum;
+                    dst.XStart = src.XStart;
+                    dst.XEnd = src.XEnd;
+                    dst.YStart = src.YStart;
+                    dst.YEnd = src.YEnd;
+                    if (wiiFontData.HasScaleValue)
+                    {
+                        dst.CharWidth = src.CharWidth;
+                        dst.CharHeight = src.CharHeight;
+                    }
+                }
+                wiiFontData.Save(ofd.FileName);
+                return;
+            }
+
             BinaryWriter bw = new BinaryWriter(fs);
 
             bw.Write(tmpHeader);
@@ -2833,6 +2920,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = false;
             MainMenu.settings.swizzleNintendoSwitch = false;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2842,6 +2930,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = true;
             MainMenu.settings.swizzleNintendoSwitch = false;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2851,6 +2940,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = false;
             MainMenu.settings.swizzleNintendoSwitch = true;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2862,6 +2952,7 @@ namespace TTG_Tools
                 MainMenu.settings.swizzlePS4 = false;
                 MainMenu.settings.swizzleNintendoSwitch = false;
                 MainMenu.settings.swizzlePSVita = false;
+                MainMenu.settings.swizzleNintendoWii = false;
                 Settings.SaveConfig(MainMenu.settings);
             }
         }
@@ -2874,6 +2965,21 @@ namespace TTG_Tools
                 MainMenu.settings.swizzlePS4 = false;
                 MainMenu.settings.swizzleNintendoSwitch = false;
                 MainMenu.settings.swizzleXbox360 = false;
+                MainMenu.settings.swizzleNintendoWii = false;
+                Settings.SaveConfig(MainMenu.settings);
+            }
+        }
+
+
+        private void rbWiiSwizzle_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rbWiiSwizzle.Checked)
+            {
+                MainMenu.settings.swizzlePSVita = false;
+                MainMenu.settings.swizzlePS4 = false;
+                MainMenu.settings.swizzleNintendoSwitch = false;
+                MainMenu.settings.swizzleXbox360 = false;
+                MainMenu.settings.swizzleNintendoWii = true;
                 Settings.SaveConfig(MainMenu.settings);
             }
         }

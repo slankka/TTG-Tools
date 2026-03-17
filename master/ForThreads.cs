@@ -107,6 +107,39 @@ namespace TTG_Tools
                                     fileDestination = inputFiles[i].Directory.GetFiles(onlyNameImporting + "(*)" + whatImport);
                                 }
 
+                                // Wii/TPL import support: Auto(De)Packer originally only watches
+                                // dds/pvr for textures and ttf for fonts. If user provides tpl/fnt,
+                                // we still need to trigger DoWork.
+                                if (fileDestination.Length == 0)
+                                {
+                                    if (destinationForExport == ".d3dtx" && whatImport == ".dds" && MainMenu.settings.swizzleNintendoWii)
+                                    {
+                                        string wiiPattern = q == 0
+                                            ? onlyNameImporting + ".tpl"
+                                            : onlyNameImporting + "(*)" + ".tpl";
+                                        fileDestination = inputFiles[i].Directory.GetFiles(wiiPattern);
+                                    }
+                                    else if (destinationForExport == ".font" && MainMenu.settings.swizzleNintendoWii)
+                                    {
+                                        string tplPattern = q == 0
+                                            ? onlyNameImporting + ".tpl"
+                                            : onlyNameImporting + "(*)" + ".tpl";
+                                        string fntPattern = q == 0
+                                            ? onlyNameImporting + ".fnt"
+                                            : onlyNameImporting + "(*)" + ".fnt";
+
+                                        FileInfo[] tplCandidates = inputFiles[i].Directory.GetFiles(tplPattern);
+                                        if (tplCandidates.Length > 0)
+                                        {
+                                            fileDestination = tplCandidates;
+                                        }
+                                        else
+                                        {
+                                            fileDestination = inputFiles[i].Directory.GetFiles(fntPattern);
+                                        }
+                                    }
+                                }
+
                                 countOfAllFiles += fileDestination.Count();
 
                                 for (int j = 0; j < fileDestination.Length; j++)

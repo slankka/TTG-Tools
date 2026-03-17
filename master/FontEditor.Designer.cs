@@ -679,7 +679,7 @@
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
             this.groupBox4.Location = new System.Drawing.Point(1005, 28);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(122, 173);
+            this.groupBox4.Size = new System.Drawing.Size(122, 149);
             this.groupBox4.TabIndex = 30;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Swizzle methods";
@@ -687,7 +687,7 @@
             // rbSwitchSwizzle
             // 
             this.rbSwitchSwizzle.AutoSize = true;
-            this.rbSwitchSwizzle.Location = new System.Drawing.Point(7, 74);
+            this.rbSwitchSwizzle.Location = new System.Drawing.Point(7, 59);
             this.rbSwitchSwizzle.Name = "rbSwitchSwizzle";
             this.rbSwitchSwizzle.Size = new System.Drawing.Size(103, 17);
             this.rbSwitchSwizzle.TabIndex = 2;
@@ -699,7 +699,7 @@
             // rbPS4Swizzle
             // 
             this.rbPS4Swizzle.AutoSize = true;
-            this.rbPS4Swizzle.Location = new System.Drawing.Point(7, 48);
+            this.rbPS4Swizzle.Location = new System.Drawing.Point(7, 36);
             this.rbPS4Swizzle.Name = "rbPS4Swizzle";
             this.rbPS4Swizzle.Size = new System.Drawing.Size(45, 17);
             this.rbPS4Swizzle.TabIndex = 1;
@@ -711,7 +711,7 @@
             // rbXbox360Swizzle
             // 
             this.rbXbox360Swizzle.AutoSize = true;
-            this.rbXbox360Swizzle.Location = new System.Drawing.Point(7, 97);
+            this.rbXbox360Swizzle.Location = new System.Drawing.Point(7, 82);
             this.rbXbox360Swizzle.Name = "rbXbox360Swizzle";
             this.rbXbox360Swizzle.Size = new System.Drawing.Size(70, 17);
             this.rbXbox360Swizzle.TabIndex = 3;
@@ -723,7 +723,7 @@
             // rbPSVitaSwizzle
             // 
             this.rbPSVitaSwizzle.AutoSize = true;
-            this.rbPSVitaSwizzle.Location = new System.Drawing.Point(7, 120);
+            this.rbPSVitaSwizzle.Location = new System.Drawing.Point(7, 103);
             this.rbPSVitaSwizzle.Name = "rbPSVitaSwizzle";
             this.rbPSVitaSwizzle.Size = new System.Drawing.Size(60, 17);
             this.rbPSVitaSwizzle.TabIndex = 4;
@@ -732,13 +732,12 @@
             this.rbPSVitaSwizzle.UseVisualStyleBackColor = true;
             this.rbPSVitaSwizzle.CheckedChanged += new System.EventHandler(this.rbPSVitaSwizzle_CheckedChanged);
             // 
-            // 
             // rbWiiSwizzle
             // 
             this.rbWiiSwizzle.AutoSize = true;
-            this.rbWiiSwizzle.Location = new System.Drawing.Point(7, 149);
+            this.rbWiiSwizzle.Location = new System.Drawing.Point(7, 126);
             this.rbWiiSwizzle.Name = "rbWiiSwizzle";
-            this.rbWiiSwizzle.Size = new System.Drawing.Size(84, 17);
+            this.rbWiiSwizzle.Size = new System.Drawing.Size(86, 17);
             this.rbWiiSwizzle.TabIndex = 5;
             this.rbWiiSwizzle.TabStop = true;
             this.rbWiiSwizzle.Text = "Nintendo Wii";
@@ -748,7 +747,7 @@
             // rbNoSwizzle
             // 
             this.rbNoSwizzle.AutoSize = true;
-            this.rbNoSwizzle.Location = new System.Drawing.Point(7, 22);
+            this.rbNoSwizzle.Location = new System.Drawing.Point(7, 18);
             this.rbNoSwizzle.Name = "rbNoSwizzle";
             this.rbNoSwizzle.Size = new System.Drawing.Size(51, 17);
             this.rbNoSwizzle.TabIndex = 0;

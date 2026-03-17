@@ -878,6 +878,28 @@ namespace TTG_Tools.Graphics
 
             FileInfo fi = new FileInfo(InputFile);
 
+            string ext = fi.Extension.ToLowerInvariant();
+            if ((ext == ".d3dtx" || ext == ".font"))
+            {
+                string wiiResult;
+                if (extract && WiiSupport.TryExtractWiiContainer(InputFile, OutputDir, out wiiResult))
+                {
+                    return wiiResult;
+                }
+
+                if (!extract && WiiSupport.TryRepackWiiContainer(InputFile, fi.DirectoryName, OutputDir, out wiiResult))
+                {
+                    if (FullEncrypt && EncKey != null)
+                    {
+                        string outPath = Path.Combine(OutputDir, fi.Name);
+                        byte[] encryptedData = File.ReadAllBytes(outPath);
+                        Methods.meta_crypt(encryptedData, EncKey, version, false);
+                        File.WriteAllBytes(outPath, encryptedData);
+                    }
+                    return wiiResult;
+                }
+            }
+
             byte[] binContent = File.ReadAllBytes(InputFile);
             byte[] check_header = new byte[4];
             Array.Copy(binContent, 0, check_header, 0, check_header.Length);

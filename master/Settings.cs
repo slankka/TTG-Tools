@@ -53,6 +53,7 @@ namespace TTG_Tools
         private bool _swizzlePS4;
         private bool _swizzleXbox360;
         private bool _swizzlePSVita;
+        private bool _swizzleNintendoWii;
         private bool _supportTwdNintendoSwitch;
 
         private int _languageIndex;
@@ -500,6 +501,19 @@ namespace TTG_Tools
             }
         }
 
+        [XmlAttribute("swizzleNintendoWii")]
+        public bool swizzleNintendoWii
+        {
+            get
+            {
+                return _swizzleNintendoWii;
+            }
+            set
+            {
+                _swizzleNintendoWii = value;
+            }
+        }
+
         [XmlAttribute("ASCIILanguageIndex")]
         public int languageIndex
         {
@@ -561,6 +575,7 @@ namespace TTG_Tools
             bool _swizzlePS4,
             bool _swizzleXbox360,
             bool _swizzlePSVita,
+            bool _swizzleNintendoWii,
             int _languageIndex,
             bool _supportTwdNintendoSwitch)
         {
@@ -598,6 +613,7 @@ namespace TTG_Tools
             this.swizzlePS4 = _swizzlePS4;
             this.swizzleXbox360 = _swizzleXbox360;
             this.swizzlePSVita = _swizzlePSVita;
+            this.swizzleNintendoWii = _swizzleNintendoWii;
             this.languageIndex = _languageIndex;
             this.supportTwdNintendoSwitch = _supportTwdNintendoSwitch;
         }

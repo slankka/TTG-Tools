@@ -879,7 +879,7 @@ namespace TTG_Tools.Graphics
             FileInfo fi = new FileInfo(InputFile);
 
             string ext = fi.Extension.ToLowerInvariant();
-            if ((ext == ".d3dtx" || ext == ".font"))
+            if (MainMenu.settings.swizzleNintendoWii && (ext == ".d3dtx" || ext == ".font"))
             {
                 string wiiResult;
                 if (extract && WiiSupport.TryExtractWiiContainer(InputFile, OutputDir, out wiiResult))

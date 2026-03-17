@@ -11,12 +11,12 @@ namespace TTG_Tools.Graphics
             FileInfo fi = new FileInfo(inputFile);
 
             string wiiResult;
-            if (extract && WiiSupport.TryExtractWiiContainer(inputFile, MainMenu.settings.pathForOutputFolder, out wiiResult))
+            if (MainMenu.settings.swizzleNintendoWii && extract && WiiSupport.TryExtractWiiContainer(inputFile, MainMenu.settings.pathForOutputFolder, out wiiResult))
             {
                 return wiiResult;
             }
 
-            if (!extract && WiiSupport.TryRepackWiiContainer(inputFile, fi.DirectoryName, MainMenu.settings.pathForOutputFolder, out wiiResult))
+            if (MainMenu.settings.swizzleNintendoWii && !extract && WiiSupport.TryRepackWiiContainer(inputFile, fi.DirectoryName, MainMenu.settings.pathForOutputFolder, out wiiResult))
             {
                 return wiiResult;
             }

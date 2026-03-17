@@ -112,14 +112,14 @@ namespace TTG_Tools
                                 // we still need to trigger DoWork.
                                 if (fileDestination.Length == 0)
                                 {
-                                    if (destinationForExport == ".d3dtx")
+                                    if (destinationForExport == ".d3dtx" && whatImport == ".dds" && MainMenu.settings.swizzleNintendoWii)
                                     {
                                         string wiiPattern = q == 0
                                             ? onlyNameImporting + ".tpl"
                                             : onlyNameImporting + "(*)" + ".tpl";
                                         fileDestination = inputFiles[i].Directory.GetFiles(wiiPattern);
                                     }
-                                    else if (destinationForExport == ".font")
+                                    else if (destinationForExport == ".font" && MainMenu.settings.swizzleNintendoWii)
                                     {
                                         string tplPattern = q == 0
                                             ? onlyNameImporting + ".tpl"

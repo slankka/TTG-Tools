@@ -96,11 +96,12 @@ namespace TTG_Tools
         {
             edited = false; //Tell a program about first launch window form so font is not modified.
             
-            if(MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita)
+            if(MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita || MainMenu.settings.swizzleNintendoWii)
             {
                 if (MainMenu.settings.swizzlePS4) rbPS4Swizzle.Checked = true;
                 else if (MainMenu.settings.swizzlePSVita) rbPSVitaSwizzle.Checked = true;
                 else if (MainMenu.settings.swizzleXbox360) rbXbox360Swizzle.Checked = true;
+                else if (MainMenu.settings.swizzleNintendoWii) rbWiiSwizzle.Checked = true;
                 else rbSwitchSwizzle.Checked = true;
             }
             else
@@ -1119,7 +1120,8 @@ namespace TTG_Tools
                     {
                     try
                     {
-                        if (Path.GetExtension(selectedFontPath).Equals(".font", StringComparison.OrdinalIgnoreCase)
+                        if (MainMenu.settings.swizzleNintendoWii
+                            && Path.GetExtension(selectedFontPath).Equals(".font", StringComparison.OrdinalIgnoreCase)
                             && Graphics.WiiSupport.TryLoadWiiFontForEditor(selectedFontPath, out wiiFontData))
                         {
                             fontFlags = null;
@@ -2918,6 +2920,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = false;
             MainMenu.settings.swizzleNintendoSwitch = false;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2927,6 +2930,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = true;
             MainMenu.settings.swizzleNintendoSwitch = false;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2936,6 +2940,7 @@ namespace TTG_Tools
             MainMenu.settings.swizzlePS4 = false;
             MainMenu.settings.swizzleNintendoSwitch = true;
             MainMenu.settings.swizzlePSVita = false;
+            MainMenu.settings.swizzleNintendoWii = false;
             Settings.SaveConfig(MainMenu.settings);
         }
 
@@ -2947,6 +2952,7 @@ namespace TTG_Tools
                 MainMenu.settings.swizzlePS4 = false;
                 MainMenu.settings.swizzleNintendoSwitch = false;
                 MainMenu.settings.swizzlePSVita = false;
+                MainMenu.settings.swizzleNintendoWii = false;
                 Settings.SaveConfig(MainMenu.settings);
             }
         }
@@ -2959,6 +2965,21 @@ namespace TTG_Tools
                 MainMenu.settings.swizzlePS4 = false;
                 MainMenu.settings.swizzleNintendoSwitch = false;
                 MainMenu.settings.swizzleXbox360 = false;
+                MainMenu.settings.swizzleNintendoWii = false;
+                Settings.SaveConfig(MainMenu.settings);
+            }
+        }
+
+
+        private void rbWiiSwizzle_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rbWiiSwizzle.Checked)
+            {
+                MainMenu.settings.swizzlePSVita = false;
+                MainMenu.settings.swizzlePS4 = false;
+                MainMenu.settings.swizzleNintendoSwitch = false;
+                MainMenu.settings.swizzleXbox360 = false;
+                MainMenu.settings.swizzleNintendoWii = true;
                 Settings.SaveConfig(MainMenu.settings);
             }
         }

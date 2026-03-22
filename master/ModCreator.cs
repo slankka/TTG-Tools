@@ -613,32 +613,27 @@ namespace TTG_Tools
             public bool EncryptLuaInsideArchive => true;
             public bool NewEngineLua => true;
             public int Ttarch2Version => 2;
-            public bool RequiresLayoutSelection => false;
+            public bool RequiresLayoutSelection => true;
 
             public List<ModLayoutOption> GetLayoutOptions()
             {
                 return new List<ModLayoutOption>
                 {
-                    new ModLayoutOption
-                    {
-                        DisplayName = "Project",
-                        ArchiveSegment = "Project",
-                        LogicalName = "Project",
-                        Priority = -8888,
-                        EnableMode = "constant",
-                        GameDataPriority = 0
-                    }
+                    new ModLayoutOption { DisplayName = "Boot", ArchiveSegment = "Boot", LogicalName = "Boot", Priority = 10, EnableMode = "bootable", GameDataPriority = 10, DescriptionPriority = 10 },
+                    new ModLayoutOption { DisplayName = "Common", ArchiveSegment = "Common", LogicalName = "Common", Priority = 100, EnableMode = "bootable", GameDataPriority = 100, DescriptionPriority = 100 },
+                    new ModLayoutOption { DisplayName = "Menu", ArchiveSegment = "Menu", LogicalName = "Menu", Priority = 20, EnableMode = "bootable", GameDataPriority = 20, DescriptionPriority = 20 },
+                    new ModLayoutOption { DisplayName = "Project", ArchiveSegment = "Project", LogicalName = "Project", Priority = -8888, EnableMode = "constant", GameDataPriority = -8888, DescriptionPriority = -8888 }
                 };
             }
 
             public string BuildArchiveFileName(string modName, ModLayoutOption layoutOption)
             {
-                return "CP_pc_" + modName + ".ttarch2";
+                return "CP_pc_" + layoutOption.ArchiveSegment + "_" + modName + ".ttarch2";
             }
 
             public string BuildLuaFileName(string modName, ModLayoutOption layoutOption)
             {
-                return "_resdesc_50_" + modName + ".lua";
+                return "_resdesc_50_" + layoutOption.ArchiveSegment + "_" + modName + ".lua";
             }
 
             public string BuildLuaDescriptor(string modName, string archiveFileName, ModLayoutOption layoutOption)
@@ -648,15 +643,15 @@ namespace TTG_Tools
                 sb.AppendLine("set.name = \"" + modName + "\"");
                 sb.AppendLine("set.setName = \"" + modName + "\"");
                 sb.AppendLine("set.descriptionFilenameOverride = \"\"");
-                sb.AppendLine("set.logicalName = \"<Project>\"");
+                sb.AppendLine("set.logicalName = \"<" + layoutOption.LogicalName + ">\"");
                 sb.AppendLine("set.logicalDestination = \"<>\"");
-                sb.AppendLine("set.priority = -8888");
+                sb.AppendLine("set.priority = " + layoutOption.Priority);
                 sb.AppendLine("set.localDir = _currentDirectory");
-                sb.AppendLine("set.enableMode = \"constant\"");
+                sb.AppendLine("set.enableMode = \"" + layoutOption.EnableMode + "\"");
                 sb.AppendLine("set.version = \"trunk\"");
-                sb.AppendLine("set.descriptionPriority = 0");
+                sb.AppendLine("set.descriptionPriority = " + layoutOption.DescriptionPriority);
                 sb.AppendLine("set.gameDataName = \"" + modName + " Game Data\"");
-                sb.AppendLine("set.gameDataPriority = 0");
+                sb.AppendLine("set.gameDataPriority = " + layoutOption.GameDataPriority);
                 sb.AppendLine("set.gameDataEnableMode = \"constant\"");
                 sb.AppendLine("set.localDirIncludeBase = true");
                 sb.AppendLine("set.localDirRecurse = false");

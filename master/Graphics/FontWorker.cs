@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 
@@ -36,10 +36,56 @@ namespace TTG_Tools.Graphics
             BinaryReader br = new BinaryReader(fs);
 
             byte[] header = br.ReadBytes(4);
+
+            // Determine read position (consistent with FontEditor.cs lines 1231-1243)
+            int poz;
+            if (Encoding.ASCII.GetString(header) == "5VSM" || Encoding.ASCII.GetString(header) == "6VSM")
+            {
+                poz = 16;
+            }
+            else
+            {
+                poz = 4;
+            }
+
+            // Read countElements (consistent with FontEditor.cs lines 1245-1248)
+            br.BaseStream.Seek(poz, SeekOrigin.Begin);
+            int countElements = br.ReadInt32();
+
+            // Read tmp marker (consistent with FontEditor.cs lines 1254-1255)
+            br.BaseStream.Seek(poz + 4, SeekOrigin.Begin);
+            byte[] tmp = br.ReadBytes(8);
+
+            // Detect font type (consistent with FontEditor.cs lines 1267-1276)
+            if (BitConverter.ToString(tmp) == "81-53-37-63-9E-4A-3A-9A")
+            {
+                if (countElements == 1 && Encoding.ASCII.GetString(header) == "6VSM")
+                {
+                    // This is a vector font, continue processing
+                }
+                else
+                {
+                    // This is a bitmap font (.font file with binary element format)
+                    fs.Close();
+                    br.Close();
+                    GC.Collect();
+                    return "This is a bitmap font (.font file). Please use FontEditor to edit it: " + fi.Name;
+                }
+            }
+            else
+            {
+                // This is an old format bitmap font
+                fs.Close();
+                br.Close();
+                GC.Collect();
+                return "This is a bitmap font (.font file). Please use FontEditor to edit it: " + fi.Name;
+            }
+
+            // Read version for further verification
             br.BaseStream.Seek(16, SeekOrigin.Begin);
             int version = br.ReadInt32();
 
-            if (Encoding.ASCII.GetString(header) != "6VSM" && version != 1)
+            if (version != 1)
             {
                 vectorFont = null;
                 fs.Close();

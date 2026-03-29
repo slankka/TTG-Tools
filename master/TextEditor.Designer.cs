@@ -59,6 +59,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.compareBtn = new System.Windows.Forms.Button();
             this.readyBrowseBtn = new System.Windows.Forms.Button();
             this.readyPath = new System.Windows.Forms.TextBox();
             this.checkNonTranslatedStrsBtn = new System.Windows.Forms.Button();
@@ -71,7 +72,6 @@
             this.txtNewMethodRB = new System.Windows.Forms.RadioButton();
             this.txtOldMethodRB = new System.Windows.Forms.RadioButton();
             this.progressBar2 = new System.Windows.Forms.ProgressBar();
-            this.compareBtn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.tabPagesControl.SuspendLayout();
             this.mergeTextTabPage.SuspendLayout();
@@ -82,30 +82,30 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(31, 244);
+            this.progressBar1.Location = new System.Drawing.Point(31, 225);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(709, 23);
+            this.progressBar1.Size = new System.Drawing.Size(709, 21);
             this.progressBar1.TabIndex = 8;
             // 
             // firstFilePath
             // 
-            this.firstFilePath.Location = new System.Drawing.Point(78, 22);
+            this.firstFilePath.Location = new System.Drawing.Point(104, 20);
             this.firstFilePath.Name = "firstFilePath";
-            this.firstFilePath.Size = new System.Drawing.Size(447, 20);
+            this.firstFilePath.Size = new System.Drawing.Size(421, 21);
             this.firstFilePath.TabIndex = 9;
             // 
             // readyFilePath
             // 
-            this.readyFilePath.Location = new System.Drawing.Point(78, 96);
+            this.readyFilePath.Location = new System.Drawing.Point(104, 89);
             this.readyFilePath.Name = "readyFilePath";
-            this.readyFilePath.Size = new System.Drawing.Size(447, 20);
+            this.readyFilePath.Size = new System.Drawing.Size(421, 21);
             this.readyFilePath.TabIndex = 10;
             // 
             // firstFileBtn
             // 
-            this.firstFileBtn.Location = new System.Drawing.Point(537, 20);
+            this.firstFileBtn.Location = new System.Drawing.Point(537, 18);
             this.firstFileBtn.Name = "firstFileBtn";
-            this.firstFileBtn.Size = new System.Drawing.Size(33, 23);
+            this.firstFileBtn.Size = new System.Drawing.Size(33, 21);
             this.firstFileBtn.TabIndex = 11;
             this.firstFileBtn.Text = "...";
             this.firstFileBtn.UseVisualStyleBackColor = true;
@@ -113,9 +113,9 @@
             // 
             // readyFileBtn
             // 
-            this.readyFileBtn.Location = new System.Drawing.Point(537, 94);
+            this.readyFileBtn.Location = new System.Drawing.Point(537, 87);
             this.readyFileBtn.Name = "readyFileBtn";
-            this.readyFileBtn.Size = new System.Drawing.Size(33, 23);
+            this.readyFileBtn.Size = new System.Drawing.Size(33, 21);
             this.readyFileBtn.TabIndex = 12;
             this.readyFileBtn.Text = "...";
             this.readyFileBtn.UseVisualStyleBackColor = true;
@@ -124,18 +124,18 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(27, 25);
+            this.label1.Location = new System.Drawing.Point(27, 23);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(45, 13);
+            this.label1.Size = new System.Drawing.Size(71, 12);
             this.label1.TabIndex = 13;
             this.label1.Text = "First file:";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(15, 99);
+            this.label2.Location = new System.Drawing.Point(15, 91);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(57, 13);
+            this.label2.Size = new System.Drawing.Size(71, 12);
             this.label2.TabIndex = 14;
             this.label2.Text = "Ready file:";
             // 
@@ -143,9 +143,9 @@
             // 
             this.groupBox1.Controls.Add(this.severalFilesRB);
             this.groupBox1.Controls.Add(this.singleFileRB);
-            this.groupBox1.Location = new System.Drawing.Point(618, 35);
+            this.groupBox1.Location = new System.Drawing.Point(618, 34);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(122, 77);
+            this.groupBox1.Size = new System.Drawing.Size(136, 69);
             this.groupBox1.TabIndex = 15;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Merge";
@@ -153,9 +153,9 @@
             // severalFilesRB
             // 
             this.severalFilesRB.AutoSize = true;
-            this.severalFilesRB.Location = new System.Drawing.Point(18, 44);
+            this.severalFilesRB.Location = new System.Drawing.Point(18, 41);
             this.severalFilesRB.Name = "severalFilesRB";
-            this.severalFilesRB.Size = new System.Drawing.Size(82, 17);
+            this.severalFilesRB.Size = new System.Drawing.Size(101, 16);
             this.severalFilesRB.TabIndex = 1;
             this.severalFilesRB.TabStop = true;
             this.severalFilesRB.Text = "Several files";
@@ -164,9 +164,9 @@
             // singleFileRB
             // 
             this.singleFileRB.AutoSize = true;
-            this.singleFileRB.Location = new System.Drawing.Point(18, 19);
+            this.singleFileRB.Location = new System.Drawing.Point(18, 18);
             this.singleFileRB.Name = "singleFileRB";
-            this.singleFileRB.Size = new System.Drawing.Size(70, 17);
+            this.singleFileRB.Size = new System.Drawing.Size(89, 16);
             this.singleFileRB.TabIndex = 0;
             this.singleFileRB.TabStop = true;
             this.singleFileRB.Text = "Single file";
@@ -178,10 +178,10 @@
             this.tabPagesControl.Controls.Add(this.mergeTextTabPage);
             this.tabPagesControl.Controls.Add(this.replaceTextTabPage);
             this.tabPagesControl.Controls.Add(this.tabPage1);
-            this.tabPagesControl.Location = new System.Drawing.Point(15, 13);
+            this.tabPagesControl.Location = new System.Drawing.Point(15, 12);
             this.tabPagesControl.Name = "tabPagesControl";
             this.tabPagesControl.SelectedIndex = 0;
-            this.tabPagesControl.Size = new System.Drawing.Size(597, 185);
+            this.tabPagesControl.Size = new System.Drawing.Size(597, 171);
             this.tabPagesControl.TabIndex = 16;
             this.tabPagesControl.SelectedIndexChanged += new System.EventHandler(this.tabPagesControl_SelectedIndexChanged);
             // 
@@ -202,25 +202,25 @@
             this.mergeTextTabPage.Location = new System.Drawing.Point(4, 22);
             this.mergeTextTabPage.Name = "mergeTextTabPage";
             this.mergeTextTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.mergeTextTabPage.Size = new System.Drawing.Size(589, 159);
+            this.mergeTextTabPage.Size = new System.Drawing.Size(589, 145);
             this.mergeTextTabPage.TabIndex = 0;
             this.mergeTextTabPage.Text = "Merge texts";
             // 
             // sortStrsCB
             // 
             this.sortStrsCB.AutoSize = true;
-            this.sortStrsCB.Location = new System.Drawing.Point(318, 130);
+            this.sortStrsCB.Location = new System.Drawing.Point(104, 120);
             this.sortStrsCB.Name = "sortStrsCB";
-            this.sortStrsCB.Size = new System.Drawing.Size(130, 17);
+            this.sortStrsCB.Size = new System.Drawing.Size(162, 16);
             this.sortStrsCB.TabIndex = 21;
             this.sortStrsCB.Text = "Sort duplicated strings";
             this.sortStrsCB.UseVisualStyleBackColor = true;
             // 
             // mergeBtn
             // 
-            this.mergeBtn.Location = new System.Drawing.Point(462, 126);
+            this.mergeBtn.Location = new System.Drawing.Point(462, 116);
             this.mergeBtn.Name = "mergeBtn";
-            this.mergeBtn.Size = new System.Drawing.Size(88, 24);
+            this.mergeBtn.Size = new System.Drawing.Size(108, 22);
             this.mergeBtn.TabIndex = 19;
             this.mergeBtn.Text = "Merge files";
             this.mergeBtn.UseVisualStyleBackColor = true;
@@ -229,24 +229,24 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 62);
+            this.label3.Location = new System.Drawing.Point(9, 57);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(63, 13);
+            this.label3.Size = new System.Drawing.Size(77, 12);
             this.label3.TabIndex = 18;
             this.label3.Text = "Second file:";
             // 
             // secondFilePath
             // 
-            this.secondFilePath.Location = new System.Drawing.Point(78, 59);
+            this.secondFilePath.Location = new System.Drawing.Point(104, 54);
             this.secondFilePath.Name = "secondFilePath";
-            this.secondFilePath.Size = new System.Drawing.Size(447, 20);
+            this.secondFilePath.Size = new System.Drawing.Size(421, 21);
             this.secondFilePath.TabIndex = 16;
             // 
             // secondFileBtn
             // 
-            this.secondFileBtn.Location = new System.Drawing.Point(537, 57);
+            this.secondFileBtn.Location = new System.Drawing.Point(537, 53);
             this.secondFileBtn.Name = "secondFileBtn";
-            this.secondFileBtn.Size = new System.Drawing.Size(33, 23);
+            this.secondFileBtn.Size = new System.Drawing.Size(33, 21);
             this.secondFileBtn.TabIndex = 17;
             this.secondFileBtn.Text = "...";
             this.secondFileBtn.UseVisualStyleBackColor = true;
@@ -269,25 +269,25 @@
             this.replaceTextTabPage.Location = new System.Drawing.Point(4, 22);
             this.replaceTextTabPage.Name = "replaceTextTabPage";
             this.replaceTextTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.replaceTextTabPage.Size = new System.Drawing.Size(589, 159);
+            this.replaceTextTabPage.Size = new System.Drawing.Size(589, 145);
             this.replaceTextTabPage.TabIndex = 1;
             this.replaceTextTabPage.Text = "Replace texts";
             // 
             // sortDoubledCB
             // 
             this.sortDoubledCB.AutoSize = true;
-            this.sortDoubledCB.Location = new System.Drawing.Point(180, 128);
+            this.sortDoubledCB.Location = new System.Drawing.Point(155, 118);
             this.sortDoubledCB.Name = "sortDoubledCB";
-            this.sortDoubledCB.Size = new System.Drawing.Size(130, 17);
+            this.sortDoubledCB.Size = new System.Drawing.Size(162, 16);
             this.sortDoubledCB.TabIndex = 13;
             this.sortDoubledCB.Text = "Sort duplicated strings";
             this.sortDoubledCB.UseVisualStyleBackColor = true;
             // 
             // replaceDuplicatedStringsBtn
             // 
-            this.replaceDuplicatedStringsBtn.Location = new System.Drawing.Point(326, 123);
+            this.replaceDuplicatedStringsBtn.Location = new System.Drawing.Point(402, 114);
             this.replaceDuplicatedStringsBtn.Name = "replaceDuplicatedStringsBtn";
-            this.replaceDuplicatedStringsBtn.Size = new System.Drawing.Size(234, 24);
+            this.replaceDuplicatedStringsBtn.Size = new System.Drawing.Size(178, 22);
             this.replaceDuplicatedStringsBtn.TabIndex = 10;
             this.replaceDuplicatedStringsBtn.Text = "Replace strings from first duplicated file";
             this.replaceDuplicatedStringsBtn.UseVisualStyleBackColor = true;
@@ -295,9 +295,9 @@
             // 
             // readyDoubledFileBtn
             // 
-            this.readyDoubledFileBtn.Location = new System.Drawing.Point(548, 94);
+            this.readyDoubledFileBtn.Location = new System.Drawing.Point(548, 87);
             this.readyDoubledFileBtn.Name = "readyDoubledFileBtn";
-            this.readyDoubledFileBtn.Size = new System.Drawing.Size(32, 23);
+            this.readyDoubledFileBtn.Size = new System.Drawing.Size(32, 21);
             this.readyDoubledFileBtn.TabIndex = 8;
             this.readyDoubledFileBtn.Text = "...";
             this.readyDoubledFileBtn.UseVisualStyleBackColor = true;
@@ -305,9 +305,9 @@
             // 
             // secondDoubledFileBtn
             // 
-            this.secondDoubledFileBtn.Location = new System.Drawing.Point(548, 57);
+            this.secondDoubledFileBtn.Location = new System.Drawing.Point(548, 53);
             this.secondDoubledFileBtn.Name = "secondDoubledFileBtn";
-            this.secondDoubledFileBtn.Size = new System.Drawing.Size(32, 23);
+            this.secondDoubledFileBtn.Size = new System.Drawing.Size(32, 21);
             this.secondDoubledFileBtn.TabIndex = 7;
             this.secondDoubledFileBtn.Text = "...";
             this.secondDoubledFileBtn.UseVisualStyleBackColor = true;
@@ -315,9 +315,9 @@
             // 
             // firstDoubledFileBtn
             // 
-            this.firstDoubledFileBtn.Location = new System.Drawing.Point(548, 20);
+            this.firstDoubledFileBtn.Location = new System.Drawing.Point(548, 18);
             this.firstDoubledFileBtn.Name = "firstDoubledFileBtn";
-            this.firstDoubledFileBtn.Size = new System.Drawing.Size(32, 23);
+            this.firstDoubledFileBtn.Size = new System.Drawing.Size(32, 21);
             this.firstDoubledFileBtn.TabIndex = 6;
             this.firstDoubledFileBtn.Text = "...";
             this.firstDoubledFileBtn.UseVisualStyleBackColor = true;
@@ -325,49 +325,49 @@
             // 
             // readyDoubledFilePath
             // 
-            this.readyDoubledFilePath.Location = new System.Drawing.Point(122, 96);
+            this.readyDoubledFilePath.Location = new System.Drawing.Point(155, 89);
             this.readyDoubledFilePath.Name = "readyDoubledFilePath";
-            this.readyDoubledFilePath.Size = new System.Drawing.Size(411, 20);
+            this.readyDoubledFilePath.Size = new System.Drawing.Size(378, 21);
             this.readyDoubledFilePath.TabIndex = 5;
             // 
             // secondDoubledFilePath
             // 
-            this.secondDoubledFilePath.Location = new System.Drawing.Point(122, 59);
+            this.secondDoubledFilePath.Location = new System.Drawing.Point(155, 54);
             this.secondDoubledFilePath.Name = "secondDoubledFilePath";
-            this.secondDoubledFilePath.Size = new System.Drawing.Size(411, 20);
+            this.secondDoubledFilePath.Size = new System.Drawing.Size(378, 21);
             this.secondDoubledFilePath.TabIndex = 4;
             // 
             // firstDoubledFilePath
             // 
-            this.firstDoubledFilePath.Location = new System.Drawing.Point(122, 22);
+            this.firstDoubledFilePath.Location = new System.Drawing.Point(155, 20);
             this.firstDoubledFilePath.Name = "firstDoubledFilePath";
-            this.firstDoubledFilePath.Size = new System.Drawing.Size(411, 20);
+            this.firstDoubledFilePath.Size = new System.Drawing.Size(378, 21);
             this.firstDoubledFilePath.TabIndex = 3;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(18, 99);
+            this.label6.Location = new System.Drawing.Point(18, 91);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(98, 13);
+            this.label6.Size = new System.Drawing.Size(119, 12);
             this.label6.TabIndex = 2;
             this.label6.Text = "Ready doubled file:";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 62);
+            this.label5.Location = new System.Drawing.Point(12, 57);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(104, 13);
+            this.label5.Size = new System.Drawing.Size(125, 12);
             this.label5.TabIndex = 1;
             this.label5.Text = "Second doubled file:";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(30, 25);
+            this.label4.Location = new System.Drawing.Point(30, 23);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(86, 13);
+            this.label4.Size = new System.Drawing.Size(119, 12);
             this.label4.TabIndex = 0;
             this.label4.Text = "First doubled file:";
             // 
@@ -386,15 +386,25 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(589, 159);
+            this.tabPage1.Size = new System.Drawing.Size(589, 145);
             this.tabPage1.TabIndex = 2;
             this.tabPage1.Text = "Check non-translated strings";
             // 
+            // compareBtn
+            // 
+            this.compareBtn.Location = new System.Drawing.Point(30, 120);
+            this.compareBtn.Name = "compareBtn";
+            this.compareBtn.Size = new System.Drawing.Size(520, 21);
+            this.compareBtn.TabIndex = 24;
+            this.compareBtn.Text = "Check 2 files after \"check non-translated strings in file\" button";
+            this.compareBtn.UseVisualStyleBackColor = true;
+            this.compareBtn.Click += new System.EventHandler(this.compareBtn_Click);
+            // 
             // readyBrowseBtn
             // 
-            this.readyBrowseBtn.Location = new System.Drawing.Point(478, 61);
+            this.readyBrowseBtn.Location = new System.Drawing.Point(557, 57);
             this.readyBrowseBtn.Name = "readyBrowseBtn";
-            this.readyBrowseBtn.Size = new System.Drawing.Size(26, 24);
+            this.readyBrowseBtn.Size = new System.Drawing.Size(26, 22);
             this.readyBrowseBtn.TabIndex = 8;
             this.readyBrowseBtn.Text = "...";
             this.readyBrowseBtn.UseVisualStyleBackColor = true;
@@ -402,16 +412,16 @@
             // 
             // readyPath
             // 
-            this.readyPath.Location = new System.Drawing.Point(78, 64);
+            this.readyPath.Location = new System.Drawing.Point(104, 59);
             this.readyPath.Name = "readyPath";
-            this.readyPath.Size = new System.Drawing.Size(385, 20);
+            this.readyPath.Size = new System.Drawing.Size(446, 21);
             this.readyPath.TabIndex = 7;
             // 
             // checkNonTranslatedStrsBtn
             // 
-            this.checkNonTranslatedStrsBtn.Location = new System.Drawing.Point(330, 100);
+            this.checkNonTranslatedStrsBtn.Location = new System.Drawing.Point(330, 92);
             this.checkNonTranslatedStrsBtn.Name = "checkNonTranslatedStrsBtn";
-            this.checkNonTranslatedStrsBtn.Size = new System.Drawing.Size(220, 24);
+            this.checkNonTranslatedStrsBtn.Size = new System.Drawing.Size(220, 22);
             this.checkNonTranslatedStrsBtn.TabIndex = 23;
             this.checkNonTranslatedStrsBtn.Text = "Check non-translated strings in file";
             this.checkNonTranslatedStrsBtn.UseVisualStyleBackColor = true;
@@ -420,17 +430,17 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(9, 48);
+            this.label9.Location = new System.Drawing.Point(9, 44);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(152, 13);
+            this.label9.Size = new System.Drawing.Size(203, 12);
             this.label9.TabIndex = 6;
             this.label9.Text = "Non-translated strings file path:";
             // 
             // firstBrowseBtn
             // 
-            this.firstBrowseBtn.Location = new System.Drawing.Point(478, 11);
+            this.firstBrowseBtn.Location = new System.Drawing.Point(557, 9);
             this.firstBrowseBtn.Name = "firstBrowseBtn";
-            this.firstBrowseBtn.Size = new System.Drawing.Size(26, 24);
+            this.firstBrowseBtn.Size = new System.Drawing.Size(26, 22);
             this.firstBrowseBtn.TabIndex = 4;
             this.firstBrowseBtn.Text = "...";
             this.firstBrowseBtn.UseVisualStyleBackColor = true;
@@ -438,9 +448,9 @@
             // 
             // checkDuplicatedStrsBtn
             // 
-            this.checkDuplicatedStrsBtn.Location = new System.Drawing.Point(30, 100);
+            this.checkDuplicatedStrsBtn.Location = new System.Drawing.Point(30, 92);
             this.checkDuplicatedStrsBtn.Name = "checkDuplicatedStrsBtn";
-            this.checkDuplicatedStrsBtn.Size = new System.Drawing.Size(256, 24);
+            this.checkDuplicatedStrsBtn.Size = new System.Drawing.Size(256, 22);
             this.checkDuplicatedStrsBtn.TabIndex = 20;
             this.checkDuplicatedStrsBtn.Text = "Check on duplicated original strings in file";
             this.checkDuplicatedStrsBtn.UseVisualStyleBackColor = true;
@@ -448,17 +458,17 @@
             // 
             // firstPath
             // 
-            this.firstPath.Location = new System.Drawing.Point(78, 12);
+            this.firstPath.Location = new System.Drawing.Point(104, 11);
             this.firstPath.Name = "firstPath";
-            this.firstPath.Size = new System.Drawing.Size(385, 20);
+            this.firstPath.Size = new System.Drawing.Size(446, 21);
             this.firstPath.TabIndex = 2;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(27, 15);
+            this.label7.Location = new System.Drawing.Point(27, 14);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(57, 13);
+            this.label7.Size = new System.Drawing.Size(71, 12);
             this.label7.TabIndex = 0;
             this.label7.Text = "Check file:";
             // 
@@ -466,9 +476,9 @@
             // 
             this.groupBox4.Controls.Add(this.txtNewMethodRB);
             this.groupBox4.Controls.Add(this.txtOldMethodRB);
-            this.groupBox4.Location = new System.Drawing.Point(618, 129);
+            this.groupBox4.Location = new System.Drawing.Point(618, 119);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(122, 69);
+            this.groupBox4.Size = new System.Drawing.Size(136, 64);
             this.groupBox4.TabIndex = 24;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Save txt file with";
@@ -476,9 +486,9 @@
             // txtNewMethodRB
             // 
             this.txtNewMethodRB.AutoSize = true;
-            this.txtNewMethodRB.Location = new System.Drawing.Point(18, 44);
+            this.txtNewMethodRB.Location = new System.Drawing.Point(18, 41);
             this.txtNewMethodRB.Name = "txtNewMethodRB";
-            this.txtNewMethodRB.Size = new System.Drawing.Size(85, 17);
+            this.txtNewMethodRB.Size = new System.Drawing.Size(83, 16);
             this.txtNewMethodRB.TabIndex = 1;
             this.txtNewMethodRB.TabStop = true;
             this.txtNewMethodRB.Text = "New method";
@@ -487,9 +497,9 @@
             // txtOldMethodRB
             // 
             this.txtOldMethodRB.AutoSize = true;
-            this.txtOldMethodRB.Location = new System.Drawing.Point(18, 20);
+            this.txtOldMethodRB.Location = new System.Drawing.Point(18, 18);
             this.txtOldMethodRB.Name = "txtOldMethodRB";
-            this.txtOldMethodRB.Size = new System.Drawing.Size(79, 17);
+            this.txtOldMethodRB.Size = new System.Drawing.Size(83, 16);
             this.txtOldMethodRB.TabIndex = 0;
             this.txtOldMethodRB.TabStop = true;
             this.txtOldMethodRB.Text = "Old method";
@@ -497,26 +507,17 @@
             // 
             // progressBar2
             // 
-            this.progressBar2.Location = new System.Drawing.Point(31, 282);
+            this.progressBar2.Location = new System.Drawing.Point(31, 260);
             this.progressBar2.Name = "progressBar2";
-            this.progressBar2.Size = new System.Drawing.Size(709, 23);
+            this.progressBar2.Size = new System.Drawing.Size(709, 21);
             this.progressBar2.TabIndex = 17;
-            // 
-            // compareBtn
-            // 
-            this.compareBtn.Location = new System.Drawing.Point(30, 130);
-            this.compareBtn.Name = "compareBtn";
-            this.compareBtn.Size = new System.Drawing.Size(520, 23);
-            this.compareBtn.TabIndex = 24;
-            this.compareBtn.Text = "Check 2 files after \"check non-translated strings in file\" button";
-            this.compareBtn.UseVisualStyleBackColor = true;
-            this.compareBtn.Click += new System.EventHandler(this.compareBtn_Click);
             // 
             // TextEditor
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(766, 320);
+            this.ClientSize = new System.Drawing.Size(766, 295);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.progressBar2);
             this.Controls.Add(this.tabPagesControl);

@@ -57,6 +57,7 @@ namespace TTG_Tools
         private bool _supportTwdNintendoSwitch;
 
         private int _languageIndex;
+        private System.Collections.Generic.List<string> _scanTextFilePaths;
 
         [XmlAttribute("pathForInputFolder")]
         public string pathForInputFolder
@@ -540,6 +541,22 @@ namespace TTG_Tools
             }
         }
 
+        [System.Xml.Serialization.XmlArray("ScanTextFilePaths")]
+        [System.Xml.Serialization.XmlArrayItem("Path")]
+        public System.Collections.Generic.List<string> scanTextFilePaths
+        {
+            get
+            {
+                if (_scanTextFilePaths == null)
+                    _scanTextFilePaths = new System.Collections.Generic.List<string>();
+                return _scanTextFilePaths;
+            }
+            set
+            {
+                _scanTextFilePaths = value;
+            }
+        }
+
         public Settings(
             string _pathForInputFolder,
             string _pathForOutputFolder,
@@ -616,9 +633,12 @@ namespace TTG_Tools
             this.swizzleNintendoWii = _swizzleNintendoWii;
             this.languageIndex = _languageIndex;
             this.supportTwdNintendoSwitch = _supportTwdNintendoSwitch;
+            this.scanTextFilePaths = new System.Collections.Generic.List<string>();
         }
 
         public Settings()
-        { }
+        {
+            this.scanTextFilePaths = new System.Collections.Generic.List<string>();
+        }
     }
 }

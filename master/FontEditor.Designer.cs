@@ -77,6 +77,10 @@
             this.exportCoordinatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importCoordinatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeDuplicatesCharsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.labelFontName = new System.Windows.Forms.Label();
+            this.labelSearchChar = new System.Windows.Forms.Label();
+            this.textBoxSearchChar = new System.Windows.Forms.TextBox();
+            this.buttonPreviewChar = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.rbNoKerning = new System.Windows.Forms.RadioButton();
             this.rbKerning = new System.Windows.Forms.RadioButton();
@@ -95,6 +99,15 @@
             this.rbNoSwizzle = new System.Windows.Forms.RadioButton();
             this.pictureBoxTexturePreview = new System.Windows.Forms.PictureBox();
             this.labelTexturePreview = new System.Windows.Forms.Label();
+            this.groupBoxMatchTextures = new System.Windows.Forms.GroupBox();
+            this.buttonDetectMissingTextures = new System.Windows.Forms.Button();
+            this.buttonGenerateMissingChars = new System.Windows.Forms.Button();
+            this.labelYoffsetAdjust = new System.Windows.Forms.Label();
+            this.textBoxYoffset = new System.Windows.Forms.TextBox();
+            this.labelFontSizeAdjust = new System.Windows.Forms.Label();
+            this.textBoxFontSizeAdjust = new System.Windows.Forms.TextBox();
+            this.textBoxLogOutput = new System.Windows.Forms.TextBox();
+            this.buttonSaveLogAs = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithTextures)).BeginInit();
@@ -105,6 +118,7 @@
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).BeginInit();
+            this.groupBoxMatchTextures.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -119,7 +133,7 @@
             this.groupBox1.Controls.Add(this.checkBox2);
             this.groupBox1.Controls.Add(this.textBox9);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(411, 27);
+            this.groupBox1.Location = new System.Drawing.Point(12, 184);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -130,7 +144,7 @@
             // 
             // buttonClear
             // 
-            this.buttonClear.Location = new System.Drawing.Point(124, 71);
+            this.buttonClear.Location = new System.Drawing.Point(124, 72);
             this.buttonClear.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonClear.Name = "buttonClear";
             this.buttonClear.Size = new System.Drawing.Size(57, 23);
@@ -141,10 +155,10 @@
             // 
             // textBox8
             // 
-            this.textBox8.Location = new System.Drawing.Point(46, 19);
+            this.textBox8.Location = new System.Drawing.Point(46, 20);
             this.textBox8.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.textBox8.Name = "textBox8";
-            this.textBox8.Size = new System.Drawing.Size(72, 20);
+            this.textBox8.Size = new System.Drawing.Size(72, 21);
             this.textBox8.TabIndex = 13;
             this.textBox8.TextChanged += new System.EventHandler(this.textBox8_TextChanged);
             // 
@@ -154,7 +168,7 @@
             this.label2.Location = new System.Drawing.Point(123, 48);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(19, 13);
+            this.label2.Size = new System.Drawing.Size(21, 13);
             this.label2.TabIndex = 11;
             this.label2.Text = "(0)";
             // 
@@ -164,7 +178,7 @@
             this.label1.Location = new System.Drawing.Point(123, 23);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(19, 13);
+            this.label1.Size = new System.Drawing.Size(21, 13);
             this.label1.TabIndex = 11;
             this.label1.Text = "(0)";
             // 
@@ -174,7 +188,7 @@
             this.label3.Location = new System.Drawing.Point(10, 23);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(30, 13);
+            this.label3.Size = new System.Drawing.Size(31, 13);
             this.label3.TabIndex = 11;
             this.label3.Text = "From";
             // 
@@ -186,14 +200,14 @@
             this.checkBox1.Location = new System.Drawing.Point(151, 22);
             this.checkBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(31, 17);
+            this.checkBox1.Size = new System.Drawing.Size(32, 17);
             this.checkBox1.TabIndex = 15;
             this.checkBox1.Text = "x";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // buttonCopyCoordinates
             // 
-            this.buttonCopyCoordinates.Location = new System.Drawing.Point(46, 71);
+            this.buttonCopyCoordinates.Location = new System.Drawing.Point(46, 72);
             this.buttonCopyCoordinates.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonCopyCoordinates.Name = "buttonCopyCoordinates";
             this.buttonCopyCoordinates.Size = new System.Drawing.Size(70, 23);
@@ -210,17 +224,17 @@
             this.checkBox2.Location = new System.Drawing.Point(151, 48);
             this.checkBox2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(31, 17);
+            this.checkBox2.Size = new System.Drawing.Size(32, 17);
             this.checkBox2.TabIndex = 15;
             this.checkBox2.Text = "y";
             this.checkBox2.UseVisualStyleBackColor = true;
             // 
             // textBox9
             // 
-            this.textBox9.Location = new System.Drawing.Point(46, 45);
+            this.textBox9.Location = new System.Drawing.Point(46, 46);
             this.textBox9.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.textBox9.Name = "textBox9";
-            this.textBox9.Size = new System.Drawing.Size(72, 20);
+            this.textBox9.Size = new System.Drawing.Size(72, 21);
             this.textBox9.TabIndex = 13;
             this.textBox9.TextChanged += new System.EventHandler(this.textBox9_TextChanged);
             // 
@@ -230,7 +244,7 @@
             this.label4.Location = new System.Drawing.Point(20, 49);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(20, 13);
+            this.label4.Size = new System.Drawing.Size(19, 13);
             this.label4.TabIndex = 11;
             this.label4.Text = "To";
             // 
@@ -242,7 +256,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(1412, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1373, 25);
             this.menuStrip1.TabIndex = 24;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -254,7 +268,7 @@
             this.saveAsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
@@ -262,7 +276,7 @@
             this.openToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -271,7 +285,7 @@
             this.saveToolStripMenuItem.Enabled = false;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.saveToolStripMenuItem.Text = "&Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -279,14 +293,14 @@
             // 
             this.saveAsToolStripMenuItem.Enabled = false;
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.saveAsToolStripMenuItem.Text = "Save As ...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -294,9 +308,10 @@
             // 
             this.dataGridViewWithTextures.AllowUserToAddRows = false;
             this.dataGridViewWithTextures.AllowUserToDeleteRows = false;
+            this.dataGridViewWithTextures.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
@@ -309,12 +324,12 @@
             this.Width,
             this.Size});
             this.dataGridViewWithTextures.ContextMenuStrip = this.contextMenuStripExport_Import;
-            this.dataGridViewWithTextures.Location = new System.Drawing.Point(13, 27);
+            this.dataGridViewWithTextures.Location = new System.Drawing.Point(222, 338);
             this.dataGridViewWithTextures.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.dataGridViewWithTextures.Name = "dataGridViewWithTextures";
             this.dataGridViewWithTextures.ReadOnly = true;
             this.dataGridViewWithTextures.RowHeadersWidth = 51;
-            this.dataGridViewWithTextures.Size = new System.Drawing.Size(390, 150);
+            this.dataGridViewWithTextures.Size = new System.Drawing.Size(629, 246);
             this.dataGridViewWithTextures.TabIndex = 26;
             this.dataGridViewWithTextures.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridViewWithTextures_CellMouseClick);
             this.dataGridViewWithTextures.RowContextMenuStripNeeded += new System.Windows.Forms.DataGridViewRowContextMenuStripNeededEventHandler(this.dataGridViewWithTextures_RowContextMenuStripNeeded);
@@ -323,34 +338,30 @@
             // N
             // 
             this.N.HeaderText = "№";
-            this.N.MinimumWidth = 6;
+            this.N.MinimumWidth = 10;
             this.N.Name = "N";
             this.N.ReadOnly = true;
-            this.N.Width = 30;
             // 
             // Height
             // 
             this.Height.HeaderText = "Height";
-            this.Height.MinimumWidth = 6;
+            this.Height.MinimumWidth = 10;
             this.Height.Name = "Height";
             this.Height.ReadOnly = true;
-            this.Height.Width = 102;
             // 
             // Width
             // 
             this.Width.HeaderText = "Width";
-            this.Width.MinimumWidth = 6;
+            this.Width.MinimumWidth = 10;
             this.Width.Name = "Width";
             this.Width.ReadOnly = true;
-            this.Width.Width = 102;
             // 
             // Size
             // 
             this.Size.HeaderText = "Size";
-            this.Size.MinimumWidth = 6;
+            this.Size.MinimumWidth = 10;
             this.Size.Name = "Size";
             this.Size.ReadOnly = true;
-            this.Size.Width = 102;
             // 
             // contextMenuStripExport_Import
             // 
@@ -361,14 +372,14 @@
             this.exportCoordinatesToolStripMenuItem1,
             this.toolStripImportFNT});
             this.contextMenuStripExport_Import.Name = "contextMenuStripExport_Import";
-            this.contextMenuStripExport_Import.Size = new System.Drawing.Size(438, 92);
+            this.contextMenuStripExport_Import.Size = new System.Drawing.Size(478, 92);
             this.contextMenuStripExport_Import.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripExport_Import_Opening);
             // 
             // exportToolStripMenuItem
             // 
             this.exportToolStripMenuItem.Enabled = false;
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(437, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(477, 22);
             this.exportToolStripMenuItem.Text = "Export texture";
             this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
             // 
@@ -376,7 +387,7 @@
             // 
             this.importDDSToolStripMenuItem.Enabled = false;
             this.importDDSToolStripMenuItem.Name = "importDDSToolStripMenuItem";
-            this.importDDSToolStripMenuItem.Size = new System.Drawing.Size(437, 22);
+            this.importDDSToolStripMenuItem.Size = new System.Drawing.Size(477, 22);
             this.importDDSToolStripMenuItem.Text = "Import texture";
             this.importDDSToolStripMenuItem.Click += new System.EventHandler(this.importDDSToolStripMenuItem_Click);
             // 
@@ -384,14 +395,14 @@
             // 
             this.exportCoordinatesToolStripMenuItem1.Enabled = false;
             this.exportCoordinatesToolStripMenuItem1.Name = "exportCoordinatesToolStripMenuItem1";
-            this.exportCoordinatesToolStripMenuItem1.Size = new System.Drawing.Size(437, 22);
+            this.exportCoordinatesToolStripMenuItem1.Size = new System.Drawing.Size(477, 22);
             this.exportCoordinatesToolStripMenuItem1.Text = "Export coordinates";
             this.exportCoordinatesToolStripMenuItem1.Click += new System.EventHandler(this.exportCoordinatesToolStripMenuItem1_Click);
             // 
             // toolStripImportFNT
             // 
             this.toolStripImportFNT.Name = "toolStripImportFNT";
-            this.toolStripImportFNT.Size = new System.Drawing.Size(437, 22);
+            this.toolStripImportFNT.Size = new System.Drawing.Size(477, 22);
             this.toolStripImportFNT.Text = "Import coordinates from Bitmap Font Generator (*.fnt XML-like type)";
             this.toolStripImportFNT.Click += new System.EventHandler(this.toolStripImportFNT_Click);
             // 
@@ -402,9 +413,10 @@
             this.dataGridViewWithCoord.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridViewWithCoord.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
@@ -425,11 +437,11 @@
             this.Column11,
             this.Column12,
             this.Column13});
-            this.dataGridViewWithCoord.Location = new System.Drawing.Point(12, 183);
+            this.dataGridViewWithCoord.Location = new System.Drawing.Point(222, 28);
             this.dataGridViewWithCoord.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.dataGridViewWithCoord.Name = "dataGridViewWithCoord";
             this.dataGridViewWithCoord.RowHeadersWidth = 51;
-            this.dataGridViewWithCoord.Size = new System.Drawing.Size(1155, 324);
+            this.dataGridViewWithCoord.Size = new System.Drawing.Size(1147, 297);
             this.dataGridViewWithCoord.TabIndex = 27;
             this.dataGridViewWithCoord.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridViewWithCoord_CellBeginEdit);
             this.dataGridViewWithCoord.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewWithCoord_CellEndEdit);
@@ -442,7 +454,6 @@
             this.Column1.MinimumWidth = 6;
             this.Column1.Name = "Column1";
             this.Column1.ReadOnly = true;
-            this.Column1.Width = 40;
             // 
             // Column2
             // 
@@ -450,42 +461,36 @@
             this.Column2.MinimumWidth = 6;
             this.Column2.Name = "Column2";
             this.Column2.ReadOnly = true;
-            this.Column2.Width = 40;
             // 
             // Column3
             // 
             this.Column3.HeaderText = "X start";
             this.Column3.MinimumWidth = 6;
             this.Column3.Name = "Column3";
-            this.Column3.Width = 60;
             // 
             // Column4
             // 
             this.Column4.HeaderText = "X end";
             this.Column4.MinimumWidth = 6;
             this.Column4.Name = "Column4";
-            this.Column4.Width = 60;
             // 
             // Column5
             // 
             this.Column5.HeaderText = "Y start";
             this.Column5.MinimumWidth = 6;
             this.Column5.Name = "Column5";
-            this.Column5.Width = 60;
             // 
             // Column6
             // 
             this.Column6.HeaderText = "Y end";
             this.Column6.MinimumWidth = 6;
             this.Column6.Name = "Column6";
-            this.Column6.Width = 60;
             // 
             // Column7
             // 
             this.Column7.HeaderText = "№ dds";
             this.Column7.MinimumWidth = 6;
             this.Column7.Name = "Column7";
-            this.Column7.Width = 65;
             // 
             // Column8
             // 
@@ -493,7 +498,6 @@
             this.Column8.MinimumWidth = 6;
             this.Column8.Name = "Column8";
             this.Column8.ReadOnly = true;
-            this.Column8.Width = 119;
             // 
             // Column9
             // 
@@ -501,35 +505,30 @@
             this.Column9.MinimumWidth = 6;
             this.Column9.Name = "Column9";
             this.Column9.ReadOnly = true;
-            this.Column9.Width = 119;
             // 
             // Column10
             // 
             this.Column10.HeaderText = "Channel";
             this.Column10.MinimumWidth = 6;
             this.Column10.Name = "Column10";
-            this.Column10.Width = 119;
             // 
             // Column11
             // 
             this.Column11.HeaderText = "X offset";
             this.Column11.MinimumWidth = 6;
             this.Column11.Name = "Column11";
-            this.Column11.Width = 119;
             // 
             // Column12
             // 
             this.Column12.HeaderText = "Y offset";
             this.Column12.MinimumWidth = 6;
             this.Column12.Name = "Column12";
-            this.Column12.Width = 119;
             // 
             // Column13
             // 
             this.Column13.HeaderText = "X advanced";
             this.Column13.MinimumWidth = 6;
             this.Column13.Name = "Column13";
-            this.Column13.Width = 119;
             // 
             // contextMenuStripExp_imp_Coord
             // 
@@ -539,41 +538,84 @@
             this.importCoordinatesToolStripMenuItem,
             this.removeDuplicatesCharsToolStripMenuItem});
             this.contextMenuStripExp_imp_Coord.Name = "contextMenuStripExp_imp_Coord";
-            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(206, 70);
+            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(222, 70);
             // 
             // exportCoordinatesToolStripMenuItem
             // 
             this.exportCoordinatesToolStripMenuItem.Name = "exportCoordinatesToolStripMenuItem";
-            this.exportCoordinatesToolStripMenuItem.Size = new System.Drawing.Size(205, 22);
+            this.exportCoordinatesToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.exportCoordinatesToolStripMenuItem.Text = "Export coordinates";
             this.exportCoordinatesToolStripMenuItem.Click += new System.EventHandler(this.exportCoordinatesToolStripMenuItem_Click);
             // 
             // importCoordinatesToolStripMenuItem
             // 
             this.importCoordinatesToolStripMenuItem.Name = "importCoordinatesToolStripMenuItem";
-            this.importCoordinatesToolStripMenuItem.Size = new System.Drawing.Size(205, 22);
+            this.importCoordinatesToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.importCoordinatesToolStripMenuItem.Text = "Import coordinates";
             this.importCoordinatesToolStripMenuItem.Click += new System.EventHandler(this.importCoordinatesToolStripMenuItem_Click);
             // 
             // removeDuplicatesCharsToolStripMenuItem
             // 
             this.removeDuplicatesCharsToolStripMenuItem.Name = "removeDuplicatesCharsToolStripMenuItem";
-            this.removeDuplicatesCharsToolStripMenuItem.Size = new System.Drawing.Size(205, 22);
+            this.removeDuplicatesCharsToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.removeDuplicatesCharsToolStripMenuItem.Text = "Remove duplicates chars";
             this.removeDuplicatesCharsToolStripMenuItem.Click += new System.EventHandler(this.removeDuplicatesCharsToolStripMenuItem_Click);
             // 
+            // labelFontName
+            // 
+            this.labelFontName.AutoSize = true;
+            this.labelFontName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.labelFontName.Location = new System.Drawing.Point(7, 87);
+            this.labelFontName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelFontName.Name = "labelFontName";
+            this.labelFontName.Size = new System.Drawing.Size(54, 13);
+            this.labelFontName.TabIndex = 2;
+            this.labelFontName.Text = "Font: N/A";
+            // 
+            // labelSearchChar
+            // 
+            this.labelSearchChar.AutoSize = true;
+            this.labelSearchChar.Location = new System.Drawing.Point(7, 108);
+            this.labelSearchChar.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelSearchChar.Name = "labelSearchChar";
+            this.labelSearchChar.Size = new System.Drawing.Size(70, 13);
+            this.labelSearchChar.TabIndex = 3;
+            this.labelSearchChar.Text = "Search Char:";
+            // 
+            // textBoxSearchChar
+            // 
+            this.textBoxSearchChar.Location = new System.Drawing.Point(7, 126);
+            this.textBoxSearchChar.Name = "textBoxSearchChar";
+            this.textBoxSearchChar.Size = new System.Drawing.Size(70, 21);
+            this.textBoxSearchChar.TabIndex = 4;
+            this.textBoxSearchChar.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxSearchChar_KeyDown);
+            // 
+            // buttonPreviewChar
+            // 
+            this.buttonPreviewChar.Location = new System.Drawing.Point(83, 122);
+            this.buttonPreviewChar.Name = "buttonPreviewChar";
+            this.buttonPreviewChar.Size = new System.Drawing.Size(75, 25);
+            this.buttonPreviewChar.TabIndex = 5;
+            this.buttonPreviewChar.Text = "Preview";
+            this.buttonPreviewChar.UseVisualStyleBackColor = true;
+            this.buttonPreviewChar.Click += new System.EventHandler(this.buttonPreviewChar_Click);
+            // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.labelSearchChar);
+            this.groupBox2.Controls.Add(this.textBoxSearchChar);
+            this.groupBox2.Controls.Add(this.buttonPreviewChar);
+            this.groupBox2.Controls.Add(this.labelFontName);
             this.groupBox2.Controls.Add(this.rbNoKerning);
             this.groupBox2.Controls.Add(this.rbKerning);
-            this.groupBox2.Location = new System.Drawing.Point(827, 28);
+            this.groupBox2.Location = new System.Drawing.Point(13, 28);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox2.Size = new System.Drawing.Size(146, 125);
+            this.groupBox2.Size = new System.Drawing.Size(185, 150);
             this.groupBox2.TabIndex = 28;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Import/Export:";
+            this.groupBox2.Text = "Font Info:";
             // 
             // rbNoKerning
             // 
@@ -581,7 +623,7 @@
             this.rbNoKerning.Location = new System.Drawing.Point(7, 59);
             this.rbNoKerning.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.rbNoKerning.Name = "rbNoKerning";
-            this.rbNoKerning.Size = new System.Drawing.Size(98, 17);
+            this.rbNoKerning.Size = new System.Drawing.Size(100, 17);
             this.rbNoKerning.TabIndex = 1;
             this.rbNoKerning.Text = "without Kerning";
             this.rbNoKerning.UseVisualStyleBackColor = true;
@@ -593,7 +635,7 @@
             this.rbKerning.Location = new System.Drawing.Point(7, 36);
             this.rbKerning.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.rbKerning.Name = "rbKerning";
-            this.rbKerning.Size = new System.Drawing.Size(83, 17);
+            this.rbKerning.Size = new System.Drawing.Size(84, 17);
             this.rbKerning.TabIndex = 0;
             this.rbKerning.TabStop = true;
             this.rbKerning.Text = "with Kerning";
@@ -606,11 +648,11 @@
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Controls.Add(this.textBox1);
             this.groupBox3.Controls.Add(this.button1);
-            this.groupBox3.Location = new System.Drawing.Point(632, 28);
+            this.groupBox3.Location = new System.Drawing.Point(12, 316);
             this.groupBox3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox3.Size = new System.Drawing.Size(161, 125);
+            this.groupBox3.Size = new System.Drawing.Size(186, 125);
             this.groupBox3.TabIndex = 29;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Change char width to:";
@@ -621,7 +663,7 @@
             this.radioButtonXstart.Location = new System.Drawing.Point(67, 47);
             this.radioButtonXstart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.radioButtonXstart.Name = "radioButtonXstart";
-            this.radioButtonXstart.Size = new System.Drawing.Size(55, 17);
+            this.radioButtonXstart.Size = new System.Drawing.Size(57, 17);
             this.radioButtonXstart.TabIndex = 4;
             this.radioButtonXstart.Text = "X start";
             this.radioButtonXstart.UseVisualStyleBackColor = true;
@@ -633,7 +675,7 @@
             this.radioButtonXend.Location = new System.Drawing.Point(7, 47);
             this.radioButtonXend.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.radioButtonXend.Name = "radioButtonXend";
-            this.radioButtonXend.Size = new System.Drawing.Size(53, 17);
+            this.radioButtonXend.Size = new System.Drawing.Size(52, 17);
             this.radioButtonXend.TabIndex = 3;
             this.radioButtonXend.TabStop = true;
             this.radioButtonXend.Text = "X end";
@@ -645,7 +687,7 @@
             this.label5.Location = new System.Drawing.Point(71, 22);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(36, 13);
+            this.label5.Size = new System.Drawing.Size(38, 13);
             this.label5.TabIndex = 2;
             this.label5.Text = "pixels.";
             // 
@@ -654,7 +696,7 @@
             this.textBox1.Location = new System.Drawing.Point(7, 18);
             this.textBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(58, 20);
+            this.textBox1.Size = new System.Drawing.Size(58, 21);
             this.textBox1.TabIndex = 1;
             this.textBox1.Text = "0";
             // 
@@ -677,19 +719,19 @@
             this.groupBox4.Controls.Add(this.rbPSVitaSwizzle);
             this.groupBox4.Controls.Add(this.rbWiiSwizzle);
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
-            this.groupBox4.Location = new System.Drawing.Point(1005, 28);
+            this.groupBox4.Location = new System.Drawing.Point(12, 609);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(122, 149);
+            this.groupBox4.Size = new System.Drawing.Size(186, 153);
             this.groupBox4.TabIndex = 30;
             this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Swizzle methods";
+            this.groupBox4.Text = "Swizzle methods (Save)";
             // 
             // rbSwitchSwizzle
             // 
             this.rbSwitchSwizzle.AutoSize = true;
             this.rbSwitchSwizzle.Location = new System.Drawing.Point(7, 59);
             this.rbSwitchSwizzle.Name = "rbSwitchSwizzle";
-            this.rbSwitchSwizzle.Size = new System.Drawing.Size(103, 17);
+            this.rbSwitchSwizzle.Size = new System.Drawing.Size(102, 17);
             this.rbSwitchSwizzle.TabIndex = 2;
             this.rbSwitchSwizzle.TabStop = true;
             this.rbSwitchSwizzle.Text = "Nintendo Switch";
@@ -701,7 +743,7 @@
             this.rbPS4Swizzle.AutoSize = true;
             this.rbPS4Swizzle.Location = new System.Drawing.Point(7, 36);
             this.rbPS4Swizzle.Name = "rbPS4Swizzle";
-            this.rbPS4Swizzle.Size = new System.Drawing.Size(45, 17);
+            this.rbPS4Swizzle.Size = new System.Drawing.Size(43, 17);
             this.rbPS4Swizzle.TabIndex = 1;
             this.rbPS4Swizzle.TabStop = true;
             this.rbPS4Swizzle.Text = "PS4";
@@ -725,7 +767,7 @@
             this.rbPSVitaSwizzle.AutoSize = true;
             this.rbPSVitaSwizzle.Location = new System.Drawing.Point(7, 103);
             this.rbPSVitaSwizzle.Name = "rbPSVitaSwizzle";
-            this.rbPSVitaSwizzle.Size = new System.Drawing.Size(60, 17);
+            this.rbPSVitaSwizzle.Size = new System.Drawing.Size(58, 17);
             this.rbPSVitaSwizzle.TabIndex = 4;
             this.rbPSVitaSwizzle.TabStop = true;
             this.rbPSVitaSwizzle.Text = "PS Vita";
@@ -737,7 +779,7 @@
             this.rbWiiSwizzle.AutoSize = true;
             this.rbWiiSwizzle.Location = new System.Drawing.Point(7, 126);
             this.rbWiiSwizzle.Name = "rbWiiSwizzle";
-            this.rbWiiSwizzle.Size = new System.Drawing.Size(86, 17);
+            this.rbWiiSwizzle.Size = new System.Drawing.Size(85, 17);
             this.rbWiiSwizzle.TabIndex = 5;
             this.rbWiiSwizzle.TabStop = true;
             this.rbWiiSwizzle.Text = "Nintendo Wii";
@@ -749,7 +791,7 @@
             this.rbNoSwizzle.AutoSize = true;
             this.rbNoSwizzle.Location = new System.Drawing.Point(7, 18);
             this.rbNoSwizzle.Name = "rbNoSwizzle";
-            this.rbNoSwizzle.Size = new System.Drawing.Size(51, 17);
+            this.rbNoSwizzle.Size = new System.Drawing.Size(50, 17);
             this.rbNoSwizzle.TabIndex = 0;
             this.rbNoSwizzle.TabStop = true;
             this.rbNoSwizzle.Text = "None";
@@ -760,9 +802,9 @@
             // 
             this.pictureBoxTexturePreview.BackColor = System.Drawing.Color.Black;
             this.pictureBoxTexturePreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBoxTexturePreview.Location = new System.Drawing.Point(1164, 183);
+            this.pictureBoxTexturePreview.Location = new System.Drawing.Point(857, 347);
             this.pictureBoxTexturePreview.Name = "pictureBoxTexturePreview";
-            this.pictureBoxTexturePreview.Size = new System.Drawing.Size(248, 324);
+            this.pictureBoxTexturePreview.Size = new System.Drawing.Size(512, 512);
             this.pictureBoxTexturePreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBoxTexturePreview.TabIndex = 31;
             this.pictureBoxTexturePreview.TabStop = false;
@@ -770,17 +812,109 @@
             // labelTexturePreview
             // 
             this.labelTexturePreview.AutoSize = true;
-            this.labelTexturePreview.Location = new System.Drawing.Point(1161, 164);
+            this.labelTexturePreview.Location = new System.Drawing.Point(854, 328);
             this.labelTexturePreview.Name = "labelTexturePreview";
-            this.labelTexturePreview.Size = new System.Drawing.Size(135, 13);
+            this.labelTexturePreview.Size = new System.Drawing.Size(143, 13);
             this.labelTexturePreview.TabIndex = 32;
             this.labelTexturePreview.Text = "Texture preview (read-only)";
+            // 
+            // groupBoxMatchTextures
+            // 
+            this.groupBoxMatchTextures.Controls.Add(this.buttonDetectMissingTextures);
+            this.groupBoxMatchTextures.Controls.Add(this.buttonGenerateMissingChars);
+            this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffset);
+            this.groupBoxMatchTextures.Controls.Add(this.labelFontSizeAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.textBoxFontSizeAdjust);
+            this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 450);
+            this.groupBoxMatchTextures.Name = "groupBoxMatchTextures";
+            this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 153);
+            this.groupBoxMatchTextures.TabIndex = 33;
+            this.groupBoxMatchTextures.TabStop = false;
+            this.groupBoxMatchTextures.Text = "Match Textures";
+            // 
+            // buttonDetectMissingTextures
+            // 
+            this.buttonDetectMissingTextures.Location = new System.Drawing.Point(7, 20);
+            this.buttonDetectMissingTextures.Name = "buttonDetectMissingTextures";
+            this.buttonDetectMissingTextures.Size = new System.Drawing.Size(172, 31);
+            this.buttonDetectMissingTextures.TabIndex = 0;
+            this.buttonDetectMissingTextures.Text = "Detect Missing Textures";
+            this.buttonDetectMissingTextures.UseVisualStyleBackColor = true;
+            this.buttonDetectMissingTextures.Click += new System.EventHandler(this.buttonDetectMissingTextures_Click);
+            // 
+            // buttonGenerateMissingChars
+            // 
+            this.buttonGenerateMissingChars.Location = new System.Drawing.Point(7, 117);
+            this.buttonGenerateMissingChars.Name = "buttonGenerateMissingChars";
+            this.buttonGenerateMissingChars.Size = new System.Drawing.Size(172, 30);
+            this.buttonGenerateMissingChars.TabIndex = 1;
+            this.buttonGenerateMissingChars.Text = "Generate Missing Chars";
+            this.buttonGenerateMissingChars.UseVisualStyleBackColor = true;
+            this.buttonGenerateMissingChars.Click += new System.EventHandler(this.buttonGenerateMissingChars_Click);
+            // 
+            // labelYoffsetAdjust
+            // 
+            this.labelYoffsetAdjust.AutoSize = true;
+            this.labelYoffsetAdjust.Location = new System.Drawing.Point(6, 65);
+            this.labelYoffsetAdjust.Name = "labelYoffsetAdjust";
+            this.labelYoffsetAdjust.Size = new System.Drawing.Size(83, 13);
+            this.labelYoffsetAdjust.TabIndex = 2;
+            this.labelYoffsetAdjust.Text = "Adjust Y offset:";
+            // 
+            // textBoxYoffset
+            // 
+            this.textBoxYoffset.Location = new System.Drawing.Point(111, 57);
+            this.textBoxYoffset.Name = "textBoxYoffset";
+            this.textBoxYoffset.Size = new System.Drawing.Size(68, 21);
+            this.textBoxYoffset.TabIndex = 3;
+            this.textBoxYoffset.Text = "2";
+            // 
+            // labelFontSizeAdjust
+            // 
+            this.labelFontSizeAdjust.AutoSize = true;
+            this.labelFontSizeAdjust.Location = new System.Drawing.Point(9, 94);
+            this.labelFontSizeAdjust.Name = "labelFontSizeAdjust";
+            this.labelFontSizeAdjust.Size = new System.Drawing.Size(72, 13);
+            this.labelFontSizeAdjust.TabIndex = 4;
+            this.labelFontSizeAdjust.Text = "Font size adj:";
+            // 
+            // textBoxFontSizeAdjust
+            // 
+            this.textBoxFontSizeAdjust.Location = new System.Drawing.Point(111, 90);
+            this.textBoxFontSizeAdjust.Name = "textBoxFontSizeAdjust";
+            this.textBoxFontSizeAdjust.Size = new System.Drawing.Size(68, 21);
+            this.textBoxFontSizeAdjust.TabIndex = 5;
+            this.textBoxFontSizeAdjust.Text = "0";
+            // 
+            // textBoxLogOutput
+            // 
+            this.textBoxLogOutput.Location = new System.Drawing.Point(222, 590);
+            this.textBoxLogOutput.Multiline = true;
+            this.textBoxLogOutput.Name = "textBoxLogOutput";
+            this.textBoxLogOutput.ReadOnly = true;
+            this.textBoxLogOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxLogOutput.Size = new System.Drawing.Size(629, 260);
+            this.textBoxLogOutput.TabIndex = 34;
+            // 
+            // buttonSaveLogAs
+            // 
+            this.buttonSaveLogAs.Location = new System.Drawing.Point(12, 783);
+            this.buttonSaveLogAs.Name = "buttonSaveLogAs";
+            this.buttonSaveLogAs.Size = new System.Drawing.Size(90, 27);
+            this.buttonSaveLogAs.TabIndex = 35;
+            this.buttonSaveLogAs.Text = "Save Log As...";
+            this.buttonSaveLogAs.UseVisualStyleBackColor = true;
+            this.buttonSaveLogAs.Click += new System.EventHandler(this.buttonSaveLogAs_Click);
             // 
             // FontEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1412, 519);
+            this.ClientSize = new System.Drawing.Size(1373, 862);
+            this.Controls.Add(this.textBoxLogOutput);
+            this.Controls.Add(this.buttonSaveLogAs);
+            this.Controls.Add(this.groupBoxMatchTextures);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.labelTexturePreview);
@@ -790,6 +924,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.groupBox1);
+            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
@@ -814,6 +949,8 @@
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).EndInit();
+            this.groupBoxMatchTextures.ResumeLayout(false);
+            this.groupBoxMatchTextures.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -852,15 +989,15 @@
         private System.Windows.Forms.RadioButton rbKerning;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label labelFontName;
+        private System.Windows.Forms.Label labelSearchChar;
+        private System.Windows.Forms.TextBox textBoxSearchChar;
+        private System.Windows.Forms.Button buttonPreviewChar;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.RadioButton radioButtonXstart;
         private System.Windows.Forms.RadioButton radioButtonXend;
         private System.Windows.Forms.ToolStripMenuItem toolStripImportFNT;
-        private System.Windows.Forms.DataGridViewTextBoxColumn N;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Height;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Width;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Size;
         private System.Windows.Forms.ToolStripMenuItem removeDuplicatesCharsToolStripMenuItem;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.RadioButton rbSwitchSwizzle;
@@ -869,6 +1006,21 @@
         private System.Windows.Forms.RadioButton rbPSVitaSwizzle;
         private System.Windows.Forms.RadioButton rbWiiSwizzle;
         private System.Windows.Forms.RadioButton rbNoSwizzle;
+        private System.Windows.Forms.PictureBox pictureBoxTexturePreview;
+        private System.Windows.Forms.Label labelTexturePreview;
+        private System.Windows.Forms.GroupBox groupBoxMatchTextures;
+        private System.Windows.Forms.Button buttonDetectMissingTextures;
+        private System.Windows.Forms.Label labelYoffsetAdjust;
+        private System.Windows.Forms.TextBox textBoxYoffset;
+        private System.Windows.Forms.Label labelFontSizeAdjust;
+        private System.Windows.Forms.TextBox textBoxFontSizeAdjust;
+        private System.Windows.Forms.Button buttonGenerateMissingChars;
+        private System.Windows.Forms.TextBox textBoxLogOutput;
+        private System.Windows.Forms.Button buttonSaveLogAs;
+        private System.Windows.Forms.DataGridViewTextBoxColumn N;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Height;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Width;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Size;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
@@ -882,7 +1034,5 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column11;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column12;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column13;
-        private System.Windows.Forms.PictureBox pictureBoxTexturePreview;
-        private System.Windows.Forms.Label labelTexturePreview;
     }
 }

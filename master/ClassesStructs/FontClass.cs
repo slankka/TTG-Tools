@@ -50,6 +50,7 @@
                     public int CharCount; //Count characters (before Poker Night 2 default was 256)
                     public TRect[] chars; //Table of characters
                     public TRectNew[] charsNew; //For Poker Night 2 and newer games
+                    public int Pages; //Number of texture pages
                 }
 
                 public bool blockSize;
@@ -73,6 +74,7 @@
                 public GlyphInfo glyph;
                 public TextureClass.OldT3Texture[] tex;
                 public TextureClass.NewT3Texture[] NewTex;
+                public string[] texPaths; //Paths to texture files
 
                 public ClassFont() { }
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.IO;
 using TTG_Tools.Graphics.DDS;
@@ -1092,7 +1092,8 @@ namespace TTG_Tools.Graphics
 
                     uint tmpPoz = 0;
 
-                    ClassesStructs.TextureClass.NewT3Texture tex = GetNewTextures(binContent, ref poz, ref tmpPoz, flags, someData, false, ref additionalMessage, AddInfo);
+                    // No UI controls in DoWork, pass null as log callback
+                    ClassesStructs.TextureClass.NewT3Texture tex = GetNewTextures(binContent, ref poz, ref tmpPoz, flags, someData, false, ref additionalMessage, AddInfo, null);
 
                     if (tex == null)
                     {
@@ -1877,10 +1878,122 @@ namespace TTG_Tools.Graphics
                 }
                 else
                 {
-                    for (int i = tex.Tex.MipCount - 1; i >= 0; i--)
-                   {
-                        bw.Write(tex.Tex.Textures[i].Block);
-                   }
+                    // Font save: re-swizzle texture data that was unswizzled during loading.
+                    // Without this, linear pixel data is written to the file, and re-opening
+                    // unswizzles already-linear data → noise.
+                    if (tex.platform.platform == 15) // Nintendo Switch
+                    {
+                        int w = tex.Width;
+                        int h = tex.Height;
+                        for (int i = 0; i < tex.Tex.MipCount; i++)
+                        {
+                            byte[] swizzledBlock = NintendoSwitch.NintendoSwizzle(tex.Tex.Textures[i].Block, w, h, (int)tex.TextureFormat, false);
+                            int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
+                            bw.Write(swizzledBlock, 0, writeSize);
+                            if (w > 1) w /= 2;
+                            if (h > 1) h /= 2;
+                        }
+                    }
+                    else if (tex.platform.platform == 11) // PS4
+                    {
+                        int w = tex.Width;
+                        int h = tex.Height;
+                        int blockSize = tex.TextureFormat == 0x40 || tex.TextureFormat == 0x43 ? 8 : 16;
+                        for (int i = 0; i < tex.Tex.MipCount; i++)
+                        {
+                            if (tex.Tex.Textures[i].Block.Length < blockSize) blockSize = tex.Tex.Textures[i].Block.Length;
+                            byte[] swizzledBlock = PS4.Swizzle(tex.Tex.Textures[i].Block, w, h, blockSize);
+                            int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
+                            bw.Write(swizzledBlock, 0, writeSize);
+                            if (w > 1) w /= 2;
+                            if (h > 1) h /= 2;
+                        }
+                    }
+                    else if (tex.platform.platform == 4) // Xbox 360
+                    {
+                        int w = tex.Width;
+                        int h = tex.Height;
+
+                        int texelBytePitch;
+                        int blockPixelSize;
+                        bool performByteSwap;
+
+                        if (tex.TextureFormat == 0x00)
+                        {
+                            texelBytePitch = 4;
+                            blockPixelSize = 1;
+                            performByteSwap = false;
+                        }
+                        else if (tex.TextureFormat == 0x40 || tex.TextureFormat == 0x43)
+                        {
+                            texelBytePitch = 8;
+                            blockPixelSize = 4;
+                            performByteSwap = true;
+                        }
+                        else
+                        {
+                            texelBytePitch = 16;
+                            blockPixelSize = 4;
+                            performByteSwap = true;
+                        }
+
+                        for (int i = 0; i < tex.Tex.MipCount; i++)
+                        {
+                            byte[] blockData = tex.Tex.Textures[i].Block;
+                            if (tex.TextureFormat == 0x00)
+                            {
+                                blockData = Xbox360.ConvertBGRAtoARGB(blockData);
+                            }
+
+                            byte[] swizzledBlock = Xbox360.Swizzle(blockData, w, h, texelBytePitch, blockPixelSize, performByteSwap);
+                            int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
+                            bw.Write(swizzledBlock, 0, writeSize);
+                            if (w > 1) w /= 2;
+                            if (h > 1) h /= 2;
+                        }
+                    }
+                    else if (tex.platform.platform == 9 && !IsVitaPvrFormat(tex.TextureFormat)) // PS Vita
+                    {
+                        int w = tex.Width;
+                        int h = tex.Height;
+
+                        for (int i = 0; i < tex.Tex.MipCount; i++)
+                        {
+                            int swizzleWidth;
+                            int swizzleHeight;
+                            int bytesPerPixelSet;
+                            int formatBitsPerPixel;
+                            GetVitaSwizzleInfo(tex.TextureFormat, w, h, out swizzleWidth, out swizzleHeight, out bytesPerPixelSet, out formatBitsPerPixel);
+
+                            int safeBppSet = bytesPerPixelSet;
+                            if (tex.Tex.Textures[i].Block.Length > 0 && safeBppSet > tex.Tex.Textures[i].Block.Length)
+                            {
+                                safeBppSet = tex.Tex.Textures[i].Block.Length;
+                            }
+
+                            if (safeBppSet > 0)
+                            {
+                                byte[] swizzledBlock = PSVita.Swizzle(tex.Tex.Textures[i].Block, swizzleWidth, swizzleHeight, safeBppSet, formatBitsPerPixel);
+                                int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
+                                bw.Write(swizzledBlock, 0, writeSize);
+                            }
+                            else
+                            {
+                                bw.Write(tex.Tex.Textures[i].Block);
+                            }
+
+                            if (w > 1) w /= 2;
+                            if (h > 1) h /= 2;
+                        }
+                    }
+                    else
+                    {
+                        // PC / other platforms - no swizzle needed
+                        for (int i = tex.Tex.MipCount - 1; i >= 0; i--)
+                        {
+                            bw.Write(tex.Tex.Textures[i].Block);
+                        }
+                    }
                 }
             }
 
@@ -2170,12 +2283,15 @@ namespace TTG_Tools.Graphics
         }
 
         //Extract new format textures (Since Poker Night 2)
-        public static ClassesStructs.TextureClass.NewT3Texture GetNewTextures(byte[] binContent, ref int poz, ref uint texFontPoz, bool flags, bool someData, bool isFont, ref string AdditionalInfo, bool AddInfo)
+        public static ClassesStructs.TextureClass.NewT3Texture GetNewTextures(byte[] binContent, ref int poz, ref uint texFontPoz, bool flags, bool someData, bool isFont, ref string AdditionalInfo, bool AddInfo, Action<string> logCallback = null)
         {
             ClassesStructs.TextureClass.NewT3Texture tex = new ClassesStructs.TextureClass.NewT3Texture();
             byte[] tmp = new byte[4];
             Array.Copy(binContent, 0, tmp, 0, tmp.Length);
             string checkHeader = Encoding.ASCII.GetString(tmp);
+
+            // Log output: Start parsing
+            logCallback?.Invoke($"[GetNewTextures] Start: checkHeader={checkHeader}, isFont={isFont}, poz=0x{poz:x}");
 
             if ((checkHeader != "ERTM") && !isFont)
             {
@@ -2214,6 +2330,9 @@ namespace TTG_Tools.Graphics
             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
             tex.platform.platform = BitConverter.ToUInt32(tmp, 0);
             poz += 4;
+
+            // Log output: Platform info
+            logCallback?.Invoke($"[GetNewTextures] Platform: tex.platform.platform = {tex.platform.platform} at offset 0x{poz - 4:x}");
 
             tmp = new byte[4];
             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
@@ -2334,6 +2453,9 @@ namespace TTG_Tools.Graphics
             tex.TextureFormat = BitConverter.ToUInt32(tmp, 0);
             poz += 4;
 
+            // Log output: Texture info
+            logCallback?.Invoke($"[GetNewTextures] TextureInfo: Width={tex.Width}, Height={tex.Height}, Format=0x{tex.TextureFormat:x} ({tex.TextureFormat}), Mip={tex.Mip}");
+
             tmp = new byte[4];
             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
             tex.Unknown1 = BitConverter.ToInt32(tmp, 0);
@@ -2401,6 +2523,9 @@ namespace TTG_Tools.Graphics
 
             tex.Tex.Textures = new ClassesStructs.TextureClass.NewT3Texture.TextureStruct[tex.Tex.MipCount];
 
+            // Log output: MipCount and TexSize
+            logCallback?.Invoke($"[GetNewTextures] MipCount={tex.Tex.MipCount}, TexSize={tex.Tex.TexSize}, SomeData={tex.Tex.SomeData}");
+
             if (tex.platform.platform == 15) //Nintendo Switch format
             {
                 for (int i = 0; i < tex.Tex.MipCount; i++)
@@ -2467,6 +2592,7 @@ namespace TTG_Tools.Graphics
 
             if(tex.platform.platform == 15) //For Nintendo Switch
             {
+                logCallback?.Invoke($"[GetNewTextures] Processing Nintendo Switch textures (deswizzle enabled)");
                 int w = tex.Width;
                 int h = tex.Height;
 
@@ -2522,6 +2648,7 @@ namespace TTG_Tools.Graphics
 
                 if (tex.platform.platform == 11) // PS4 Unswizzle
                 {
+                    logCallback?.Invoke($"[GetNewTextures] Processing PS4 textures (unswizzle enabled)");
                     needsReconstruction = true;
                     int w = tex.Width;
                     int h = tex.Height;
@@ -2538,6 +2665,7 @@ namespace TTG_Tools.Graphics
                 }
                 else if (tex.platform.platform == 4) // Xbox 360 Unswizzle
                 {
+                    logCallback?.Invoke($"[GetNewTextures] Processing Xbox 360 textures (unswizzle enabled)");
                     needsReconstruction = true;
                     int w = tex.Width;
                     int h = tex.Height;
@@ -2580,6 +2708,7 @@ namespace TTG_Tools.Graphics
                 }
                 else if (tex.platform.platform == 9 && !IsVitaPvrFormat(tex.TextureFormat)) // PS Vita Unswizzle
                 {
+                    logCallback?.Invoke($"[GetNewTextures] Processing PS Vita textures (unswizzle enabled)");
                     needsReconstruction = true;
                     int w = tex.Width;
                     int h = tex.Height;
@@ -2635,6 +2764,9 @@ namespace TTG_Tools.Graphics
             Array.Copy(binContent, 0, tmp, 0, tmp.Length);
             if (Encoding.ASCII.GetString(tmp) == "ERTM") poz = (int)tmpPoz;
             else texFontPoz = tmpPoz;
+
+            // Log output: Complete
+            logCallback?.Invoke($"[GetNewTextures] Complete: tex.Tex.Content.Length={tex.Tex.Content.Length}");
 
             return tex;
         }

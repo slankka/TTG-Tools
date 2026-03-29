@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -45,6 +45,13 @@ namespace TTG_Tools
             else MainMenu.settings.unicodeSettings = 2;
 
             MainMenu.settings.supportTwdNintendoSwitch = rbTwdNintendoSwitch.Checked;
+
+            // Save scan text file paths
+            MainMenu.settings.scanTextFilePaths.Clear();
+            foreach (var item in listBoxScanTextPaths.Items)
+            {
+                MainMenu.settings.scanTextFilePaths.Add(item.ToString());
+            }
 
             MainMenu.settings.languageIndex = -1;
             if (checkLanguage.Checked)
@@ -271,6 +278,16 @@ namespace TTG_Tools
             }
 
             rbTwdNintendoSwitch.Checked = MainMenu.settings.supportTwdNintendoSwitch;
+
+            // Load scan text file paths
+            listBoxScanTextPaths.Items.Clear();
+            if (MainMenu.settings.scanTextFilePaths != null)
+            {
+                foreach (string path in MainMenu.settings.scanTextFilePaths)
+                {
+                    listBoxScanTextPaths.Items.Add(path);
+                }
+            }
         }
 
         private void buttonInputFolder_Click(object sender, EventArgs e)
@@ -286,7 +303,60 @@ namespace TTG_Tools
         private void checkLanguage_CheckedChanged(object sender, EventArgs e)
         {
             languageComboBox.SelectedIndex = 0;
-            languageComboBox.Enabled = checkLanguage.Checked;            
+            languageComboBox.Enabled = checkLanguage.Checked;
+        }
+
+        private void buttonAddScanPath_Click(object sender, EventArgs e)
+        {
+            CommonOpenFileDialog folderDialog = new CommonOpenFileDialog();
+            folderDialog.IsFolderPicker = true;
+            folderDialog.EnsurePathExists = true;
+            folderDialog.Title = "Select a folder to scan for text files";
+            folderDialog.AllowNonFileSystemItems = false;
+
+            // Set initial directory to the last added path or application path
+            if (listBoxScanTextPaths.Items.Count > 0)
+            {
+                string lastPath = listBoxScanTextPaths.Items[listBoxScanTextPaths.Items.Count - 1].ToString();
+                if (Directory.Exists(lastPath))
+                {
+                    folderDialog.InitialDirectory = lastPath;
+                }
+            }
+            else
+            {
+                folderDialog.InitialDirectory = Application.StartupPath;
+            }
+
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                string selectedPath = folderDialog.FileName;
+
+                // Add path if it's not already in the list
+                if (!listBoxScanTextPaths.Items.Contains(selectedPath))
+                {
+                    listBoxScanTextPaths.Items.Add(selectedPath);
+                }
+                else
+                {
+                    MessageBox.Show("This path is already in the list.", "Path Exists",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        private void buttonRemoveScanPath_Click(object sender, EventArgs e)
+        {
+            // Remove selected item from the list
+            if (listBoxScanTextPaths.SelectedIndex != -1)
+            {
+                listBoxScanTextPaths.Items.RemoveAt(listBoxScanTextPaths.SelectedIndex);
+            }
+            else
+            {
+                MessageBox.Show("Please select a path to remove.", "No Selection",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
     }
 }

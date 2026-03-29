@@ -4,6 +4,20 @@ TTG Tools is a powerful utility for modifying files from Telltale Games, includi
 
 This version of TTG Tools includes some modifications and has been uploaded with the permission of Den Em and Pashok6798 agreement.
 
+## Recent Changes
+
+### Font Editor Enhancements (2026)
+- **UI Optimization**: Improved user interface with better layout and usability
+- **Font Detection**: Added automatic font detection capability for easier file handling
+- **Missing Character Generation**: Implemented automatic generation of missing characters for comprehensive font support
+- **Texture Management**: Enhanced DDS texture file handling with automatic copying during save operations
+- **Multi-page Support**: Improved support for fonts with multiple texture pages
+- **FontClass Structure**: Added `Pages` field to track texture page count and `texPaths` for texture file paths
+- **Default Font Fix**: Set default font to Tahoma to prevent layout issues caused by font fallback (e.g., SimSun) on non-English systems
+
+### Font Editor Preview
+![Font Editor](images/FontEditor-Envolved.png)
+
 ## Download
 
 ⬇ [Download TTG Tools!](https://github.com/zenderovpaulo95/TTG-Tools/releases)

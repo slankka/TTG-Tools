@@ -65,6 +65,12 @@
     <Reference Include="Joveler.ZLibWrapper, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Joveler.ZLibWrapper.1.3.1\lib\net45\Joveler.ZLibWrapper.dll</HintPath>
     </Reference>
+    <Reference Include="Magick.NET-Q16-AnyCPU, Version=14.11.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>packages\Magick.NET-Q16-AnyCPU.14.11.1\lib\netstandard20\Magick.NET-Q16-AnyCPU.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET.Core, Version=14.11.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>packages\Magick.NET.Core.14.11.1\lib\netstandard20\Magick.NET.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\WindowsAPICodePack-Core.1.1.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -297,7 +303,15 @@
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\Joveler.ZLibWrapper.1.3.1\build\net45\Joveler.ZLibWrapper.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Joveler.ZLibWrapper.1.3.1\build\net45\Joveler.ZLibWrapper.targets'))" />
+    <Error Condition="!Exists('packages\Magick.NET-Q16-AnyCPU.14.11.1\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Magick.NET-Q16-AnyCPU.14.11.1\build\netstandard20\Magick.NET-Q16-AnyCPU.targets'))" />
   </Target>
+  <Import Project="packages\Magick.NET-Q16-AnyCPU.14.11.1\build\netstandard20\Magick.NET-Q16-AnyCPU.targets" Condition="Exists('packages\Magick.NET-Q16-AnyCPU.14.11.1\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>copy "$(SolutionDir)packages\Joveler.ZLibWrapper.1.3.1\build\net45\Precompiled\x64\zlibwapi.dll" "$(TargetDir)"
+copy "$(SolutionDir)packages\Joveler.ZLibWrapper.1.3.1\build\net45\Precompiled\x64\zlibwapi.dll" "$(TargetDir)zlibwapi.dll"
+copy "D:\SwitchGames\SAK_64bit\TTG-Tools\oo2core_5_win64.dll" "$(TargetDir)"
+copy "D:\SwitchGames\SAK_64bit\TTG-Tools\zlib.dll" "$(TargetDir)"</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -1,4 +1,4 @@
-﻿// Original algorithm by gdkchan
+// Original algorithm by gdkchan
 // Ported and improved (a tiny bit) by Stella/AboodXD
 // C# port by Sudakov Pavel
 

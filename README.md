@@ -17,6 +17,7 @@ This version of TTG Tools includes some modifications and has been uploaded with
 
 ### Font Editor Preview
 ![Font Editor](images/FontEditor-Envolved.png)
+![Font Editor Settings](images/FontEditorSettings.png)
 
 ## Download
 

@@ -1,5 +1,5 @@
-# Auto detect text files and normalize line endings to CRLF
-* text=auto eol=crlf
+# Auto detect text files and normalize line endings to LF (matching upstream)
+* text=auto eol=lf
 
 # Explicitly declare text files
 *.cs text diff
@@ -15,6 +15,7 @@
 *.json text diff
 
 # Denote all files that are truly binary and should not be modified
+# Note: LICENSE uses -text to bypass Git's auto-normalization (see git-line-endings-guide.md)
 *.png binary
 *.jpg binary
 *.jpeg binary

@@ -365,5 +365,14 @@ namespace TTG_Tools
                 modCreatorForm.Show();
             }
         }
+
+        private void ttarch2ScannerBtn_Click(object sender, EventArgs e)
+        {
+            if (Application.OpenForms.OfType<Ttarch2Scanner>().Count() == 0)
+            {
+                Form scannerForm = new Ttarch2Scanner();
+                scannerForm.Show();
+            }
+        }
     }
 }

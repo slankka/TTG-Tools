@@ -40,6 +40,7 @@
             this.archivePackerBtn = new System.Windows.Forms.Button();
             this.arcUnpackerBtn = new System.Windows.Forms.Button();
             this.modCreatorBtn = new System.Windows.Forms.Button();
+            this.ttarch2ScannerBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // autopackerBtn
@@ -121,7 +122,7 @@
             this.arcUnpackerBtn.Click += new System.EventHandler(this.arcUnpackerBtn_Click);
             // 
             // modCreatorBtn
-            // 
+            //
             this.modCreatorBtn.Location = new System.Drawing.Point(230, 147);
             this.modCreatorBtn.Name = "modCreatorBtn";
             this.modCreatorBtn.Size = new System.Drawing.Size(112, 23);
@@ -130,11 +131,22 @@
             this.modCreatorBtn.UseVisualStyleBackColor = true;
             this.modCreatorBtn.Click += new System.EventHandler(this.modCreatorBtn_Click);
             //
+            // ttarch2ScannerBtn
+            //
+            this.ttarch2ScannerBtn.Location = new System.Drawing.Point(34, 186);
+            this.ttarch2ScannerBtn.Name = "ttarch2ScannerBtn";
+            this.ttarch2ScannerBtn.Size = new System.Drawing.Size(111, 23);
+            this.ttarch2ScannerBtn.TabIndex = 15;
+            this.ttarch2ScannerBtn.Text = "TTArch2 Scanner";
+            this.ttarch2ScannerBtn.UseVisualStyleBackColor = true;
+            this.ttarch2ScannerBtn.Click += new System.EventHandler(this.ttarch2ScannerBtn_Click);
+            //
             // MainMenu
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(370, 191);
+            this.ClientSize = new System.Drawing.Size(370, 230);
+            this.Controls.Add(this.ttarch2ScannerBtn);
             this.Controls.Add(this.arcUnpackerBtn);
             this.Controls.Add(this.modCreatorBtn);
             this.Controls.Add(this.archivePackerBtn);
@@ -167,5 +179,6 @@
         private System.Windows.Forms.Button archivePackerBtn;
         private System.Windows.Forms.Button arcUnpackerBtn;
         private System.Windows.Forms.Button modCreatorBtn;
+        private System.Windows.Forms.Button ttarch2ScannerBtn;
     }
 }

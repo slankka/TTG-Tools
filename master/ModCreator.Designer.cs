@@ -163,9 +163,10 @@
             this.createProgressBar.Name = "createProgressBar";
             this.createProgressBar.Size = new System.Drawing.Size(576, 19);
             this.createProgressBar.TabIndex = 14;
-            // 
+            //
             // ModCreator
-            // 
+            //
+            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(606, 346);

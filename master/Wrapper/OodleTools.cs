@@ -1,6 +1,7 @@
 ﻿//Used from here: https://github.com/Tamely/Oodle-Tools/tree/main
 //Imported dll from here: https://aluigi.altervista.org/papers/ttarchext.zip
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace OodleTools
@@ -61,8 +62,8 @@ namespace OodleTools
         /// <param name="b">uint: unused</param>
         /// <param name="c">uint: unused</param>
         /// <returns>int: The length of the compressed data.</returns>
-        [DllImport("oo2core_5_win64.dll")]
-        internal static extern int OodleLZ_Compress(OodleFormat Format, byte[] Buffer, long BufferSize, byte[] OutputBuffer, OodleCompressionLevel Level, uint a, uint b, uint c);
+        [DllImport("oo2core_5_win64.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern int OodleLZ_Compress(OodleFormat Format, byte[] Buffer, long BufferSize, byte[] OutputBuffer, OodleCompressionLevel Level, IntPtr a, IntPtr b, IntPtr c, IntPtr d, int e);
 
         /// <summary>
         /// This should never be called!!! If you are going to decompress something, use the Decompress method in the Oodle class and don't call it from the library directly!

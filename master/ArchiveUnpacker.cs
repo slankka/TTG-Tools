@@ -150,17 +150,20 @@ namespace TTG_Tools
         }
 
 
-        private ClassesStructs.TtarchClass.ttarchFiles[] getFilteredTtarchFiles()
+        private ClassesStructs.TtarchClass.ttarchFiles[] getFilteredTtarchFiles(string format = null, string searchPattern = null)
         {
             var files = ttarch.files.AsEnumerable();
-            string format = getSelectedFormat();
+            if (format == null) format = getSelectedFormat();
 
             if (format != "All files")
             {
                 files = files.Where(x => Methods.GetExtension(x.fileName).ToLower() == format.ToLower());
             }
 
-            if (isSearchEnabled())
+            if (searchPattern == null && isSearchEnabled())
+                searchPattern = searchTB.Text.ToLower();
+
+            if (!string.IsNullOrEmpty(searchPattern))
             {
                 string pattern = searchTB.Text.ToLower();
                 files = files.Where(x => x.fileName.ToLower().Contains(pattern));
@@ -169,20 +172,22 @@ namespace TTG_Tools
             return files.ToArray();
         }
 
-        private ClassesStructs.Ttarch2Class.Ttarch2files[] getFilteredTtarch2Files()
+        private ClassesStructs.Ttarch2Class.Ttarch2files[] getFilteredTtarch2Files(string format = null, string searchPattern = null)
         {
             var files = ttarch2.files.AsEnumerable();
-            string format = getSelectedFormat();
+            if (format == null) format = getSelectedFormat();
 
             if (format != "All files")
             {
                 files = files.Where(x => Methods.GetExtension(x.fileName).ToLower() == format.ToLower());
             }
 
-            if (isSearchEnabled())
+            if (searchPattern == null && isSearchEnabled())
+                searchPattern = searchTB.Text.ToLower();
+
+            if (!string.IsNullOrEmpty(searchPattern))
             {
-                string pattern = searchTB.Text.ToLower();
-                files = files.Where(x => x.fileName.ToLower().Contains(pattern));
+                files = files.Where(x => x.fileName.ToLower().Contains(searchPattern));
             }
 
             return files.ToArray();
@@ -271,6 +276,7 @@ namespace TTG_Tools
                         break;
 
                     case 2:
+                    case 3:
                         retBuf = OodleDecompressor(bytes);
                         break;
                         
@@ -382,6 +388,8 @@ namespace TTG_Tools
                 retBytes = new byte[ttarch2.lastChunkSize];
                 size = OodleTools.Imports.OodleLZ_Decompress(bytes, bufSize, retBytes, ttarch2.lastChunkSize, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3);
             }
+
+            if (size <= 0) return null;
 
             byte[] tmp = new byte[size];
             Array.Copy(retBytes, 0, tmp, 0, tmp.Length);
@@ -543,9 +551,9 @@ namespace TTG_Tools
             }
         }
 
-        private void UnpackTtarch(string folderPath, string format, int[] indexes = null)
+        private void UnpackTtarch(string folderPath, string format, string searchPattern = null, int[] indexes = null)
         {
-            var files = getFilteredTtarchFiles();
+            var files = getFilteredTtarchFiles(format, searchPattern);
 
             FileStream fs = new FileStream(ttarch.filePath, FileMode.Open);
             BinaryReader br = new BinaryReader(fs);
@@ -632,6 +640,14 @@ namespace TTG_Tools
                         tmp = dec.Crypt_ECB(tmp, 7, true);
                     }
 
+                    // Detect Oodle variant from compressed block header: 0x8c + raw algo byte
+                    // 0x00 = LZHLW, 0x06 = Kraken (per ttarchext oodle.c)
+                    if (ttarch2.compressAlgorithm == 2 && tmp.Length >= 2 && tmp[0] == 0x8c)
+                    {
+                        ttarch2.compressAlgorithm = tmp[1] == 0x06 ? 3 : 2;
+                        // 2 = Oodle LZHLW, 3 = Oodle Kraken
+                    }
+
                     tmp = decompressBlock(tmp, ttarch2.compressAlgorithm);
 
                     int suboff = 0;
@@ -696,6 +712,7 @@ namespace TTG_Tools
                         {
                             mbr.BaseStream.Seek(suboff, SeekOrigin.Begin);
 
+                            // Step 1: Read all file entries and collect file formats
                             for(int i = 0; i < (int)filesCount; i++)
                             {
                                 ttarch2.files[i].fileNameCRC64 = mbr.ReadUInt64();
@@ -724,18 +741,9 @@ namespace TTG_Tools
 
                                     string ext = Methods.GetExtension(ttarch2.files[i].fileName);
 
-                                    if (((ext == ".lenc") || (ext == ".lua")) && !ttarch2.isEncryptedLua)
+                                    if (ext == ".lenc")
                                     {
-                                        if (ext == ".lenc")
-                                        {
-                                            ttarch2.isEncryptedLua = true;
-                                        }
-                                        else
-                                        {
-                                            byte[] lua = getTtarch2File(ttarch2, ttarch2.files[i], key, br);
-
-                                            ttarch2.isEncryptedLua = Methods.isLuaEncrypted(lua);
-                                        }
+                                        ttarch2.isEncryptedLua = true;
                                     }
 
                                     if ((ext != "") && !ttarch2.fileFormats.Contains(ext))
@@ -746,16 +754,76 @@ namespace TTG_Tools
 
                                 mbr.BaseStream.Seek(pos, SeekOrigin.Begin);
                             }
-                        }
 
-                        // Calculate exact decompressed size of the last chunk
-                        ulong maxEnd = 0;
-                        for (int i = 0; i < filesCount; i++)
-                        {
-                            ulong end = (ulong)ttarch2.files[i].fileOffset + (ulong)ttarch2.files[i].fileSize;
-                            if (end > maxEnd) maxEnd = end;
+                            // Step 2: Determine last chunk size
+                            {
+                                long savedPos = br.BaseStream.Position;
+                                ulong lastBlockFileOffset = ttarch2.cFilesOffset;
+                                for (int b = 0; b < ttarch2.compressedBlocks.Length - 1; b++)
+                                    lastBlockFileOffset += ttarch2.compressedBlocks[b];
+                                br.BaseStream.Seek((long)lastBlockFileOffset, SeekOrigin.Begin);
+                                byte[] lastBlock = br.ReadBytes((int)ttarch2.compressedBlocks[ttarch2.compressedBlocks.Length - 1]);
+                                if (ttarch2.isEncrypted)
+                                {
+                                    BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, 7);
+                                    lastBlock = dec.Crypt_ECB(lastBlock, 7, true);
+                                }
+                                if (ttarch2.compressAlgorithm == 2 || ttarch2.compressAlgorithm == 3)
+                                {
+                                    // OodleLZ_Decompress returns 0 when dst_len > actual decompressed size.
+                                    // Try with full chunkSize first: if it succeeds, the chunk is padded.
+                                    byte[] dec = new byte[ttarch2.chunkSize];
+                                    int sz = OodleTools.Imports.OodleLZ_Decompress(lastBlock, lastBlock.Length, dec, ttarch2.chunkSize, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3);
+                                    if (sz > 0)
+                                    {
+                                        ttarch2.lastChunkSize = sz; // padded: exactly chunkSize
+                                    }
+                                    else
+                                    {
+                                        // Not padded: use file offsets to calculate exact size.
+                                        // For unpadded archives, filesOffset + maxEnd equals the total
+                                        // decompressed size (no trailing padding bytes).
+                                        ulong maxEnd = 0;
+                                        for (int i = 0; i < filesCount; i++)
+                                        {
+                                            ulong end = (ulong)ttarch2.files[i].fileOffset + (ulong)ttarch2.files[i].fileSize;
+                                            if (end > maxEnd) maxEnd = end;
+                                        }
+                                        int calcSize = (int)((ulong)ttarch2.filesOffset + maxEnd - (ulong)(ttarch2.compressedBlocks.Length - 1) * ttarch2.chunkSize);
+                                        ttarch2.lastChunkSize = (calcSize > 0 && calcSize < ttarch2.chunkSize) ? calcSize : 0;
+                                    }
+                                }
+                                else if (ttarch2.compressAlgorithm == 1)
+                                {
+                                    using (MemoryStream cms = new MemoryStream(lastBlock))
+                                    using (System.IO.Compression.DeflateStream cds = new System.IO.Compression.DeflateStream(cms, System.IO.Compression.CompressionMode.Decompress))
+                                    using (MemoryStream cmsOut = new MemoryStream())
+                                    {
+                                        cds.CopyTo(cmsOut);
+                                        ttarch2.lastChunkSize = (int)cmsOut.Length;
+                                    }
+                                }
+                                else
+                                {
+                                    ttarch2.lastChunkSize = lastBlock.Length;
+                                }
+                                br.BaseStream.Seek(savedPos, SeekOrigin.Begin);
+                            }
+
+                            // Step 3: Check if Lua scripts are encrypted (requires decompression)
+                            for (int i = 0; i < (int)filesCount; i++)
+                            {
+                                string ext = Methods.GetExtension(ttarch2.files[i].fileName);
+                                if (ext == ".lua" && !ttarch2.isEncryptedLua)
+                                {
+                                    byte[] lua = getTtarch2File(ttarch2, ttarch2.files[i], key, br);
+                                    if (lua != null)
+                                    {
+                                        ttarch2.isEncryptedLua = Methods.isLuaEncrypted(lua);
+                                    }
+                                }
+                            }
                         }
-                        ttarch2.lastChunkSize = (int)(maxEnd - (ulong)(ttarch2.compressedBlocks.Length - 1) * ttarch2.chunkSize);
                     }
                 }
                 else
@@ -807,21 +875,9 @@ namespace TTG_Tools
 
                             string ext = Methods.GetExtension(ttarch2.files[i].fileName);
 
-                            if(((ext == ".lenc") || (ext == ".lua")) && !ttarch2.isEncryptedLua)
+                            if (ext == ".lenc")
                             {
-                                if (ext == ".lenc")
-                                {
-                                    ttarch2.isEncryptedLua = true;
-                                }
-                                else
-                                {
-                                    byte[] tmp = getTtarch2File(ttarch2, ttarch2.files[i], key, br);
-
-                                    if (tmp != null)
-                                    {
-                                        ttarch2.isEncryptedLua = Methods.isLuaEncrypted(tmp);
-                                    }
-                                }
+                                ttarch2.isEncryptedLua = true;
                             }
 
                             if ((ext != "") && !ttarch2.fileFormats.Contains(ext))
@@ -833,14 +889,19 @@ namespace TTG_Tools
                         br.BaseStream.Seek(pos, SeekOrigin.Begin);
                     }
 
-                    // Calculate exact decompressed size of the last chunk
-                    ulong maxEnd = 0;
+                    // Check if Lua scripts are encrypted (requires file read)
                     for (int i = 0; i < filesCount; i++)
                     {
-                        ulong end = (ulong)ttarch2.files[i].fileOffset + (ulong)ttarch2.files[i].fileSize;
-                        if (end > maxEnd) maxEnd = end;
+                        string ext = Methods.GetExtension(ttarch2.files[i].fileName);
+                        if (ext == ".lua" && !ttarch2.isEncryptedLua)
+                        {
+                            byte[] tmp = getTtarch2File(ttarch2, ttarch2.files[i], key, br);
+                            if (tmp != null)
+                            {
+                                ttarch2.isEncryptedLua = Methods.isLuaEncrypted(tmp);
+                            }
+                        }
                     }
-                    ttarch2.lastChunkSize = (int)(maxEnd - (ulong)(ttarch2.compressedBlocks.Length - 1) * ttarch2.chunkSize);
                 }
 
                 br.Close();
@@ -853,9 +914,9 @@ namespace TTG_Tools
             }
         }
 
-        private void UnpackTtarch2(string folderPath, string format, int[] indexes = null)
+        private void UnpackTtarch2(string folderPath, string format, string searchPattern = null, int[] indexes = null)
         {
-            var files = getFilteredTtarch2Files();
+            var files = getFilteredTtarch2Files(format, searchPattern);
             List<string> failedFiles = new List<string>();
 
             int count = indexes != null ? indexes.Length : files.Length;
@@ -909,6 +970,7 @@ namespace TTG_Tools
             string chunkSzStr = "Chunk size: ";
             string encLua = "Lua scripts encrypted: ";
             string arcVersion = "Version: ";
+            string paddingStr = "Last chunk padding: ";
 
             if (ttarch != null)
             {
@@ -918,28 +980,47 @@ namespace TTG_Tools
                     compressedStr += " (";
                     compressedStr += ttarch.compressAlgorithm == 0 ? "zlib)" : "deflate)";
                 }
-                
+
                 encryptedStr += ttarch.isEncrypted ? "Yes" : "No";
                 xmodeStr += ttarch.isXmode ? "Yes" : "No";
                 chunkSzStr += Convert.ToString(ttarch.chunkSize) + "KB";
 
                 encLua += ttarch.isEncryptedLua ? "Yes" : "No";
                 arcVersion += Convert.ToString(ttarch.version);
+                paddingStr += "N/A";
             }
             else if (ttarch2 != null)
             {
                 compressedStr += ttarch2.isCompressed ? "Yes" : "No";
                 if (ttarch2.isCompressed)
                 {
-                    compressedStr += " (";
-                    compressedStr += ttarch2.compressAlgorithm == 1 ? "deflate)" : "oodle LZ)";
+                    string algoName;
+                    switch (ttarch2.compressAlgorithm)
+                    {
+                        case 1: algoName = "Deflate"; break;
+                        case 2: algoName = "Oodle LZHLW"; break;
+                        case 3: algoName = "Oodle Kraken"; break;
+                        default: algoName = "Unknown"; break;
+                    }
+                    compressedStr += $" ({algoName})";
                 }
 
                 encryptedStr += ttarch2.isEncrypted ? "Yes" : "No";
                 xmodeStr = "Has X mode: No";
                 chunkSzStr += Convert.ToString(ttarch2.chunkSize / 1024) + "KB";
                 encLua += ttarch2.isEncryptedLua ? "Yes" : "No";
-                arcVersion += Convert.ToString(ttarch2.version);
+                arcVersion += ttarch2.version == 1 ? "1 (3ATT)" : "2 (4ATT)";
+
+                if (ttarch2.isCompressed && ttarch2.lastChunkSize > 0)
+                {
+                    paddingStr += ttarch2.lastChunkSize == ttarch2.chunkSize
+                        ? "Padded (full chunk)"
+                        : $"Not padded ({ttarch2.lastChunkSize} / {ttarch2.chunkSize} bytes)";
+                }
+                else
+                {
+                    paddingStr += "N/A";
+                }
             }
 
             compressionLabel.Text = compressedStr;
@@ -948,6 +1029,7 @@ namespace TTG_Tools
             chunkSizeLabel.Text = chunkSzStr;
             encrLuaLabel.Text = encLua;
             versionLabel.Text = arcVersion;
+            paddingLabel.Text = paddingStr;
         }
 
         private void showNoResultsMessage()
@@ -1180,7 +1262,6 @@ namespace TTG_Tools
 
                             if (tmp == null || tmp.Length == 0)
                             {
-                                br.Close();
                                 return null;
                             }
 
@@ -1323,6 +1404,7 @@ namespace TTG_Tools
             decrypt = decryptLuaCB.Checked;
             key = MainMenu.gamelist[gameListCB.SelectedIndex].key;
             string format = fileFormatsCB.Text;
+            string searchPattern = isSearchEnabled() ? searchTB.Text.ToLower() : null;
 
             if (!hasFilteredResults())
             {
@@ -1336,7 +1418,7 @@ namespace TTG_Tools
 
                 if (!string.IsNullOrEmpty(selectedFolder))
                 {
-                    await Task.Run(() => UnpackTtarch(selectedFolder, format));
+                    await Task.Run(() => UnpackTtarch(selectedFolder, format, searchPattern));
                 }
             }
             else if(ttarch2 != null)
@@ -1345,7 +1427,7 @@ namespace TTG_Tools
 
                 if (!string.IsNullOrEmpty(selectedFolder))
                 {
-                    await Task.Run(() => UnpackTtarch2(selectedFolder, format));
+                    await Task.Run(() => UnpackTtarch2(selectedFolder, format, searchPattern));
                 }
             }
             else
@@ -1389,6 +1471,7 @@ namespace TTG_Tools
                 decrypt = decryptLuaCB.Checked;
 
                 string format = fileFormatsCB.Text;
+                string searchPattern = isSearchEnabled() ? searchTB.Text.ToLower() : null;
                 var indexesList = new List<int>();
 
                 for (int i = 0; i < filesDataGridView.SelectedRows.Count; i++)
@@ -1416,7 +1499,7 @@ namespace TTG_Tools
 
                     if (!string.IsNullOrEmpty(selectedFolder))
                     {
-                        await Task.Run(() => UnpackTtarch(selectedFolder, format, indexes));
+                        await Task.Run(() => UnpackTtarch(selectedFolder, format, searchPattern, indexes));
                     }
                 }
                 else if(ttarch2 != null)
@@ -1425,7 +1508,7 @@ namespace TTG_Tools
 
                     if (!string.IsNullOrEmpty(selectedFolder))
                     {
-                        await Task.Run(() => UnpackTtarch2(selectedFolder, format, indexes));
+                        await Task.Run(() => UnpackTtarch2(selectedFolder, format, searchPattern, indexes));
                     }
                 }
             }

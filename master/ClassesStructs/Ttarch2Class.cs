@@ -20,7 +20,7 @@ namespace TTG_Tools.ClassesStructs
         public bool isEncrypted;
         public bool isEncryptedLua;
         public uint chunkSize;
-        public int compressAlgorithm;
+        public int compressAlgorithm; //-1 - unknown, 1 - deflate, 2 - oodle LZHLW, 3 - oodle Kraken
         public int version;
         public ulong filesOffset;
         public ulong cFilesOffset;

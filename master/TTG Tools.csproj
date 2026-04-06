@@ -125,6 +125,7 @@
       <DependentUpon>AutoPacker.cs</DependentUpon>
     </Compile>
     <Compile Include="blowfish.cs" />
+    <Compile Include="CompressionStats.cs" />
     <Compile Include="ClassesStructs\fileInfoClass.cs" />
     <Compile Include="ClassesStructs\FlagsClass.cs" />
     <Compile Include="ClassesStructs\PropertyClass.cs" />

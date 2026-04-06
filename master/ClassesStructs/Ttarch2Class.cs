@@ -28,6 +28,7 @@ namespace TTG_Tools.ClassesStructs
         public ulong[] compressedBlocks;
         public List<string> fileFormats;
         public Ttarch2files[] files;
+        public int lastChunkSize; // actual decompressed size of the last chunk (may be < chunkSize)
 
         public Ttarch2Class()
         {

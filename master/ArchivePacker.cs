@@ -19,12 +19,49 @@ namespace TTG_Tools
 
         public static FileInfo[] fi; //Получение списка файлов
         int archiveVersion;
+        private static CompressionStats compressionStats = new CompressionStats();
 
         public ArchivePacker()
         {
             InitializeComponent();
             fbd.IsFolderPicker = true;
             fbd.EnsurePathExists = true;
+
+            // Enable selection and copy for messageListBox
+            messageListBox.SelectionMode = SelectionMode.MultiSimple;
+            messageListBox.ContextMenuStrip = new ContextMenuStrip();
+            ToolStripMenuItem copyItem = new ToolStripMenuItem("复制选中项 (&C)");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Click += (s, e) => CopySelectedMessages();
+            messageListBox.ContextMenuStrip.Items.Add(copyItem);
+
+            // Also add "Copy All" option
+            ToolStripMenuItem copyAllItem = new ToolStripMenuItem("复制全部 (&A)");
+            copyAllItem.Click += (s, e) => CopyAllMessages();
+            messageListBox.ContextMenuStrip.Items.Add(copyAllItem);
+        }
+
+        private void CopySelectedMessages()
+        {
+            if (messageListBox.SelectedIndices.Count == 0)
+                return;
+
+            var selectedText = new System.Text.StringBuilder();
+            foreach (int index in messageListBox.SelectedIndices)
+            {
+                selectedText.AppendLine(messageListBox.Items[index].ToString());
+            }
+            Clipboard.SetText(selectedText.ToString());
+        }
+
+        private void CopyAllMessages()
+        {
+            var allText = new System.Text.StringBuilder();
+            foreach (var item in messageListBox.Items)
+            {
+                allText.AppendLine(item.ToString());
+            }
+            Clipboard.SetText(allText.ToString());
         }
 
         public void AddNewReport(string report)
@@ -86,19 +123,64 @@ namespace TTG_Tools
             return retBytes;
         }
 
-        private static byte[] OodleCompress(byte[] bytes)
+        private static byte[] OodleCompress(byte[] bytes, int compressAlgorithm = 1)
         {
-            byte[] retVal = new byte[bytes.Length];
-            long bufSize = bytes.Length;
-            int compressedSize = OodleTools.Imports.OodleLZ_Compress(OodleTools.OodleFormat.LZHLW, bytes, bufSize, retVal, OodleTools.OodleCompressionLevel.Optimal5, 0, 0, 0);
-            bytes = new byte[compressedSize];
-            Array.Copy(retVal, 0, bytes, 0, bytes.Length);
-            retVal = null;
+            int originalSize = bytes.Length;
+            compressionStats.TotalChunks++;
+            compressionStats.TotalUncompressed += originalSize;
+
+            uint bufSize = OodleTools.Imports.GetCompressedBounds((uint)bytes.Length);
+            byte[] retVal = new byte[bufSize];
+
+            // compressAlgorithm: 1 = LZHLW (header 0x00), 2 = Kraken (header 0x06)
+            OodleTools.OodleFormat format = compressAlgorithm == 2
+                ? OodleTools.OodleFormat.Kraken
+                : OodleTools.OodleFormat.LZHLW;
+
+            int compressedSize = OodleTools.Imports.OodleLZ_Compress(
+                format,
+                bytes,
+                bytes.Length,
+                retVal,
+                OodleTools.OodleCompressionLevel.Optimal3,
+                IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, 0);
+
+            compressionStats.OodleChunks++;
+
+            // Guard against invalid compression results
+            if (compressedSize <= 0 || compressedSize > bytes.Length)
+            {
+                compressionStats.FailedCompression++;
+                compressionStats.TotalCompressed += originalSize;
+                System.Diagnostics.Debug.WriteLine($"[Oodle WARNING] Chunk #{compressionStats.OodleChunks}: " +
+                    $"Compression failed! Input: {originalSize}, Output: {compressedSize}");
+                return bytes;
+            }
+
+            // Only use compressed result if it's actually smaller
+            if (compressedSize < bytes.Length)
+            {
+                compressionStats.TotalCompressed += compressedSize;
+                byte[] result = new byte[compressedSize];
+                Array.Copy(retVal, 0, result, 0, compressedSize);
+                return result;
+            }
+
+            // Compression failed or didn't help
+            compressionStats.FailedCompression++;
+            compressionStats.TotalCompressed += originalSize;
+            System.Diagnostics.Debug.WriteLine($"[Oodle WARNING] Chunk #{compressionStats.OodleChunks}: " +
+                $"Compression failed! Input: {originalSize}, Output: {compressedSize}");
             return bytes;
         }
 
-        private static byte[] DeflateCompressor(byte[] bytes) //Для старых (версии 8 и 9) и новых архивов
+        private static byte[] DeflateCompressor(byte[] bytes)
         {
+            int originalSize = bytes.Length;
+            compressionStats.TotalChunks++;
+            compressionStats.TotalUncompressed += originalSize;
+            compressionStats.DeflateChunks++;
+
             byte[] retVal;
             using (MemoryStream compressedMemoryStream = new MemoryStream())
             {
@@ -112,6 +194,17 @@ namespace TTG_Tools
                     }
                 }
             }
+
+            if (retVal.Length < bytes.Length)
+            {
+                compressionStats.TotalCompressed += retVal.Length;
+            }
+            else
+            {
+                compressionStats.FailedCompression++;
+                compressionStats.TotalCompressed += originalSize;
+            }
+
             return retVal;
         }
 
@@ -139,7 +232,7 @@ namespace TTG_Tools
                 || (gameName == "Poker Night at the Inventory - Remastered");
         }
 
-        void ttarch2BuilderLegacy1132(string inputFolder, string outputPath, bool compression, bool encryption, bool encLua, byte[] key, int versionArchive, bool newEngine)
+        void ttarch2BuilderLegacy1132(string inputFolder, string outputPath, bool compression, bool encryption, bool encLua, byte[] key, int versionArchive, bool newEngine, bool preserveLua, bool padLastChunk)
         {
             DirectoryInfo di = new DirectoryInfo(inputFolder);
             fi = di.GetFiles("*", SearchOption.AllDirectories);
@@ -149,7 +242,7 @@ namespace TTG_Tools
 
             for (int i = 0; i < fi.Length; i++)
             {
-                if ((fi[i].Extension.ToLower() == ".lua") && encLua)
+                if ((fi[i].Extension.ToLower() == ".lua") && encLua && !preserveLua)
                 {
                     name[i] = !newEngine ? fi[i].Name.Replace(".lua", ".lenc") : fi[i].Name;
                 }
@@ -259,7 +352,7 @@ namespace TTG_Tools
                 {
                     byte[] file = File.ReadAllBytes(fi[l].FullName);
 
-                    if ((fi[l].Extension.ToLower() == ".lua") && encLua)
+                    if ((fi[l].Extension.ToLower() == ".lua") && encLua && !preserveLua)
                     {
                         file = Methods.encryptLua(file, key, newEngine, 7);
                     }
@@ -300,7 +393,15 @@ namespace TTG_Tools
                 for (int i = 0; i < blocksCount; i++)
                 {
                     byte[] temp = new byte[0x10000];
-                    tempFr.Read(temp, 0, temp.Length);
+                    int bytesRead = tempFr.Read(temp, 0, temp.Length);
+
+                    if (!padLastChunk && (i + 1 == blocksCount) && (bytesRead < 0x10000))
+                    {
+                        byte[] truncated = new byte[bytesRead];
+                        Array.Copy(temp, truncated, bytesRead);
+                        temp = truncated;
+                    }
+
                     byte[] compressedBlock = DeflateCompressor(temp);
 
                     if (encryption)
@@ -322,8 +423,26 @@ namespace TTG_Tools
         }
 
 
-        async Task ttarch2Builder(string inputFolder, string outputPath, bool compression, bool encryption, bool encLua, byte[] key, int versionArchive, bool newEngine, int compressAlgorithm)
+        async Task ttarch2Builder(string inputFolder, string outputPath, bool compression, bool encryption, bool encLua, byte[] key, int versionArchive, bool newEngine, int compressAlgorithm, bool preserveLua, bool padLastChunk)
         {
+            // Reset compression statistics for this archive
+            compressionStats = new CompressionStats();
+
+            // ========== DEBUG INFO ==========
+            AddNewReport("=== TTArch2 Builder DEBUG INFO ===");
+            AddNewReport($"Input Folder: {inputFolder}");
+            AddNewReport($"Output Path: {outputPath}");
+            AddNewReport($"Compression Enabled: {compression}");
+            AddNewReport($"Encryption Enabled: {encryption}");
+            AddNewReport($"Archive Version: {versionArchive} {(versionArchive == 1 ? "(TTA2)" : "(TTA3)")}");
+            string algoName = compressAlgorithm == 0 ? "(Deflate)" : compressAlgorithm == 1 ? "(Oodle LZHLW)" : "(Oodle Kraken)";
+            AddNewReport($"Compression Algorithm: {compressAlgorithm} {algoName}");
+            AddNewReport($"New Engine Lua: {newEngine}");
+            AddNewReport($"Encrypt Lua: {encLua}");
+            AddNewReport($"Key Length: {key?.Length ?? 0}");
+            AddNewReport("=====================================");
+            // ===================================
+
             DirectoryInfo di = new DirectoryInfo(inputFolder);
             fi = di.GetFiles("*", SearchOption.AllDirectories);
 
@@ -344,7 +463,7 @@ namespace TTG_Tools
 
             for(int i = 0; i < fi.Length; i++)
             {
-                name[i] = (fi[i].Extension == ".lua") && encLua && (!newEngine) ? fi[i].Name.Remove(fi[i].Name.Length - 3, 3) + "lenc" : fi[i].Name;
+                name[i] = (fi[i].Extension == ".lua") && encLua && (!newEngine) && !preserveLua ? fi[i].Name.Remove(fi[i].Name.Length - 3, 3) + "lenc" : fi[i].Name;
                 nameCRC[i] = CRCs.CRC64(0, name[i].ToLower()); //Calculate crc64 file name with lower characters
                 nameSize += (ulong)name[i].Length + 1;
                 dataSize += (ulong)fi[i].Length;
@@ -392,6 +511,7 @@ namespace TTG_Tools
                         break;
 
                     case 1:
+                    case 2:
                         header = encryption ? Encoding.ASCII.GetBytes("eCTT") : Encoding.ASCII.GetBytes("zCTT");
                         break;
                 }
@@ -403,7 +523,7 @@ namespace TTG_Tools
             commonSize = versionArchive == 1 ? dataSize + tableSize + nameSize + 4 + 4 + 4 + 4 : dataSize + tableSize + nameSize + 4 + 4 + 4; //Common archive's size
 
             int chunksCount = (int)(Methods.pad_it(commonSize, (ulong)chunkSize)) / chunkSize;
-            ulong chunksFirstOffset = compressAlgorithm == 1 ? 24 + (ulong)(chunksCount * 8) : 20 + (ulong)(chunksCount * 8);
+            ulong chunksFirstOffset = compressAlgorithm >= 1 ? 24 + (ulong)(chunksCount * 8) : 20 + (ulong)(chunksCount * 8);
             ulong[] compressedOffset = new ulong[chunksCount];
             byte[] namesTable = new byte[nameSize];
             byte[] table;
@@ -454,7 +574,7 @@ namespace TTG_Tools
             }
             else
             {
-                if(compression && compressAlgorithm == 1) bw.Write(BitConverter.GetBytes(1));
+                if(compression && compressAlgorithm >= 1) bw.Write(BitConverter.GetBytes(1));
                 bw.Write(chunkSize);
                 bw.Write(chunksCount);
                 bw.Write(chunksFirstOffset);
@@ -517,7 +637,7 @@ namespace TTG_Tools
                 {
                     if (compression)
                     {
-                        byte[] check = versionArchive == 2 && compressAlgorithm == 1 ? OodleCompress(chunk) : DeflateCompressor(chunk);
+                        byte[] check = versionArchive == 2 && compressAlgorithm >= 1 ? OodleCompress(chunk, compressAlgorithm) : DeflateCompressor(chunk);
 
                         if (check.Length < chunk.Length)
                         {
@@ -550,7 +670,7 @@ namespace TTG_Tools
             {
                 byte[] file = File.ReadAllBytes(fi[a].FullName);
 
-                if (encLua && ((fi[a].Extension.ToLower() == ".lua") || (fi[a].Extension.ToLower() == ".lenc")))
+                if (encLua && !preserveLua && ((fi[a].Extension.ToLower() == ".lua") || (fi[a].Extension.ToLower() == ".lenc")))
                 {
                     file = Methods.encryptLua(file, key, newEngine, 7);
                 }
@@ -575,18 +695,18 @@ namespace TTG_Tools
                     chunkFileOff += chSize;
 
                     if ((chunkOff >= chunkSize) || ((ch + 1 == chunksCount) && (a + 1 == fi.Length)))
-                    {                        
-                        if ((ch + 1 == chunksCount) && (chunkOff < chunkSize))
+                    {
+                        // When padding is disabled, truncate the last chunk to its actual data size
+                        if (!padLastChunk && chunkOff > 0 && chunkOff < chunkSize && (ch + 1 == chunksCount))
                         {
-                            tmp = new byte[chunkOff];
-                            Array.Copy(chunk, 0, tmp, 0, tmp.Length);
-                            chunk = new byte[tmp.Length];
-                            Array.Copy(tmp, 0, chunk, 0, tmp.Length);
+                            byte[] truncated = new byte[chunkOff];
+                            Array.Copy(chunk, truncated, chunkOff);
+                            chunk = truncated;
                         }
 
                         if (compression)
                         {
-                            byte[] check = versionArchive == 2 && compressAlgorithm == 1 ? OodleCompress(chunk) : DeflateCompressor(chunk);
+                            byte[] check = versionArchive == 2 && compressAlgorithm >= 1 ? OodleCompress(chunk, compressAlgorithm) : DeflateCompressor(chunk);
 
                             if (check.Length < chunk.Length)
                             {
@@ -633,10 +753,25 @@ namespace TTG_Tools
             bw.Close();
             fs.Close();
 
+            // Output compression statistics
+            AddNewReport("=== COMPRESSION STATISTICS ===");
+            double ratio = compressionStats.TotalUncompressed > 0 ? (compressionStats.TotalCompressed * 100.0 / compressionStats.TotalUncompressed) : 0;
+            AddNewReport($"Total Chunks Processed: {compressionStats.TotalChunks}");
+            AddNewReport($"Oodle Compressed Chunks: {compressionStats.OodleChunks}");
+            AddNewReport($"Deflate Compressed Chunks: {compressionStats.DeflateChunks}");
+            AddNewReport($"Failed/Ineffective Compression: {compressionStats.FailedCompression}");
+            AddNewReport($"Total Uncompressed Data: {compressionStats.TotalUncompressed} bytes");
+            AddNewReport($"Total Compressed Data: {compressionStats.TotalCompressed} bytes");
+            AddNewReport($"Compression Ratio: {ratio:F2}%");
+            AddNewReport("================================");
+
+            // Reset stats for next archive
+            compressionStats = new CompressionStats();
+
             AddNewReport("Packing archive complete");
         }
 
-        async Task ttarchBuilder(string inputFolder, string outputPath, byte[] key, bool compression, int versionArchive, bool encryptCheck, bool DontEncLua, int compressAlgorithm) //Функция сборки
+        async Task ttarchBuilder(string inputFolder, string outputPath, byte[] key, bool compression, int versionArchive, bool encryptCheck, bool DontEncLua, int compressAlgorithm, bool preserveLua, bool padLastChunk) //Функция сборки
         {
             DirectoryInfo di = new DirectoryInfo(inputFolder);
             DirectoryInfo[] di1 = di.GetDirectories("*", SearchOption.AllDirectories); //Just for fun if files were in different directories for Telltale Tool engine this optional
@@ -689,7 +824,7 @@ namespace TTG_Tools
 
             for (int i = 0; i < fi.Length; i++)
             {
-                string name = (fi[i].Extension.ToLower() == ".lua") && !DontEncLua ? fi[i].Name.Remove(fi[i].Name.Length - 3, 3) + "lenc" : fi[i].Name;
+                string name = (fi[i].Extension.ToLower() == ".lua") && !DontEncLua && !preserveLua ? fi[i].Name.Remove(fi[i].Name.Length - 3, 3) + "lenc" : fi[i].Name;
 
                 if (Methods.meta_check(fi[i]) && compression)
                 {
@@ -861,12 +996,12 @@ namespace TTG_Tools
 
                     if ((chunkOff >= chunkSize) || ((ch + 1 == chunksCount) && (a + 1 == fi.Length)))
                     {
-                        if((ch + 1 == chunksCount) && (chunkOff < chunkSize))
+                        // When padding is disabled, truncate the last chunk to its actual data size
+                        if (!padLastChunk && chunkOff > 0 && chunkOff < chunkSize && (ch + 1 == chunksCount))
                         {
-                            byte[] tmp = new byte[chunkOff];
-                            Array.Copy(chunk, 0, tmp, 0, tmp.Length);
-                            chunk = new byte[tmp.Length];
-                            Array.Copy(tmp, 0, chunk, 0, tmp.Length);
+                            byte[] truncated = new byte[chunkOff];
+                            Array.Copy(chunk, truncated, chunkOff);
+                            chunk = truncated;
                         }
 
                         if (compression)
@@ -942,11 +1077,13 @@ namespace TTG_Tools
             }
 
             compressionCB.Items.Add("Deflate");
-            compressionCB.Items.Add("Oodle LZ");
+            compressionCB.Items.Add("Oodle LZHLW");
+            compressionCB.Items.Add("Oodle Kraken");
             compressionCB.SelectedIndex = 0;
             
             newEngineLua.Checked = MainMenu.settings.encNewLua;
             checkCompress.Checked = MainMenu.settings.compressArchive;
+            preserveLuaCheck.Checked = true;
             checkXmode.Checked = MainMenu.settings.oldXmode;
             DontEncLuaCheck.Checked = MainMenu.settings.encryptLuaInArchive;
             EncryptIt.Checked = MainMenu.settings.encArchive;
@@ -993,9 +1130,9 @@ namespace TTG_Tools
         private void ttarch2RB_CheckedChanged(object sender, EventArgs e)
         {
             versionSelection.Items.Clear();
-            versionSelection.Items.Add("1");
-            versionSelection.Items.Add("2");
-            versionSelection.SelectedIndex = 0;
+            versionSelection.Items.Add("1 (3ATT)");
+            versionSelection.Items.Add("2 (4ATT)");
+            versionSelection.SelectedIndex = 1;
 
             checkXmode.Visible = false;
 
@@ -1131,7 +1268,7 @@ namespace TTG_Tools
                 {
                     string example = "96CA99A085CF988AE4DBE2CDA6968388C08B99E39ED89BB6D790DCBEAD9D9165B6A69EBBC2C69EB3E7E3E5D5AB6382A09CC4929FD1D5A4";
                     
-                    archiveVersion = Convert.ToInt32(versionSelection.SelectedItem);
+                    archiveVersion = Convert.ToInt32(versionSelection.SelectedIndex + 1);
 
                     byte[] keyEnc;
                     if(CheckCustomKey.Checked) keyEnc = Methods.stringToKey(textBox3.Text);
@@ -1155,15 +1292,16 @@ namespace TTG_Tools
 
                     int algorithmCompress = 0;
 
-                    if (ttarch2RB.Checked && (versionSelection.SelectedIndex == 1) && (compressionCB.SelectedIndex == 1)) algorithmCompress = 1;
-                    else if (ttarchRB.Checked && (versionSelection.SelectedIndex == 5 || versionSelection.SelectedIndex == 6) && (compressionCB.SelectedIndex == 1)) algorithmCompress = 1;
+                    if (ttarch2RB.Checked && (versionSelection.SelectedIndex == 1) && compressionCB.SelectedIndex == 1) algorithmCompress = 1;
+                    else if (ttarch2RB.Checked && (versionSelection.SelectedIndex == 1) && compressionCB.SelectedIndex == 2) algorithmCompress = 2;
+                    else if (ttarchRB.Checked && (versionSelection.SelectedIndex == 5 || versionSelection.SelectedIndex == 6) && compressionCB.SelectedIndex == 1) algorithmCompress = 1;
                     else if (ttarchRB.Checked && versionSelection.SelectedIndex == 7) algorithmCompress = 1; //Latest version uses deflate algorithm
 
                     if (messageListBox.Items.Count > 1) messageListBox.Items.Clear();
 
                     if(ttarchRB.Checked)
                     {
-                        await Task.Run(() => ttarchBuilder(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, keyEnc, MainMenu.settings.compressArchive, archiveVersion, MainMenu.settings.encArchive, MainMenu.settings.encryptLuaInArchive, algorithmCompress));
+                        await Task.Run(() => ttarchBuilder(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, keyEnc, MainMenu.settings.compressArchive, archiveVersion, MainMenu.settings.encArchive, MainMenu.settings.encryptLuaInArchive, algorithmCompress, preserveLuaCheck.Checked, checkPaddingCompat.Checked));
                     }
                     else
                     {
@@ -1171,11 +1309,11 @@ namespace TTG_Tools
 
                         if (useLegacyBuilder)
                         {
-                            await Task.Run(() => ttarch2BuilderLegacy1132(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, MainMenu.settings.compressArchive, MainMenu.settings.encArchive, !MainMenu.settings.encryptLuaInArchive, keyEnc, archiveVersion, MainMenu.settings.encNewLua));
+                            await Task.Run(() => ttarch2BuilderLegacy1132(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, MainMenu.settings.compressArchive, MainMenu.settings.encArchive, !MainMenu.settings.encryptLuaInArchive, keyEnc, archiveVersion, MainMenu.settings.encNewLua, preserveLuaCheck.Checked, checkPaddingCompat.Checked));
                         }
                         else
                         {
-                            await Task.Run(() => ttarch2Builder(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, MainMenu.settings.compressArchive, MainMenu.settings.encArchive, !MainMenu.settings.encryptLuaInArchive, keyEnc, archiveVersion, MainMenu.settings.encNewLua, algorithmCompress));
+                            await Task.Run(() => ttarch2Builder(MainMenu.settings.inputDirPath, MainMenu.settings.archivePath, MainMenu.settings.compressArchive, MainMenu.settings.encArchive, !MainMenu.settings.encryptLuaInArchive, keyEnc, archiveVersion, MainMenu.settings.encNewLua, algorithmCompress, preserveLuaCheck.Checked, checkPaddingCompat.Checked));
                         }
                     }
 
@@ -1240,6 +1378,10 @@ namespace TTG_Tools
             Settings.SaveConfig(MainMenu.settings);
         }
 
+        private void preserveLuaCheck_CheckedChanged(object sender, EventArgs e)
+        {
+        }
+
         private void checkXmode_CheckedChanged(object sender, EventArgs e)
         {
             MainMenu.settings.oldXmode = checkXmode.Checked;
@@ -1267,7 +1409,8 @@ namespace TTG_Tools
             {
                 compressionCB.Items.Clear();
                 compressionCB.Items.Add("Deflate");
-                compressionCB.Items.Add("Oodle LZ");
+                compressionCB.Items.Add("Oodle LZHLW");
+                compressionCB.Items.Add("Oodle Kraken");
                 compressionCB.SelectedIndex = 0;
 
                 compressionLabel.Visible = ttarch2RB.Checked && versionSelection.SelectedIndex == 1;

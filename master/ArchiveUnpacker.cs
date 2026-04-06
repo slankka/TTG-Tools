@@ -375,6 +375,14 @@ namespace TTG_Tools
 
             int size = OodleTools.Imports.OodleLZ_Decompress(bytes, bufSize, retBytes, decBufSize, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3);
 
+            // Retry with exact last chunk size if standard decompression failed
+            // (OodleLZ_Decompress returns 0 when dst_len > actual decompressed size)
+            if (size <= 0 && ttarch2 != null && ttarch2.lastChunkSize > 0 && ttarch2.lastChunkSize < ttarch2.chunkSize)
+            {
+                retBytes = new byte[ttarch2.lastChunkSize];
+                size = OodleTools.Imports.OodleLZ_Decompress(bytes, bufSize, retBytes, ttarch2.lastChunkSize, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3);
+            }
+
             byte[] tmp = new byte[size];
             Array.Copy(retBytes, 0, tmp, 0, tmp.Length);
 
@@ -739,6 +747,15 @@ namespace TTG_Tools
                                 mbr.BaseStream.Seek(pos, SeekOrigin.Begin);
                             }
                         }
+
+                        // Calculate exact decompressed size of the last chunk
+                        ulong maxEnd = 0;
+                        for (int i = 0; i < filesCount; i++)
+                        {
+                            ulong end = (ulong)ttarch2.files[i].fileOffset + (ulong)ttarch2.files[i].fileSize;
+                            if (end > maxEnd) maxEnd = end;
+                        }
+                        ttarch2.lastChunkSize = (int)(maxEnd - (ulong)(ttarch2.compressedBlocks.Length - 1) * ttarch2.chunkSize);
                     }
                 }
                 else
@@ -815,6 +832,15 @@ namespace TTG_Tools
 
                         br.BaseStream.Seek(pos, SeekOrigin.Begin);
                     }
+
+                    // Calculate exact decompressed size of the last chunk
+                    ulong maxEnd = 0;
+                    for (int i = 0; i < filesCount; i++)
+                    {
+                        ulong end = (ulong)ttarch2.files[i].fileOffset + (ulong)ttarch2.files[i].fileSize;
+                        if (end > maxEnd) maxEnd = end;
+                    }
+                    ttarch2.lastChunkSize = (int)(maxEnd - (ulong)(ttarch2.compressedBlocks.Length - 1) * ttarch2.chunkSize);
                 }
 
                 br.Close();

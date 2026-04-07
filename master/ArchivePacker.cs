@@ -129,8 +129,12 @@ namespace TTG_Tools
             compressionStats.TotalChunks++;
             compressionStats.TotalUncompressed += originalSize;
 
+            // GetCompressedBounds adds no overhead for buffers < 4MB (65536 -> 65536).
+            // Kraken can produce output larger than input for certain data patterns,
+            // so always add extra padding to prevent buffer overflow.
             uint bufSize = OodleTools.Imports.GetCompressedBounds((uint)bytes.Length);
-            byte[] retVal = new byte[bufSize];
+            uint actualBufSize = Math.Max(bufSize, (uint)bytes.Length + 1024);
+            byte[] retVal = new byte[actualBufSize];
 
             // compressAlgorithm: 1 = LZHLW (header 0x00), 2 = Kraken (header 0x06)
             OodleTools.OodleFormat format = compressAlgorithm == 2

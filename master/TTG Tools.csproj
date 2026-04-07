@@ -153,6 +153,13 @@
     <Compile Include="InEngineWords\VariableTypes.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ForThreads.cs" />
+    <Compile Include="FontPickerDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontPickerDialog.Designer.cs">
+      <DependentUpon>FontPickerDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FontProfile.cs" />
     <Compile Include="FontEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -216,6 +223,9 @@
     <EmbeddedResource Include="FontEditor.resx">
       <DependentUpon>FontEditor.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FontPickerDialog.resx">
+      <DependentUpon>FontPickerDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainMenu.resx">
       <DependentUpon>MainMenu.cs</DependentUpon>

@@ -39,11 +39,16 @@ namespace TTG_Tools
             this.archiveNameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.fileCountHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pnlRight = new System.Windows.Forms.Panel();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.filesListView = new System.Windows.Forms.ListView();
             this.fileNameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.fileSizeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.fileOffsetHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblFileInfo = new System.Windows.Forms.Label();
+            this.pnlViewer = new System.Windows.Forms.Panel();
+            this.pictureBoxPreview = new System.Windows.Forms.PictureBox();
+            this.txtHexViewer = new System.Windows.Forms.TextBox();
+            this.lblPreviewInfo = new System.Windows.Forms.Label();
             this.pathHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pnlTop = new System.Windows.Forms.Panel();
             this.lblArchiveCount = new System.Windows.Forms.Label();
@@ -58,6 +63,7 @@ namespace TTG_Tools
             this.lblSearchArchive = new System.Windows.Forms.Label();
             this.cmbFileExtension = new System.Windows.Forms.ComboBox();
             this.lblFileExtension = new System.Windows.Forms.Label();
+            this.chkSwitchSwizzle = new System.Windows.Forms.CheckBox();
             this.scanProgressBar = new System.Windows.Forms.ProgressBar();
             this.lblScanProgress = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
@@ -66,6 +72,12 @@ namespace TTG_Tools
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.pnlRight.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            this.pnlViewer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPreview)).BeginInit();
             this.pnlTop.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -166,13 +178,30 @@ namespace TTG_Tools
             // 
             // pnlRight
             // 
-            this.pnlRight.Controls.Add(this.filesListView);
-            this.pnlRight.Controls.Add(this.lblFileInfo);
+            this.pnlRight.Controls.Add(this.splitContainer2);
             this.pnlRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlRight.Location = new System.Drawing.Point(0, 0);
             this.pnlRight.Name = "pnlRight";
             this.pnlRight.Size = new System.Drawing.Size(696, 545);
             this.pnlRight.TabIndex = 0;
+            // 
+            // splitContainer2
+            // 
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.filesListView);
+            this.splitContainer2.Panel1.Controls.Add(this.lblFileInfo);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.pnlViewer);
+            this.splitContainer2.Size = new System.Drawing.Size(696, 545);
+            this.splitContainer2.SplitterDistance = 300;
+            this.splitContainer2.TabIndex = 0;
             // 
             // filesListView
             // 
@@ -186,12 +215,13 @@ namespace TTG_Tools
             this.filesListView.FullRowSelect = true;
             this.filesListView.GridLines = true;
             this.filesListView.HideSelection = false;
-            this.filesListView.Location = new System.Drawing.Point(3, 26);
+            this.filesListView.Location = new System.Drawing.Point(3, 30);
             this.filesListView.Name = "filesListView";
-            this.filesListView.Size = new System.Drawing.Size(690, 516);
+            this.filesListView.Size = new System.Drawing.Size(294, 466);
             this.filesListView.TabIndex = 1;
             this.filesListView.UseCompatibleStateImageBehavior = false;
             this.filesListView.View = System.Windows.Forms.View.Details;
+            this.filesListView.SelectedIndexChanged += new System.EventHandler(this.filesListView_SelectedIndexChanged);
             // 
             // fileNameHeader
             // 
@@ -217,6 +247,55 @@ namespace TTG_Tools
             this.lblFileInfo.TabIndex = 0;
             this.lblFileInfo.Text = "Select an archive...";
             // 
+            // pnlViewer
+            // 
+            this.pnlViewer.Controls.Add(this.pictureBoxPreview);
+            this.pnlViewer.Controls.Add(this.txtHexViewer);
+            this.pnlViewer.Controls.Add(this.lblPreviewInfo);
+            this.pnlViewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlViewer.Location = new System.Drawing.Point(0, 0);
+            this.pnlViewer.Name = "pnlViewer";
+            this.pnlViewer.Size = new System.Drawing.Size(392, 545);
+            this.pnlViewer.TabIndex = 0;
+            // 
+            // pictureBoxPreview
+            // 
+            this.pictureBoxPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pictureBoxPreview.BackColor = System.Drawing.Color.Black;
+            this.pictureBoxPreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pictureBoxPreview.Location = new System.Drawing.Point(3, 20);
+            this.pictureBoxPreview.Name = "pictureBoxPreview";
+            this.pictureBoxPreview.Size = new System.Drawing.Size(386, 522);
+            this.pictureBoxPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBoxPreview.TabIndex = 2;
+            this.pictureBoxPreview.TabStop = false;
+            // 
+            // txtHexViewer
+            // 
+            this.txtHexViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtHexViewer.Font = new System.Drawing.Font("Consolas", 8F);
+            this.txtHexViewer.Location = new System.Drawing.Point(3, 20);
+            this.txtHexViewer.Multiline = true;
+            this.txtHexViewer.Name = "txtHexViewer";
+            this.txtHexViewer.ReadOnly = true;
+            this.txtHexViewer.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtHexViewer.Size = new System.Drawing.Size(386, 522);
+            this.txtHexViewer.TabIndex = 1;
+            this.txtHexViewer.Visible = false;
+            // 
+            // lblPreviewInfo
+            // 
+            this.lblPreviewInfo.AutoSize = true;
+            this.lblPreviewInfo.Location = new System.Drawing.Point(3, 3);
+            this.lblPreviewInfo.Name = "lblPreviewInfo";
+            this.lblPreviewInfo.Size = new System.Drawing.Size(45, 13);
+            this.lblPreviewInfo.TabIndex = 0;
+            this.lblPreviewInfo.Text = "Preview";
+            // 
             // pathHeader
             // 
             this.pathHeader.Text = "Path";
@@ -236,6 +315,7 @@ namespace TTG_Tools
             this.pnlTop.Controls.Add(this.lblSearchArchive);
             this.pnlTop.Controls.Add(this.cmbFileExtension);
             this.pnlTop.Controls.Add(this.lblFileExtension);
+            this.pnlTop.Controls.Add(this.chkSwitchSwizzle);
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlTop.Location = new System.Drawing.Point(0, 25);
             this.pnlTop.Name = "pnlTop";
@@ -343,14 +423,23 @@ namespace TTG_Tools
             this.cmbFileExtension.SelectedIndexChanged += new System.EventHandler(this.cmbFileExtension_SelectedIndexChanged);
             // 
             // lblFileExtension
-            // 
+            //
             this.lblFileExtension.AutoSize = true;
             this.lblFileExtension.Location = new System.Drawing.Point(390, 12);
             this.lblFileExtension.Name = "lblFileExtension";
             this.lblFileExtension.Size = new System.Drawing.Size(35, 13);
             this.lblFileExtension.TabIndex = 2;
             this.lblFileExtension.Text = "Filter:";
-            // 
+            //
+            // chkSwitchSwizzle
+            //
+            this.chkSwitchSwizzle.AutoSize = true;
+            this.chkSwitchSwizzle.Location = new System.Drawing.Point(620, 12);
+            this.chkSwitchSwizzle.Name = "chkSwitchSwizzle";
+            this.chkSwitchSwizzle.Size = new System.Drawing.Size(130, 17);
+            this.chkSwitchSwizzle.TabIndex = 3;
+            this.chkSwitchSwizzle.Text = "Switch De-Swizzle";
+            //
             // scanProgressBar
             // 
             this.scanProgressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -393,7 +482,14 @@ namespace TTG_Tools
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.pnlRight.ResumeLayout(false);
-            this.pnlRight.PerformLayout();
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel1.PerformLayout();
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            this.pnlViewer.ResumeLayout(false);
+            this.pnlViewer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPreview)).EndInit();
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();
             this.ResumeLayout(false);
@@ -417,6 +513,7 @@ namespace TTG_Tools
         private System.Windows.Forms.Panel pnlTop;
         private System.Windows.Forms.ComboBox cmbFileExtension;
         private System.Windows.Forms.Label lblFileExtension;
+        private System.Windows.Forms.CheckBox chkSwitchSwizzle;
         private System.Windows.Forms.Panel pnlRight;
         private System.Windows.Forms.ListView filesListView;
         private System.Windows.Forms.ColumnHeader fileNameHeader;
@@ -435,5 +532,10 @@ namespace TTG_Tools
         private System.Windows.Forms.Label lblArchiveCount;
         private System.Windows.Forms.ComboBox cmbGameKey;
         private System.Windows.Forms.Label lblGameKey;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.Panel pnlViewer;
+        private System.Windows.Forms.PictureBox pictureBoxPreview;
+        private System.Windows.Forms.TextBox txtHexViewer;
+        private System.Windows.Forms.Label lblPreviewInfo;
     }
 }

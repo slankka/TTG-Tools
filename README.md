@@ -21,11 +21,17 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 - **Texture Management**: Enhanced DDS texture file handling with automatic copying during save operations
 - **Multi-page Support**: Improved support for fonts with multiple texture pages
 - **Default Font Fix**: Set default font to Tahoma to prevent layout issues on non-English systems
+- **Profile System**: Save/load Y offset, Font Size adj, font family, font style, and font file path settings
+- **Font Picker Dialog**: Redesigned as a VS-designable Form — supports system font search filter, style selection (Regular/Bold/Italic/BoldItalic), and TTF/OTF file browsing
+- **CJK Font Fallback**: Font picker automatically uses a CJK-capable font (Microsoft YaHei, Yu Gothic, Meiryo, etc.) for correct display of all font names on any locale
+- **Smart Gap-Filling**: Detects empty slots on the last texture page via FNT table lookup + pixel verification, fills them before creating new pages
+- **Regeneration**: Re-generate with different settings (Y offset, font size) by reusing the same page positions and restoring original page data
 
 ### Archive Packer Improvements (2026)
 - **Padding Control**: Added option to control last chunk padding (compatible mode pads to full chunk size)
 - **Oodle Compression**: Corrected function signature (10 parameters + StdCall) for OodleLZ_Compress
 - **Header Accuracy**: Fixed zCTT header field ordering and chunksFirstOffset calculation for Oodle compressed archives
+- **Kraken Buffer Overflow Fix**: Fixed delayed AccessViolation crash when compressing large dense binary files (.font, .d3dtx) with Oodle Kraken — output buffer now includes extra padding to prevent native heap corruption
 
 ## Screenshots
 
@@ -36,7 +42,7 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 ![Archive Packer](images/Archive_Packer.png)
 
 ### Font Editor
-![Font Editor](images/FontEditor-Envolved.png)
+![Font Editor](images/FontEditor-SecondAtlasSupply.png)
 ![Font Editor Settings](images/FontEditorSettings.png)
 
 ## Features

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using TTG_Tools.ClassesStructs;
+using TTG_Tools.Graphics.Swizzles;
 
 namespace TTG_Tools
 {
@@ -965,6 +968,1006 @@ namespace TTG_Tools
         {
             _scanCancellationTokenSource?.Cancel();
             _progressAnimationTimer?.Stop();
+        }
+
+        private void filesListView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (filesListView.SelectedItems.Count == 0)
+            {
+                ClearPreview();
+                return;
+            }
+
+            var selectedItem = filesListView.SelectedItems[0];
+            string fileName = selectedItem.Text;
+
+            // 找到对应的文件信息
+            Ttarch2Class.Ttarch2files? fileInfo = null;
+            ArchiveInfo archiveInfo = null;
+
+            // 首先检查是否有来源列（搜索结果）
+            if (selectedItem.SubItems.Count > 3)
+            {
+                string archiveName = selectedItem.SubItems[3].Text;
+                archiveInfo = _scannedArchives.FirstOrDefault(a => a.FileName == archiveName);
+                if (archiveInfo != null)
+                {
+                    fileInfo = archiveInfo.Files.FirstOrDefault(f => f.fileName == fileName);
+                }
+            }
+            else if (_selectedArchive != null)
+            {
+                fileInfo = _selectedArchive.Files.FirstOrDefault(f => f.fileName == fileName);
+                archiveInfo = _selectedArchive;
+            }
+
+            if (fileInfo.HasValue && !string.IsNullOrEmpty(fileInfo.Value.fileName) && archiveInfo != null)
+            {
+                ShowFilePreview(archiveInfo, fileInfo.Value, fileName);
+            }
+            else
+            {
+                ClearPreview();
+            }
+        }
+
+        private async void ShowFilePreview(ArchiveInfo archive, Ttarch2Class.Ttarch2files? file, string fileName)
+        {
+            lblPreviewInfo.Text = $"Loading: {fileName}...";
+
+            if (!file.HasValue)
+            {
+                ShowPreviewError("File not found");
+                return;
+            }
+
+            try
+            {
+                // 获取游戏密钥
+                byte[] key = null;
+                if (cmbGameKey.SelectedIndex > 0 && cmbGameKey.SelectedIndex - 1 < MainMenu.gamelist.Count)
+                {
+                    key = MainMenu.gamelist[cmbGameKey.SelectedIndex - 1].key;
+                }
+
+                // 异步读取文件内容
+                byte[] fileData = await Task.Run(() => ExtractFileData(archive, file.Value, key));
+
+                if (fileData == null || fileData.Length == 0)
+                {
+                    ShowPreviewError($"Failed to load file: {fileName}");
+                    return;
+                }
+
+                // 根据文件扩展名决定如何显示
+                string ext = GetExtension(fileName).ToLower();
+
+                if (ext == ".dds" || IsDDSFile(fileData))
+                {
+                    // 尝试显示DDS图像
+                    Bitmap preview = TryLoadDDSPreview(fileData);
+                    if (preview != null)
+                    {
+                        ShowImagePreview(preview, $"{fileName} ({fileData.Length} bytes)");
+                    }
+                    else
+                    {
+                        ShowHexPreview(fileData, fileName);
+                    }
+                }
+                else if (ext == ".d3dtx")
+                {
+                    // 处理d3dtx容器文件
+                    Bitmap preview = TryLoadD3dtxPreview(fileData);
+                    if (preview != null)
+                    {
+                        ShowImagePreview(preview, $"{fileName} ({fileData.Length} bytes)");
+                    }
+                    else
+                    {
+                        ShowHexPreview(fileData, fileName);
+                    }
+                }
+                else if (ext == ".landb")
+                {
+                    // 处理landb数据库文件
+                    ShowLandbPreview(fileData, fileName);
+                }
+                else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga" || ext == ".tiff")
+                {
+                    // 尝试直接加载图像
+                    try
+                    {
+                        using (MemoryStream ms = new MemoryStream(fileData))
+                        {
+                            Bitmap bitmap = new Bitmap(ms);
+                            ShowImagePreview((Bitmap)bitmap.Clone(), $"{fileName} ({fileData.Length} bytes)");
+                            bitmap.Dispose();
+                        }
+                    }
+                    catch
+                    {
+                        ShowHexPreview(fileData, fileName);
+                    }
+                }
+                else
+                {
+                    // 显示十六进制视图
+                    ShowHexPreview(fileData, fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowPreviewError($"Error: {ex.Message}");
+            }
+        }
+
+        private byte[] ExtractFileData(ArchiveInfo archive, Ttarch2Class.Ttarch2files file, byte[] key)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(archive.FilePath, FileMode.Open, FileAccess.Read))
+                using (BinaryReader br = new BinaryReader(fs))
+                {
+                    // 读取文件头部判断格式
+                    fs.Seek(0, SeekOrigin.Begin);
+                    byte[] header = br.ReadBytes(4);
+                    string headerStr = Encoding.ASCII.GetString(header);
+
+                    bool isEncrypted = (headerStr == "ECTT" || headerStr == "eCTT");
+                    bool isCompressed = headerStr != "NCTT";
+
+                    if (isCompressed)
+                    {
+                        // 需要解压缩
+                        // 跳到压缩数据区
+                        br.ReadBytes(8); // 跳过头部
+
+                        if (headerStr == "eCTT" || headerStr == "zCTT")
+                        {
+                            br.ReadInt32();
+                        }
+
+                        uint chunkSize = br.ReadUInt32();
+                        int blocksCount = br.ReadInt32();
+                        br.ReadBytes(8 * (blocksCount + 1)); // 跳过块偏移
+
+                        // 计算文件在哪个块中
+                        long basePos = br.BaseStream.Position;
+                        int targetChunk = (int)(file.fileOffset / chunkSize);
+                        ulong offsetInChunk = file.fileOffset % ((ulong)chunkSize);
+
+                        // 读取并解压所有需要的块
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            for (int i = 0; i <= targetChunk; i++)
+                            {
+                                int blockSize = (int)br.ReadInt32();
+                                long blockStart = br.BaseStream.Position;
+
+                                byte[] blockData = br.ReadBytes(blockSize);
+
+                                if (isEncrypted && key != null)
+                                {
+                                    BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, 7);
+                                    blockData = dec.Crypt_ECB(blockData, 7, true);
+                                }
+
+                                byte[] decompressed = DecompressBlockUnpacker(blockData,
+                                    (headerStr == "eCTT" || headerStr == "zCTT") ? 2 : 1, chunkSize);
+
+                                if (decompressed != null)
+                                {
+                                    ms.Write(decompressed, 0, decompressed.Length);
+                                }
+
+                                br.BaseStream.Seek(blockStart + blockSize, SeekOrigin.Begin);
+                            }
+
+                            byte[] allData = ms.ToArray();
+                            if (file.fileOffset + (ulong)file.fileSize <= (ulong)allData.Length)
+                            {
+                                byte[] result = new byte[file.fileSize];
+                                Array.Copy(allData, (int)file.fileOffset, result, 0, file.fileSize);
+                                return result;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 未压缩，直接读取
+                        br.BaseStream.Seek((long)file.fileOffset, SeekOrigin.Begin);
+                        return br.ReadBytes(file.fileSize);
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return null;
+        }
+
+        private bool IsDDSFile(byte[] data)
+        {
+            return data.Length >= 4 && Encoding.ASCII.GetString(data, 0, 4) == "DDS ";
+        }
+
+        private Bitmap TryLoadDDSPreview(byte[] ddsData)
+        {
+            try
+            {
+                byte[] processedData = ddsData;
+
+                // 如果启用了Switch de-swizzle，先进行de-swizzle处理
+                if (chkSwitchSwizzle.Checked && ddsData.Length >= 128)
+                {
+                    // 读取DDS头部信息
+                    int texWidth = BitConverter.ToInt32(ddsData, 16);
+                    int texHeight = BitConverter.ToInt32(ddsData, 12);
+                    int fourCc = BitConverter.ToInt32(ddsData, 84);
+                    int pixelFormat = BitConverter.ToInt32(ddsData, 76); // DXGI format
+
+                    // 将fourCc和DXGI格式转换为NintendoSwitch code
+                    int formatCode = GetFormatCodeForSwizzle(fourCc, pixelFormat);
+
+                    if (formatCode > 0)
+                    {
+                        // 跳过DDS头128字节的数据进行de-swizzle
+                        byte[] textureData = new byte[ddsData.Length - 128];
+                        Array.Copy(ddsData, 128, textureData, 0, textureData.Length);
+
+                        // 应用Nintendo Switch de-swizzle
+                        textureData = NintendoSwitch.NintendoSwizzle(textureData, texWidth, texHeight, formatCode, true);
+
+                        // 重新组合DDS
+                        processedData = new byte[128 + textureData.Length];
+                        Array.Copy(ddsData, 0, processedData, 0, 128); // 复制DDS头
+                        Array.Copy(textureData, 0, processedData, 128, textureData.Length); // 复制de-swizzle后的数据
+                    }
+                }
+
+                byte[] pixels;
+                int width, height;
+                if (TryDecodeDdsToBgra(processedData, out pixels, out width, out height))
+                {
+                    return BuildBitmapFromRgbaBuffer(pixels, width, height);
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private int GetFormatCodeForSwizzle(int fourCc, int dxgiFormat)
+        {
+            // 将DDS格式转换为NintendoSwitch code
+            // BC1 = 0x40, BC2 = 0x41, BC3 = 0x42, BC4 = 0x43, BC5 = 0x44, BC6 = 0x45, BC7 = 0x46
+
+            if (fourCc == 0x31545844) // DXT1 = BC1
+                return 0x40;
+            if (fourCc == 0x33545844) // DXT3 = BC2
+                return 0x41;
+            if (fourCc == 0x35545844) // DXT5 = BC3
+                return 0x42;
+
+            // 基于DXGI格式判断
+            switch (dxgiFormat)
+            {
+                case 70: // DXGI_FORMAT_BC1_UNORM
+                case 71: // DXGI_FORMAT_BC1_UNORM_SRGB
+                    return 0x40;
+                case 72: // DXGI_FORMAT_BC2_UNORM
+                case 73: // DXGI_FORMAT_BC2_UNORM_SRGB
+                    return 0x41;
+                case 74: // DXGI_FORMAT_BC3_UNORM
+                case 75: // DXGI_FORMAT_BC3_UNORM_SRGB
+                    return 0x42;
+                case 77: // DXGI_FORMAT_BC4_UNORM
+                    return 0x43;
+                case 78: // DXGI_FORMAT_BC5_UNORM
+                    return 0x44;
+                case 79: // DXGI_FORMAT_B5G6R5_UNORM
+                case 82: // DXGI_FORMAT_BC6H_UF16
+                case 83: // DXGI_FORMAT_BC6H_SF16
+                case 84: // DXGI_FORMAT_BC7_UNORM
+                case 85: // DXGI_FORMAT_BC7_UNORM_SRGB
+                    // 这些格式可能需要不同的处理
+                    break;
+            }
+
+            return 0; // 未知的格式
+        }
+
+        private Bitmap TryLoadD3dtxPreview(byte[] d3dtxData)
+        {
+            try
+            {
+                if (d3dtxData.Length < 4)
+                {
+                    return null;
+                }
+
+                string header = Encoding.ASCII.GetString(d3dtxData, 0, 4);
+
+                // 检查是否是新的d3dtx格式
+                int poz = 4;
+                bool isNewFormat = (header == "5VSM" || header == "6VSM");
+
+                if (isNewFormat)
+                {
+                    poz = 16;
+                }
+
+                // 读取元素数量
+                if (poz + 4 > d3dtxData.Length)
+                    return null;
+
+                byte[] tmp = new byte[4];
+                Array.Copy(d3dtxData, poz, tmp, 0, 4);
+                int countElements = BitConverter.ToInt32(tmp, 0);
+                poz += 4;
+
+                // 跳过元素数组，查找纹理数据
+                // 简化版本：直接查找DDS或PVR数据
+                for (int offset = poz; offset < d3dtxData.Length - 128; offset++)
+                {
+                    // 查找DDS头
+                    if (offset + 4 <= d3dtxData.Length)
+                    {
+                        string dataHeader = Encoding.ASCII.GetString(d3dtxData, offset, 4);
+
+                        if (dataHeader == "DDS ")
+                        {
+                            // 找到DDS数据，尝试加载
+                            int ddsSize = d3dtxData.Length - offset;
+                            byte[] ddsData = new byte[ddsSize];
+                            Array.Copy(d3dtxData, offset, ddsData, 0, ddsSize);
+
+                            // 如果启用了Switch de-swizzle，应用它
+                            if (chkSwitchSwizzle.Checked)
+                            {
+                                int width = BitConverter.ToInt32(ddsData, 16);
+                                int height = BitConverter.ToInt32(ddsData, 12);
+                                int fourCc = BitConverter.ToInt32(ddsData, 84);
+                                int formatCode = GetFormatCodeForSwizzle(fourCc, 0);
+
+                                if (formatCode > 0 && width > 0 && height > 0)
+                                {
+                                    // 只对纹理数据进行de-swizzle
+                                    int headerSize = 128;
+                                    if (ddsSize > headerSize)
+                                    {
+                                        byte[] textureData = new byte[ddsSize - headerSize];
+                                        Array.Copy(ddsData, headerSize, textureData, 0, textureData.Length);
+
+                                        textureData = NintendoSwitch.NintendoSwizzle(textureData, width, height, formatCode, true);
+
+                                        // 重新组合DDS
+                                        byte[] swizzledDds = new byte[headerSize + textureData.Length];
+                                        Array.Copy(ddsData, 0, swizzledDds, 0, headerSize);
+                                        Array.Copy(textureData, 0, swizzledDds, headerSize, textureData.Length);
+                                        ddsData = swizzledDds;
+                                    }
+                                }
+                            }
+
+                            return TryLoadDDSPreview(ddsData);
+                        }
+                        else if (dataHeader == "PVR\0")
+                        {
+                            // PVR格式 - 暂不支持显示
+                            // 可以考虑后续添加PVR支持
+                            break;
+                        }
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void ShowLandbPreview(byte[] landbData, string fileName)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                int landbCount = 0; // Declare before using block for wider scope
+
+                sb.AppendLine($"LAND Database: {fileName}");
+                sb.AppendLine($"Size: {landbData.Length} bytes");
+                sb.AppendLine();
+                sb.AppendLine(new string('=', 70));
+
+                using (MemoryStream ms = new MemoryStream(landbData))
+                using (BinaryReader br = new BinaryReader(ms))
+                {
+                    byte[] checkHeader = br.ReadBytes(4);
+                    bool newFormat = (Encoding.ASCII.GetString(checkHeader) == "5VSM" || Encoding.ASCII.GetString(checkHeader) == "6VSM");
+                    bool hasCRC64Langres = false;
+                    bool isUnicode = false;
+                    int pos = 4;
+
+                    if (newFormat)
+                    {
+                        pos = 16;
+                    }
+
+                    br.BaseStream.Seek(pos, SeekOrigin.Begin);
+                    int countBlocks = br.ReadInt32();
+                    sb.AppendLine($"Format: {(newFormat ? "New" : "Old")}");
+                    sb.AppendLine($"Blocks: {countBlocks}");
+                    sb.AppendLine();
+
+                    // 读取class信息
+                    string[] classes = new string[countBlocks];
+                    for (int i = 0; i < countBlocks; i++)
+                    {
+                        byte[] tmp = br.ReadBytes(8);
+                        classes[i] = BitConverter.ToString(tmp);
+                        if (classes[i] == "B0-9F-D8-63-34-02-4F-00") hasCRC64Langres = true;
+                        if (classes[i] == "53-DC-A5-33-DB-D6-DC-7E") isUnicode = true;
+                        br.ReadBytes(4); // 跳过一些值
+                    }
+
+                    if (hasCRC64Langres)
+                        sb.AppendLine("Has CRC64 Langres: Yes");
+                    if (isUnicode)
+                        sb.AppendLine("Unicode: Yes");
+                    sb.AppendLine();
+
+                    // 读取条目数量
+                    int blockSize1 = br.ReadInt32();
+                    br.ReadInt32(); // someValue1
+                    int blockSize2 = br.ReadInt32();
+                    landbCount = br.ReadInt32();
+
+                    sb.AppendLine($"Entries: {landbCount}");
+                    sb.AppendLine();
+                    sb.AppendLine(new string('-', 70));
+                    sb.AppendLine();
+
+                    // 显示前100个条目（避免数据太多）
+                    int displayCount = Math.Min(landbCount, 100);
+                    long startPosition = br.BaseStream.Position;
+
+                    for (int i = 0; i < displayCount; i++)
+                    {
+                        sb.AppendLine($"Entry #{i + 1}:");
+
+                        uint wavID = br.ReadUInt32();
+                        sb.AppendLine($"  ID: {wavID}");
+
+                        byte[] tmp;
+
+                        if (hasCRC64Langres)
+                        {
+                            ulong crc64 = br.ReadUInt64();
+                            sb.AppendLine($"  CRC64: 0x{crc64:X16}");
+                            br.ReadBytes(8); // anmName (8 bytes)
+                        }
+                        else
+                        {
+                            br.ReadInt32(); // zero1
+                            int anmNameSize = br.ReadInt32();
+                            tmp = br.ReadBytes(anmNameSize);
+                            string anmName = Methods.DecodeGameText(tmp, false);
+                            if (!string.IsNullOrEmpty(anmName))
+                                sb.AppendLine($"  Animation: {anmName}");
+                        }
+
+                        uint anmID = br.ReadUInt32();
+                        sb.AppendLine($"  Animation ID: {anmID}");
+
+                        br.ReadInt32(); // zero2
+
+                        // wavName
+                        br.ReadInt32(); // blockWavNameSize
+                        if (hasCRC64Langres)
+                        {
+                            br.ReadBytes(8); // wavNameSize = 8
+                            sb.AppendLine($"  Audio: {Encoding.ASCII.GetString(br.ReadBytes(8))}");
+                        }
+                        else
+                        {
+                            int wavNameSize = br.ReadInt32();
+                            tmp = br.ReadBytes(wavNameSize);
+                            string wavName = Methods.DecodeGameText(tmp, false);
+                            if (!string.IsNullOrEmpty(wavName))
+                                sb.AppendLine($"  Audio: {wavName}");
+                        }
+
+                        br.ReadInt32(); // blockUnknownNameSize
+                        int unknownNameSize = br.ReadInt32();
+                        tmp = br.ReadBytes(unknownNameSize);
+                        string unknownName = Methods.DecodeGameText(tmp, false);
+                        if (!string.IsNullOrEmpty(unknownName))
+                            sb.AppendLine($"  Unknown: {unknownName}");
+
+                        br.ReadInt32(); // zero2
+
+                        // actorName
+                        br.ReadInt32(); // blockLangresSize
+                        br.ReadInt32(); // blockActorNameSize
+                        int actorNameSize = br.ReadInt32();
+                        tmp = br.ReadBytes(actorNameSize);
+                        string actorName = Methods.DecodeGameText(tmp, isUnicode);
+                        if (MainMenu.settings.supportTwdNintendoSwitch && isUnicode)
+                        {
+                            actorName = Methods.isUTF8String(tmp) ? Encoding.UTF8.GetString(tmp) : actorName;
+                        }
+                        sb.AppendLine($"  Character: {actorName}");
+
+                        // actorSpeech
+                        br.ReadInt32(); // blockActorSpeechSize
+                        int actorSpeechSize = br.ReadInt32();
+                        tmp = br.ReadBytes(actorSpeechSize);
+                        string actorSpeech = Methods.DecodeGameText(tmp, isUnicode);
+                        if (MainMenu.settings.supportTwdNintendoSwitch && isUnicode)
+                        {
+                            actorSpeech = Methods.isUTF8String(tmp) ? Encoding.UTF8.GetString(tmp) : actorSpeech;
+                        }
+
+                        // 截断过长的对话文本
+                        if (actorSpeech.Length > 200)
+                        {
+                            actorSpeech = actorSpeech.Substring(0, 200) + "...";
+                        }
+                        sb.AppendLine($"  Dialog: {actorSpeech}");
+
+                        br.ReadInt32(); // blockSize
+                        br.ReadInt32(); // someValue
+                        if (isUnicode)
+                        {
+                            br.ReadInt32(); // blockSizeUni
+                            int dataSize = br.ReadInt32() - 4;
+                            if (dataSize > 0)
+                                br.ReadBytes(dataSize); // someDataUni
+                        }
+                        br.ReadUInt32(); // flags
+
+                        sb.AppendLine();
+                    }
+
+                    if (landbCount > displayCount)
+                    {
+                        sb.AppendLine($"... ({landbCount - displayCount} more entries)");
+                    }
+                }
+
+                // 显示在文本框中
+                txtHexViewer.Visible = true;
+                pictureBoxPreview.Visible = false;
+                txtHexViewer.Text = sb.ToString();
+                lblPreviewInfo.Text = $"{fileName} ({landbData.Length} bytes, {landbCount} entries)";
+            }
+            catch (Exception ex)
+            {
+                ShowPreviewError($"Error reading landb file: {ex.Message}");
+            }
+        }
+
+        private bool TryDecodeDdsToBgra(byte[] content, out byte[] pixels, out int width, out int height)
+        {
+            pixels = null;
+            width = 0;
+            height = 0;
+
+            if (content.Length < 128 || Encoding.ASCII.GetString(content, 0, 4) != "DDS ")
+            {
+                return false;
+            }
+
+            width = BitConverter.ToInt32(content, 16);
+            height = BitConverter.ToInt32(content, 12);
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+
+            int fourCc = BitConverter.ToInt32(content, 84);
+            int dataOffset = 128;
+
+            if (fourCc == 0x31545844) // DXT1
+            {
+                return DecodeDxt1(content, dataOffset, width, height, out pixels);
+            }
+            else if (fourCc == 0x33545844) // DXT3
+            {
+                return DecodeDxt3(content, dataOffset, width, height, out pixels);
+            }
+            else if (fourCc == 0x35545844) // DXT5
+            {
+                return DecodeDxt5(content, dataOffset, width, height, out pixels);
+            }
+
+            return false;
+        }
+
+        private bool DecodeDxt1(byte[] content, int dataOffset, int width, int height, out byte[] pixels)
+        {
+            pixels = new byte[width * height * 4];
+            int blockCountX = (width + 3) / 4;
+            int blockCountY = (height + 3) / 4;
+
+            for (int y = 0; y < blockCountY; y++)
+            {
+                for (int x = 0; x < blockCountX; x++)
+                {
+                    int offset = dataOffset + (y * blockCountX + x) * 8;
+                    if (offset + 8 > content.Length) break;
+
+                    ushort color0 = BitConverter.ToUInt16(content, offset);
+                    ushort color1 = BitConverter.ToUInt16(content, offset + 2);
+                    uint codes = BitConverter.ToUInt32(content, offset + 4);
+
+                    byte[] c0 = RGB565ToRGB888(color0);
+                    byte[] c1 = RGB565ToRGB888(color1);
+
+                    for (int py = 0; py < 4; py++)
+                    {
+                        for (int px = 0; px < 4; px++)
+                        {
+                            int pixelIndex = ((y * 4 + py) * width + (x * 4 + px)) * 4;
+                            if (pixelIndex >= pixels.Length) continue;
+
+                            int codeIndex = (py * 4 + px) * 2;
+                            int code = (int)((codes >> codeIndex) & 0x03);
+
+                            byte r, g, b, a = 255;
+                            if (code == 0)
+                            {
+                                r = c0[0]; g = c0[1]; b = c0[2];
+                            }
+                            else if (code == 1)
+                            {
+                                r = c1[0]; g = c1[1]; b = c1[2];
+                            }
+                            else if (code == 2)
+                            {
+                                r = (byte)((2 * c0[0] + c1[0]) / 3);
+                                g = (byte)((2 * c0[1] + c1[1]) / 3);
+                                b = (byte)((2 * c0[2] + c1[2]) / 3);
+                            }
+                            else if (code == 3)
+                            {
+                                r = (byte)((c0[0] + 2 * c1[0]) / 3);
+                                g = (byte)((c0[1] + 2 * c1[1]) / 3);
+                                b = (byte)((c0[2] + 2 * c1[2]) / 3);
+                            }
+                            else
+                            {
+                                r = g = b = 0;
+                            }
+
+                            pixels[pixelIndex] = b;
+                            pixels[pixelIndex + 1] = g;
+                            pixels[pixelIndex + 2] = r;
+                            pixels[pixelIndex + 3] = a;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool DecodeDxt3(byte[] content, int dataOffset, int width, int height, out byte[] pixels)
+        {
+            pixels = new byte[width * height * 4];
+            int blockCountX = (width + 3) / 4;
+            int blockCountY = (height + 3) / 4;
+
+            for (int y = 0; y < blockCountY; y++)
+            {
+                for (int x = 0; x < blockCountX; x++)
+                {
+                    int offset = dataOffset + (y * blockCountX + x) * 16;
+                    if (offset + 16 > content.Length) break;
+
+                    // 读取alpha数据（64位，每个像素4位）
+                    ulong alphaData = BitConverter.ToUInt64(content, offset);
+
+                    // 读取颜色数据
+                    ushort color0 = BitConverter.ToUInt16(content, offset + 8);
+                    ushort color1 = BitConverter.ToUInt16(content, offset + 10);
+                    uint codes = BitConverter.ToUInt32(content, offset + 12);
+
+                    byte[] c0 = RGB565ToRGB888(color0);
+                    byte[] c1 = RGB565ToRGB888(color1);
+
+                    for (int py = 0; py < 4; py++)
+                    {
+                        for (int px = 0; px < 4; px++)
+                        {
+                            int pixelIndex = ((y * 4 + py) * width + (x * 4 + px)) * 4;
+                            if (pixelIndex >= pixels.Length) continue;
+
+                            // Alpha
+                            int alphaIndex = (py * 4 + px) * 4;
+                            byte a = (byte)((alphaData >> alphaIndex) & 0x0F);
+                            a = (byte)(a | (a << 4)); // 4位扩展到8位
+
+                            // Color
+                            int codeIndex = (py * 4 + px) * 2;
+                            int code = (int)((codes >> codeIndex) & 0x03);
+
+                            byte r, g, b;
+                            if (code == 0)
+                            {
+                                r = c0[0]; g = c0[1]; b = c0[2];
+                            }
+                            else if (code == 1)
+                            {
+                                r = c1[0]; g = c1[1]; b = c1[2];
+                            }
+                            else if (code == 2)
+                            {
+                                r = (byte)((2 * c0[0] + c1[0]) / 3);
+                                g = (byte)((2 * c0[1] + c1[1]) / 3);
+                                b = (byte)((2 * c0[2] + c1[2]) / 3);
+                            }
+                            else
+                            {
+                                r = (byte)((c0[0] + 2 * c1[0]) / 3);
+                                g = (byte)((c0[1] + 2 * c1[1]) / 3);
+                                b = (byte)((c0[2] + 2 * c1[2]) / 3);
+                            }
+
+                            pixels[pixelIndex] = b;
+                            pixels[pixelIndex + 1] = g;
+                            pixels[pixelIndex + 2] = r;
+                            pixels[pixelIndex + 3] = a;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool DecodeDxt5(byte[] content, int dataOffset, int width, int height, out byte[] pixels)
+        {
+            pixels = new byte[width * height * 4];
+            int blockCountX = (width + 3) / 4;
+            int blockCountY = (height + 3) / 4;
+
+            for (int y = 0; y < blockCountY; y++)
+            {
+                for (int x = 0; x < blockCountX; x++)
+                {
+                    int offset = dataOffset + (y * blockCountX + x) * 16;
+                    if (offset + 16 > content.Length) break;
+
+                    byte alpha0 = content[offset];
+                    byte alpha1 = content[offset + 1];
+                    ulong alphaCodes = BitConverter.ToUInt64(content, offset + 2) & 0x0000003FFFFFFFFFUL;
+
+                    ushort color0 = BitConverter.ToUInt16(content, offset + 8);
+                    ushort color1 = BitConverter.ToUInt16(content, offset + 10);
+                    uint codes = BitConverter.ToUInt32(content, offset + 12);
+
+                    byte[] c0 = RGB565ToRGB888(color0);
+                    byte[] c1 = RGB565ToRGB888(color1);
+
+                    for (int py = 0; py < 4; py++)
+                    {
+                        for (int px = 0; px < 4; px++)
+                        {
+                            int pixelIndex = ((y * 4 + py) * width + (x * 4 + px)) * 4;
+                            if (pixelIndex >= pixels.Length) continue;
+
+                            // Alpha interpolation
+                            int alphaIndex = (py * 4 + px) * 3;
+                            int alphaCode = (int)((alphaCodes >> alphaIndex) & 0x07);
+                            byte a;
+                            if (alphaCode == 0)
+                            {
+                                a = alpha0;
+                            }
+                            else if (alphaCode == 1)
+                            {
+                                a = alpha1;
+                            }
+                            else if (alphaCode < 6)
+                            {
+                                if (alpha0 > alpha1)
+                                {
+                                    a = (byte)(((8 - alphaCode) * alpha0 + (alphaCode - 1) * alpha1) / 7);
+                                }
+                                else
+                                {
+                                    a = (byte)(((6 - alphaCode) * alpha0 + (alphaCode - 1) * alpha1) / 5);
+                                }
+                            }
+                            else
+                            {
+                                a = (alphaCode == 6) ? (byte)0 : (byte)255;
+                            }
+
+                            // Color interpolation
+                            int codeIndex = (py * 4 + px) * 2;
+                            int code = (int)((codes >> codeIndex) & 0x03);
+
+                            byte r, g, b;
+                            if (code == 0)
+                            {
+                                r = c0[0]; g = c0[1]; b = c0[2];
+                            }
+                            else if (code == 1)
+                            {
+                                r = c1[0]; g = c1[1]; b = c1[2];
+                            }
+                            else if (code == 2)
+                            {
+                                r = (byte)((2 * c0[0] + c1[0]) / 3);
+                                g = (byte)((2 * c0[1] + c1[1]) / 3);
+                                b = (byte)((2 * c0[2] + c1[2]) / 3);
+                            }
+                            else
+                            {
+                                r = (byte)((c0[0] + 2 * c1[0]) / 3);
+                                g = (byte)((c0[1] + 2 * c1[1]) / 3);
+                                b = (byte)((c0[2] + 2 * c1[2]) / 3);
+                            }
+
+                            pixels[pixelIndex] = b;
+                            pixels[pixelIndex + 1] = g;
+                            pixels[pixelIndex + 2] = r;
+                            pixels[pixelIndex + 3] = a;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private byte[] RGB565ToRGB888(ushort color565)
+        {
+            int r = (color565 >> 11) & 0x1F;
+            int g = (color565 >> 5) & 0x3F;
+            int b = color565 & 0x1F;
+
+            return new byte[]
+            {
+                (byte)((r << 3) | (r >> 2)),  // R
+                (byte)((g << 2) | (g >> 4)),  // G
+                (byte)((b << 3) | (b >> 2))   // B
+            };
+        }
+
+        private Bitmap BuildBitmapFromRgbaBuffer(byte[] pixels, int width, int height)
+        {
+            Bitmap bitmap = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            System.Drawing.Imaging.BitmapData bmpData = bitmap.LockBits(
+                new Rectangle(0, 0, width, height),
+                System.Drawing.Imaging.ImageLockMode.WriteOnly,
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            IntPtr ptr = bmpData.Scan0;
+            int bytes = Math.Abs(bmpData.Stride) * height;
+            byte[] rgbValues = new byte[bytes];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int srcIndex = (y * width + x) * 4;
+                    int dstIndex = y * Math.Abs(bmpData.Stride) + x * 4;
+
+                    if (srcIndex + 3 < pixels.Length)
+                    {
+                        rgbValues[dstIndex] = pixels[srcIndex];         // B
+                        rgbValues[dstIndex + 1] = pixels[srcIndex + 1]; // G
+                        rgbValues[dstIndex + 2] = pixels[srcIndex + 2]; // R
+                        rgbValues[dstIndex + 3] = pixels[srcIndex + 3]; // A
+                    }
+                }
+            }
+
+            System.Runtime.InteropServices.Marshal.Copy(rgbValues, 0, ptr, bytes);
+            bitmap.UnlockBits(bmpData);
+
+            return bitmap;
+        }
+
+        private void ShowImagePreview(Bitmap bitmap, string info)
+        {
+            if (pictureBoxPreview.Image != null)
+            {
+                pictureBoxPreview.Image.Dispose();
+            }
+
+            pictureBoxPreview.Image = bitmap;
+            pictureBoxPreview.Visible = true;
+            txtHexViewer.Visible = false;
+
+            lblPreviewInfo.Text = info;
+        }
+
+        private void ShowHexPreview(byte[] data, string fileName)
+        {
+            // 限制显示大小（最多64KB）
+            int displaySize = Math.Min(data.Length, 65536);
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine($"File: {fileName}");
+            sb.AppendLine($"Size: {data.Length} bytes");
+            sb.AppendLine();
+            sb.AppendLine("Hex View (first " + displaySize + " bytes):");
+            sb.AppendLine(new string('-', 70));
+
+            for (int i = 0; i < displaySize; i += 16)
+            {
+                sb.AppendFormat("{0:X8}: ", i);
+
+                // Hex
+                for (int j = 0; j < 16 && i + j < displaySize; j++)
+                {
+                    sb.AppendFormat("{0:X2} ", data[i + j]);
+                }
+
+                // Padding
+                for (int j = 16; j > 0 && i + j > displaySize; j--)
+                {
+                    sb.Append("   ");
+                }
+                if (displaySize - i < 16)
+                {
+                    for (int j = displaySize - i; j < 16; j++)
+                    {
+                        sb.Append("   ");
+                    }
+                }
+
+                sb.Append(" | ");
+
+                // ASCII
+                for (int j = 0; j < 16 && i + j < displaySize; j++)
+                {
+                    byte b = data[i + j];
+                    sb.Append((b >= 32 && b <= 126) ? (char)b : '.');
+                }
+
+                sb.AppendLine();
+            }
+
+            if (data.Length > displaySize)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"... ({data.Length - displaySize} more bytes)");
+            }
+
+            txtHexViewer.Text = sb.ToString();
+            txtHexViewer.Visible = true;
+            pictureBoxPreview.Visible = false;
+
+            lblPreviewInfo.Text = $"{fileName} ({data.Length} bytes)";
+        }
+
+        private void ShowPreviewError(string message)
+        {
+            txtHexViewer.Text = message;
+            txtHexViewer.Visible = true;
+            pictureBoxPreview.Visible = false;
+            lblPreviewInfo.Text = "Error";
+        }
+
+        private void ClearPreview()
+        {
+            if (pictureBoxPreview.Image != null)
+            {
+                pictureBoxPreview.Image.Dispose();
+                pictureBoxPreview.Image = null;
+            }
+            txtHexViewer.Clear();
+            txtHexViewer.Visible = false;
+            pictureBoxPreview.Visible = false;
+            lblPreviewInfo.Text = "Preview";
         }
     }
 }

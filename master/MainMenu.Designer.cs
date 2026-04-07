@@ -65,7 +65,7 @@
             // 
             // fontEditorBtn
             // 
-            this.fontEditorBtn.Location = new System.Drawing.Point(230, 29);
+            this.fontEditorBtn.Location = new System.Drawing.Point(261, 29);
             this.fontEditorBtn.Name = "fontEditorBtn";
             this.fontEditorBtn.Size = new System.Drawing.Size(111, 23);
             this.fontEditorBtn.TabIndex = 2;
@@ -81,7 +81,7 @@
             // 
             // textEditorBtn
             // 
-            this.textEditorBtn.Location = new System.Drawing.Point(230, 69);
+            this.textEditorBtn.Location = new System.Drawing.Point(261, 69);
             this.textEditorBtn.Name = "textEditorBtn";
             this.textEditorBtn.Size = new System.Drawing.Size(111, 23);
             this.textEditorBtn.TabIndex = 7;
@@ -112,7 +112,7 @@
             // 
             // arcUnpackerBtn
             // 
-            this.arcUnpackerBtn.Location = new System.Drawing.Point(230, 108);
+            this.arcUnpackerBtn.Location = new System.Drawing.Point(261, 108);
             this.arcUnpackerBtn.Margin = new System.Windows.Forms.Padding(2);
             this.arcUnpackerBtn.Name = "arcUnpackerBtn";
             this.arcUnpackerBtn.Size = new System.Drawing.Size(111, 23);
@@ -122,17 +122,17 @@
             this.arcUnpackerBtn.Click += new System.EventHandler(this.arcUnpackerBtn_Click);
             // 
             // modCreatorBtn
-            //
-            this.modCreatorBtn.Location = new System.Drawing.Point(230, 147);
+            // 
+            this.modCreatorBtn.Location = new System.Drawing.Point(261, 147);
             this.modCreatorBtn.Name = "modCreatorBtn";
             this.modCreatorBtn.Size = new System.Drawing.Size(112, 23);
             this.modCreatorBtn.TabIndex = 14;
             this.modCreatorBtn.Text = "Mod Creator";
             this.modCreatorBtn.UseVisualStyleBackColor = true;
             this.modCreatorBtn.Click += new System.EventHandler(this.modCreatorBtn_Click);
-            //
+            // 
             // ttarch2ScannerBtn
-            //
+            // 
             this.ttarch2ScannerBtn.Location = new System.Drawing.Point(34, 186);
             this.ttarch2ScannerBtn.Name = "ttarch2ScannerBtn";
             this.ttarch2ScannerBtn.Size = new System.Drawing.Size(111, 23);
@@ -140,12 +140,12 @@
             this.ttarch2ScannerBtn.Text = "TTArch2 Scanner";
             this.ttarch2ScannerBtn.UseVisualStyleBackColor = true;
             this.ttarch2ScannerBtn.Click += new System.EventHandler(this.ttarch2ScannerBtn_Click);
-            //
+            // 
             // MainMenu
-            //
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(370, 230);
+            this.ClientSize = new System.Drawing.Size(416, 230);
             this.Controls.Add(this.ttarch2ScannerBtn);
             this.Controls.Add(this.arcUnpackerBtn);
             this.Controls.Add(this.modCreatorBtn);

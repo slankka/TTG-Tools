@@ -44,8 +44,15 @@ namespace TTG_Tools
         private List<char> lastDetectedMissingChars = new List<char>(); // Store last detected missing characters
         private int lastGeneratedPagesStartIndex = -1; // Track where new pages were added
         private int lastGeneratedPagesCount = 0; // Track how many pages were generated
-        private string lastGeneratedFontPath = ""; // Track the font file used for generation
+        private int lastGeneratedCharCount = 0; // Track how many characters were actually generated
+        private int lastOriginalPagesCount = -1; // Track original page count before first generation
+        private string lastGeneratedFontFamily = ""; // Track the font family used for generation
         private string lastGeneratedSavePath = ""; // Track the save path
+        private int lastModifiedExistingPageIndex = -1; // Index of existing page that was modified to fill remaining slots
+        private byte[] lastModifiedPageOriginalData = null; // Backup of original page DDS content before modification
+        private string selectedFontFamilyName = ""; // Font family name selected for character generation
+        private string selectedFontFilePath = ""; // Font file path (empty if system font)
+        private System.Drawing.FontStyle selectedFontStyle = System.Drawing.FontStyle.Regular;
 
         private void EnableDragDropForControls(Control parent)
         {
@@ -113,6 +120,134 @@ namespace TTG_Tools
             else
             {
                 rbNoSwizzle.Checked = true;
+            }
+
+            // Load font profiles
+            FontProfileList profiles = FontProfileList.Load();
+            RefreshProfileComboBox(profiles, null);
+        }
+
+        private void RefreshProfileComboBox(FontProfileList profiles, string selectName)
+        {
+            comboBoxProfiles.Items.Clear();
+            foreach (var profile in profiles.Profiles)
+                comboBoxProfiles.Items.Add(profile);
+
+            if (selectName != null)
+            {
+                for (int i = 0; i < comboBoxProfiles.Items.Count; i++)
+                {
+                    if (((FontProfile)comboBoxProfiles.Items[i]).Name == selectName)
+                    {
+                        comboBoxProfiles.SelectedIndex = i;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void comboBoxProfiles_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxProfiles.SelectedItem == null) return;
+            FontProfile profile = (FontProfile)comboBoxProfiles.SelectedItem;
+            textBoxYoffset.Text = profile.YOffset.ToString();
+            textBoxFontSizeAdjust.Text = profile.FontSizeAdjust.ToString();
+            if (!string.IsNullOrEmpty(profile.FontFamilyName))
+            {
+                selectedFontFamilyName = profile.FontFamilyName;
+                selectedFontFilePath = profile.FontFilePath ?? "";
+                selectedFontStyle = (System.Drawing.FontStyle)(profile.FontStyleIndex);
+                string[] styleNames = { "", " Bold", " Italic", " Bold Italic" };
+                string styleSuffix = profile.FontStyleIndex > 0 ? styleNames[profile.FontStyleIndex] : "";
+                textBoxGenFont.Text = string.IsNullOrEmpty(selectedFontFilePath)
+                    ? selectedFontFamilyName + styleSuffix
+                    : Path.GetFileName(selectedFontFilePath) + " (" + selectedFontFamilyName + styleSuffix + ")";
+            }
+        }
+
+        private void buttonSaveProfile_Click(object sender, EventArgs e)
+        {
+            if (!int.TryParse(textBoxYoffset.Text, out int yOffset)) return;
+            if (!int.TryParse(textBoxFontSizeAdjust.Text, out int fontSizeAdjust)) return;
+
+            using (Form inputForm = new Form())
+            {
+                inputForm.Text = "Save Profile";
+                inputForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                inputForm.StartPosition = FormStartPosition.CenterParent;
+                inputForm.ClientSize = new Size(250, 80);
+                inputForm.MaximizeBox = false;
+                inputForm.MinimizeBox = false;
+
+                Label lbl = new Label() { Text = "Profile name:", Left = 10, Top = 10, Width = 80 };
+                TextBox txt = new TextBox() { Left = 90, Top = 8, Width = 145 };
+                Button okBtn = new Button() { Text = "OK", DialogResult = DialogResult.OK, Left = 80, Top = 42, Width = 75 };
+                Button cancelBtn = new Button() { Text = "Cancel", DialogResult = DialogResult.Cancel, Left = 160, Top = 42, Width = 75 };
+
+                inputForm.Controls.AddRange(new Control[] { lbl, txt, okBtn, cancelBtn });
+                inputForm.AcceptButton = okBtn;
+                inputForm.CancelButton = cancelBtn;
+
+                if (inputForm.ShowDialog() != DialogResult.OK) return;
+                string name = txt.Text.Trim();
+                if (string.IsNullOrEmpty(name)) return;
+
+                FontProfileList profileList = FontProfileList.Load();
+                var existing = profileList.Profiles.FirstOrDefault(p => p.Name == name);
+                if (existing != null)
+                {
+                    if (MessageBox.Show($"Profile \"{name}\" already exists. Overwrite?", "Overwrite Profile",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                        return;
+                    existing.YOffset = yOffset;
+                    existing.FontSizeAdjust = fontSizeAdjust;
+                    existing.FontFamilyName = selectedFontFamilyName;
+                    existing.FontFilePath = selectedFontFilePath;
+                    existing.FontStyleIndex = (int)selectedFontStyle;
+                }
+                else
+                {
+                    profileList.Profiles.Add(new FontProfile(name, yOffset, fontSizeAdjust, selectedFontFamilyName, selectedFontFilePath, (int)selectedFontStyle));
+                }
+
+                profileList.Save();
+                RefreshProfileComboBox(profileList, name);
+            }
+        }
+
+        private void buttonDeleteProfile_Click(object sender, EventArgs e)
+        {
+            if (comboBoxProfiles.SelectedIndex < 0) return;
+            string name = ((FontProfile)comboBoxProfiles.SelectedItem).Name;
+
+            if (MessageBox.Show($"Delete profile \"{name}\"?", "Delete Profile",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            FontProfileList profileList = FontProfileList.Load();
+            profileList.Profiles.RemoveAll(p => p.Name == name);
+            profileList.Save();
+            RefreshProfileComboBox(profileList, null);
+        }
+
+        private void buttonPickFont_Click(object sender, EventArgs e)
+        {
+            using (FontPickerDialog pickForm = new FontPickerDialog())
+            {
+                if (pickForm.ShowDialog() != DialogResult.OK)
+                    return;
+
+                selectedFontFamilyName = pickForm.SelectedFontFamilyName;
+                selectedFontFilePath = pickForm.SelectedFontFilePath;
+                selectedFontStyle = pickForm.SelectedFontStyle;
+
+                string[] styleNames = { "", " Bold", " Italic", " Bold Italic" };
+                string info = selectedFontFamilyName;
+                if (selectedFontStyle != FontStyle.Regular)
+                    info += styleNames[(int)selectedFontStyle];
+                if (!string.IsNullOrEmpty(selectedFontFilePath))
+                    info = Path.GetFileName(selectedFontFilePath) + " (" + info + ")";
+                textBoxGenFont.Text = info;
             }
         }
 
@@ -978,6 +1113,67 @@ namespace TTG_Tools
             Marshal.Copy(rgbaPixels, 0, data.Scan0, rgbaPixels.Length);
             bitmap.UnlockBits(data);
             return bitmap;
+        }
+
+        /// <summary>
+        /// Load a texture page's DDS content as a Bitmap for editing (e.g. filling remaining slots).
+        /// Returns null if decoding fails.
+        /// </summary>
+        private Bitmap LoadPageAsBitmap(int pageIndex)
+        {
+            if (font.NewTex == null || pageIndex < 0 || pageIndex >= font.NewTex.Length)
+                return null;
+
+            byte[] texContent = font.NewTex[pageIndex].Tex.Content;
+            if (texContent == null || texContent.Length == 0)
+                return null;
+
+            byte[] pixels;
+            int width, height;
+            if (TryDecodeDdsToBgra(texContent, out pixels, out width, out height))
+            {
+                return BuildBitmapFromRgbaBuffer(pixels, width, height);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Scans a texture page bitmap for the first empty cell starting from the given slot.
+        /// An empty cell is one where all pixels are fully transparent (Alpha == 0).
+        /// Returns the 0-based slot index, or -1 if all cells from startSlot onward are occupied.
+        /// </summary>
+        private int FindFirstEmptySlotFrom(Bitmap bitmap, int cellWidth, int cellHeight, int charsPerRow, int charsPerCol, int startSlot)
+        {
+            int totalCells = charsPerRow * charsPerCol;
+            for (int slot = startSlot; slot < totalCells; slot++)
+            {
+                int row = slot / charsPerRow;
+                int col = slot % charsPerRow;
+                int startX = col * cellWidth;
+                int startY = row * cellHeight;
+
+                // Clamp to bitmap bounds
+                int endX = Math.Min(startX + cellWidth, bitmap.Width);
+                int endY = Math.Min(startY + cellHeight, bitmap.Height);
+                if (startX >= bitmap.Width || startY >= bitmap.Height)
+                    return slot;
+
+                bool allTransparent = true;
+                for (int py = startY; py < endY && allTransparent; py++)
+                {
+                    for (int px = startX; px < endX && allTransparent; px++)
+                    {
+                        if (bitmap.GetPixel(px, py).A != 0)
+                            allTransparent = false;
+                    }
+                }
+
+                if (allTransparent)
+                    return slot;
+            }
+
+            return -1;
         }
 
         private string ConvertToString(byte[] mas)
@@ -3621,13 +3817,19 @@ namespace TTG_Tools
                 return;
             }
 
-            // Check if this is a regeneration (reuse previous paths)
-            if (lastGeneratedPagesStartIndex >= 0 && !string.IsNullOrEmpty(lastGeneratedFontPath) && !string.IsNullOrEmpty(lastGeneratedSavePath))
+            if (string.IsNullOrEmpty(selectedFontFamilyName))
             {
-                // Regeneration mode - use previous paths without dialogs
+                MessageBox.Show("Please select a font using the 'Pick Font' button first.", "No Font Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Check if this is a regeneration (reuse previous save path)
+            if (lastGeneratedPagesStartIndex >= 0 && !string.IsNullOrEmpty(lastGeneratedSavePath))
+            {
                 try
                 {
-                    GenerateMissingCharacters(lastGeneratedFontPath, lastGeneratedSavePath);
+                    GenerateMissingCharacters(selectedFontFamilyName, lastGeneratedSavePath);
                 }
                 catch (Exception ex)
                 {
@@ -3637,50 +3839,32 @@ namespace TTG_Tools
                 return;
             }
 
-            // First time generation - show dialogs
-            // Step 1: Select font file
-            using (OpenFileDialog fontDialog = new OpenFileDialog())
+            // First time generation - only show save dialog
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
             {
-                fontDialog.Filter = "Font Files (*.ttf;*.otf;*.ttc)|*.ttf;*.otf;*.ttc|All Files (*.*)|*.*";
-                fontDialog.Title = "Select Font to Generate Missing Characters";
-                fontDialog.Multiselect = false;
+                saveDialog.Filter = "Font Files (*.font)|*.font|All Files (*.*)|*.*";
+                saveDialog.Title = "Save Updated Font As";
+                saveDialog.FileName = Path.GetFileNameWithoutExtension(ofd.FileName) + "_updated.font";
 
-                if (fontDialog.ShowDialog() != DialogResult.OK)
+                if (saveDialog.ShowDialog() != DialogResult.OK)
                     return;
 
-                string fontFilePath = fontDialog.FileName;
-
-                // Step 2: Select save location
-                using (SaveFileDialog saveDialog = new SaveFileDialog())
+                try
                 {
-                    saveDialog.Filter = "Font Files (*.font)|*.font|All Files (*.*)|*.*";
-                    saveDialog.Title = "Save Updated Font As";
-                    saveDialog.FileName = Path.GetFileNameWithoutExtension(ofd.FileName) + "_updated.font";
-
-                    if (saveDialog.ShowDialog() != DialogResult.OK)
-                        return;
-
-                    string savePath = saveDialog.FileName;
-
-                    // Step 3: Generate characters
-                    try
-                    {
-                        GenerateMissingCharacters(fontFilePath, savePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Failed to generate missing characters:\n{ex.Message}", "Generation Failed",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    GenerateMissingCharacters(selectedFontFamilyName, saveDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to generate missing characters:\n{ex.Message}", "Generation Failed",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private void GenerateMissingCharacters(string sourceFontPath, string savePath)
+        private void GenerateMissingCharacters(string fontFamilyName, string savePath)
         {
-            // Check if this is a regeneration (same parameters, different offset)
+            // Regeneration: if we generated before, always remove old results and redo with current settings
             bool isRegeneration = (lastGeneratedPagesStartIndex >= 0 &&
-                                   lastGeneratedFontPath == sourceFontPath &&
                                    lastGeneratedSavePath == savePath);
 
             if (isRegeneration)
@@ -3691,7 +3875,7 @@ namespace TTG_Tools
             else
             {
                 textBoxLogOutput.AppendText("\r\n=== Starting Character Generation ===\r\n");
-                textBoxLogOutput.AppendText($"Source font: {sourceFontPath}\r\n");
+                textBoxLogOutput.AppendText($"Font family: {fontFamilyName}\r\n");
                 textBoxLogOutput.AppendText($"Missing characters: {lastDetectedMissingChars.Count}\r\n");
                 textBoxLogOutput.AppendText($"Target font: {savePath}\r\n");
             }
@@ -3702,7 +3886,10 @@ namespace TTG_Tools
             float originalBaseSize = font.BaseSize;
             float originalLineHeight = font.lineHeight;
             float originalNewSomeValue = font.NewSomeValue;
-            int originalPages = (font.NewTex != null) ? font.NewTex.Length : font.glyph.Pages;
+            // On regeneration, use the saved original page count (before first generation added pages)
+            int originalPages = isRegeneration && lastOriginalPagesCount >= 0
+                ? lastOriginalPagesCount
+                : ((font.NewTex != null) ? font.NewTex.Length : font.glyph.Pages);
 
             textBoxLogOutput.AppendText($"Original font parameters:\r\n");
             textBoxLogOutput.AppendText($"  FontName: {originalFontName}\r\n");
@@ -3710,6 +3897,63 @@ namespace TTG_Tools
             textBoxLogOutput.AppendText($"  lineHeight: {originalLineHeight}\r\n");
             textBoxLogOutput.AppendText($"  NewSomeValue: {originalNewSomeValue}\r\n");
             textBoxLogOutput.AppendText($"  Pages: {originalPages} (NewTex.Length={font.NewTex?.Length ?? 0}, glyph.Pages={font.glyph.Pages})\r\n\r\n");
+
+            // If regenerating, remove previously added characters and clear their pages for redraw
+            int regenerationStartPage = -1;
+            if (isRegeneration && lastGeneratedCharCount > 0)
+            {
+                if (font.glyph.charsNew.Length >= lastGeneratedCharCount &&
+                    lastGeneratedPagesStartIndex < font.NewTex.Length)
+                {
+                    // Remove previously generated characters (using actual count, not current missing list)
+                    Array.Resize(ref font.glyph.charsNew, font.glyph.charsNew.Length - lastGeneratedCharCount);
+                    font.glyph.CharCount -= lastGeneratedCharCount;
+
+                    // Clear the generated NEW pages (fill with transparent)
+                    regenerationStartPage = lastGeneratedPagesStartIndex;
+                    for (int p = regenerationStartPage; p < regenerationStartPage + lastGeneratedPagesCount; p++)
+                    {
+                        if (p < font.NewTex.Length)
+                        {
+                            using (Bitmap clearBitmap = new Bitmap(512, 512))
+                            {
+                                string clearDdsPath = Path.Combine(Path.GetDirectoryName(savePath),
+                                    Path.GetFileNameWithoutExtension(savePath) + $"_page{p}.dds");
+                                SaveBitmapAsDDS(clearBitmap, clearDdsPath, p);
+                                if (File.Exists(clearDdsPath))
+                                    ReplaceTexture(clearDdsPath, font.NewTex[p]);
+                            }
+                        }
+                    }
+
+                    // Also restore the existing page if it was modified to fill slots
+                    if (lastModifiedExistingPageIndex >= 0 &&
+                        lastModifiedPageOriginalData != null &&
+                        lastModifiedExistingPageIndex < font.NewTex.Length)
+                    {
+                        // Restore original page content
+                        Array.Copy(lastModifiedPageOriginalData, font.NewTex[lastModifiedExistingPageIndex].Tex.Content,
+                            Math.Min(lastModifiedPageOriginalData.Length, font.NewTex[lastModifiedExistingPageIndex].Tex.Content.Length));
+                        lastModifiedPageOriginalData = null;
+                        lastModifiedExistingPageIndex = -1;
+                        textBoxLogOutput.AppendText($"Restored existing page {lastModifiedExistingPageIndex} to original state\r\n");
+                    }
+
+                    fillTableofTextures(font);
+
+                    textBoxLogOutput.AppendText($"Cleared {lastGeneratedPagesCount} new pages (index {regenerationStartPage}-{regenerationStartPage + lastGeneratedPagesCount - 1}) for redraw\r\n");
+                    textBoxLogOutput.AppendText($"Removed {lastGeneratedCharCount} previously generated characters\r\n");
+                }
+                else
+                {
+                    // Cannot safely clean up previous generation — reset and do fresh generation
+                    textBoxLogOutput.AppendText("WARNING: Cannot clean up previous generation. Doing fresh generation.\r\n");
+                    isRegeneration = false;
+                    lastGeneratedPagesStartIndex = -1;
+                    lastGeneratedPagesCount = 0;
+                    lastGeneratedCharCount = 0;
+                }
+            }
 
             // Ensure charsNew is initialized
             int initialCharCount = 0;
@@ -3724,36 +3968,19 @@ namespace TTG_Tools
                 textBoxLogOutput.AppendText($"Existing charsNew array length: {initialCharCount}\r\n");
             }
 
-            // If regenerating, remove previously added characters first
-            if (isRegeneration && lastGeneratedPagesCount > 0)
+            // Load the source font: from file if a path is set, otherwise from system fonts
+            System.Drawing.FontFamily fontFamily;
+            System.Drawing.Text.PrivateFontCollection fontCollection = null;
+            if (!string.IsNullOrEmpty(selectedFontFilePath) && File.Exists(selectedFontFilePath))
             {
-                int charsToRemove = lastDetectedMissingChars.Count;
-                if (font.glyph.charsNew.Length >= charsToRemove)
-                {
-                    Array.Resize(ref font.glyph.charsNew, font.glyph.charsNew.Length - charsToRemove);
-                    font.glyph.CharCount -= charsToRemove;
-                    font.glyph.Pages -= lastGeneratedPagesCount;
-                    font.TexCount = font.glyph.Pages;  // Sync TexCount with Pages
-
-                    // Resize NewTex array to remove generated pages
-                    if (font.NewTex != null && font.NewTex.Length >= lastGeneratedPagesCount)
-                    {
-                        TextureClass.NewT3Texture[] shrinkedTex = new TextureClass.NewT3Texture[font.NewTex.Length - lastGeneratedPagesCount];
-                        Array.Copy(font.NewTex, 0, shrinkedTex, 0, shrinkedTex.Length);
-                        font.NewTex = shrinkedTex;
-                    }
-
-                    fillTableofTextures(font);
-
-                    textBoxLogOutput.AppendText($"Removed {charsToRemove} previously generated characters\r\n");
-                    textBoxLogOutput.AppendText($"Reset pages to {font.glyph.Pages}\r\n");
-                }
+                fontCollection = new System.Drawing.Text.PrivateFontCollection();
+                fontCollection.AddFontFile(selectedFontFilePath);
+                fontFamily = fontCollection.Families[0];
             }
-
-            // Load the source font
-            System.Drawing.Text.PrivateFontCollection fontCollection = new System.Drawing.Text.PrivateFontCollection();
-            fontCollection.AddFontFile(sourceFontPath);
-            System.Drawing.FontFamily fontFamily = fontCollection.Families[0];
+            else
+            {
+                fontFamily = new System.Drawing.FontFamily(fontFamilyName);
+            }
 
             // Get character size from existing font (analyze Chinese characters)
             int charWidth = 28;
@@ -3841,20 +4068,201 @@ namespace TTG_Tools
             int charsPerCol = 512 / cellHeight;
             int charsPerTexture = charsPerRow * charsPerCol;
 
-            int numTexturesNeeded = (int)Math.Ceiling((double)lastDetectedMissingChars.Count / charsPerTexture);
+            // --- Check if we can fill remaining space on the last page ---
+            // Use FNT table to find the last character on the last page, then pixel-verify from there
+            int lastPageRemainingSlots = 0;
+            int lastPageFirstEmptySlot = -1;
+            int lastToolPageIndex = -1;
+            Bitmap existingPageBitmap = null;
+            bool modifiedExistingPage = false;
+
+            if (!isRegeneration && font.NewTex != null && font.NewTex.Length > 0)
+            {
+                lastToolPageIndex = font.NewTex.Length - 1;
+
+                // Query FNT table: find the last occupied slot on this page
+                int lastOccupiedSlot = -1;
+                foreach (var ch in font.glyph.charsNew)
+                {
+                    if (ch.TexNum == lastToolPageIndex)
+                    {
+                        int slot = (int)(ch.YStart / cellHeight) * charsPerRow + (int)(ch.XStart / cellWidth);
+                        if (slot > lastOccupiedSlot)
+                            lastOccupiedSlot = slot;
+                    }
+                }
+
+                if (lastOccupiedSlot >= 0 && lastOccupiedSlot < charsPerTexture - 1)
+                {
+                    // Load the last page bitmap and verify from lastOccupiedSlot+1 onward
+                    existingPageBitmap = LoadPageAsBitmap(lastToolPageIndex);
+
+                    if (existingPageBitmap != null)
+                    {
+                        lastPageFirstEmptySlot = FindFirstEmptySlotFrom(existingPageBitmap, cellWidth, cellHeight,
+                            charsPerRow, charsPerCol, lastOccupiedSlot + 1);
+
+                        if (lastPageFirstEmptySlot >= 0)
+                        {
+                            lastPageRemainingSlots = charsPerTexture - lastPageFirstEmptySlot;
+                            textBoxLogOutput.AppendText(
+                                $"Last page {lastToolPageIndex}: last char at slot {lastOccupiedSlot}, " +
+                                $"first empty slot at {lastPageFirstEmptySlot}, " +
+                                $"{lastPageRemainingSlots} remaining\r\n");
+                        }
+                        else
+                        {
+                            textBoxLogOutput.AppendText(
+                                $"Last page {lastToolPageIndex}: slots after {lastOccupiedSlot} are occupied. Creating new pages.\r\n");
+                            existingPageBitmap.Dispose();
+                            existingPageBitmap = null;
+                        }
+                    }
+                    else
+                    {
+                        textBoxLogOutput.AppendText(
+                            $"WARNING: Could not decode last page {lastToolPageIndex}. Creating new pages instead.\r\n");
+                    }
+                }
+                else if (lastOccupiedSlot < 0)
+                {
+                    textBoxLogOutput.AppendText(
+                        $"Last page {lastToolPageIndex}: no characters found on this page. Skipping fill.\r\n");
+                }
+                else
+                {
+                    textBoxLogOutput.AppendText(
+                        $"Last page {lastToolPageIndex} is fully occupied. Creating new pages.\r\n");
+                }
+            }
+
+            int charsForExistingPage = Math.Min(lastPageRemainingSlots, lastDetectedMissingChars.Count);
+            int charsForNewPages = lastDetectedMissingChars.Count - charsForExistingPage;
+
+            int numTexturesNeeded = (charsForNewPages > 0)
+                ? (int)Math.Ceiling((double)charsForNewPages / charsPerTexture)
+                : 0;
 
             textBoxLogOutput.AppendText($"Chars per texture: {charsPerTexture}\r\n");
-            textBoxLogOutput.AppendText($"Textures needed: {numTexturesNeeded}\r\n\r\n");
+            textBoxLogOutput.AppendText($"Chars for existing page: {charsForExistingPage}\r\n");
+            textBoxLogOutput.AppendText($"Chars for new pages: {charsForNewPages}\r\n");
+            textBoxLogOutput.AppendText($"New textures needed: {numTexturesNeeded}\r\n\r\n");
 
             // Generate new texture pages
             List<int> newTextureIndices = new List<int>();  // Store the actual indices used for generation
-            int currentTextureIndex = font.TexCount;  // Start from actual texture count
+            int currentTextureIndex = (regenerationStartPage >= 0) ? regenerationStartPage : font.TexCount;
 
             textBoxLogOutput.AppendText($"Starting texture index: {currentTextureIndex} (TexCount: {font.TexCount}, glyph.Pages: {font.glyph.Pages})\r\n");
 
+            // --- Fill remaining slots on existing last tool-generated page ---
+            if (charsForExistingPage > 0 && existingPageBitmap != null)
+            {
+                textBoxLogOutput.AppendText($"Filling {charsForExistingPage} chars on existing page {lastToolPageIndex}...\r\n");
+
+                // Backup original page data for potential restoration during regeneration
+                if (font.NewTex[lastToolPageIndex].Tex.Content != null)
+                {
+                    lastModifiedPageOriginalData = new byte[font.NewTex[lastToolPageIndex].Tex.Content.Length];
+                    Array.Copy(font.NewTex[lastToolPageIndex].Tex.Content, lastModifiedPageOriginalData,
+                        lastModifiedPageOriginalData.Length);
+                }
+                lastModifiedExistingPageIndex = lastToolPageIndex;
+
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(existingPageBitmap))
+                {
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                    int fontSizeAdjustment = 0;
+                    if (int.TryParse(textBoxFontSizeAdjust.Text, out int parsedSizeAdjust))
+                        fontSizeAdjustment = parsedSizeAdjust;
+                    float adjustedFontSize = Math.Max(1, fontSize + fontSizeAdjustment);
+
+                    using (System.Drawing.Font drawFont = new System.Drawing.Font(fontFamily, adjustedFontSize, selectedFontStyle, GraphicsUnit.Pixel))
+                    {
+                        int filledCount = 0;
+                        for (int i = 0; i < lastDetectedMissingChars.Count && filledCount < charsForExistingPage; i++)
+                        {
+                            char c = lastDetectedMissingChars[i];
+
+                            // Skip if character already exists in font
+                            if (font.glyph.charsNew != null)
+                            {
+                                bool charExists = false;
+                                foreach (var existingChar in font.glyph.charsNew)
+                                {
+                                    if (existingChar.charId == c) { charExists = true; break; }
+                                }
+                                if (charExists) continue;
+                            }
+
+                            int slotIndex = lastPageFirstEmptySlot + filledCount;
+                            int row = slotIndex / charsPerRow;
+                            int col = slotIndex % charsPerRow;
+
+                            // Safety: don't exceed page capacity
+                            if (row >= charsPerCol || col >= charsPerRow) break;
+
+                            int x = col * cellWidth + padding;
+                            int y = row * cellHeight + padding;
+
+                            float mostCommonXOffset = xoffsetStats.Count > 0
+                                ? xoffsetStats.OrderByDescending(entry => entry.Value).First().Key : -1;
+                            float mostCommonYOffset = yoffsetStats.Count > 0
+                                ? yoffsetStats.OrderByDescending(entry => entry.Value).First().Key : 4;
+
+                            int yOffsetAdjustment = 0;
+                            if (int.TryParse(textBoxYoffset.Text, out int parsedOffset))
+                                yOffsetAdjustment = parsedOffset;
+                            g.DrawString(c.ToString(), drawFont, Brushes.White, x, y - yOffsetAdjustment,
+                                StringFormat.GenericTypographic);
+
+                            FontClass.ClassFont.TRectNew newChar = new FontClass.ClassFont.TRectNew
+                            {
+                                charId = c,
+                                XStart = (short)x,
+                                XEnd = (short)(x + charWidth),
+                                YStart = (short)y,
+                                YEnd = (short)(y + charHeight),
+                                CharWidth = (byte)charWidth,
+                                CharHeight = (byte)charHeight,
+                                XOffset = (short)mostCommonXOffset,
+                                YOffset = (short)mostCommonYOffset,
+                                XAdvance = (short)xAdvance,
+                                Channel = 15,
+                                TexNum = lastToolPageIndex
+                            };
+
+                            Array.Resize(ref font.glyph.charsNew, font.glyph.charsNew.Length + 1);
+                            font.glyph.charsNew[font.glyph.charsNew.Length - 1] = newChar;
+                            font.glyph.CharCount++;
+
+                            filledCount++;
+                        }
+
+                        textBoxLogOutput.AppendText($"  Filled {filledCount} characters on page {lastToolPageIndex}\r\n");
+                    }
+                }
+
+                // Re-save the modified existing page as DDS
+                string existingPageDdsPath = Path.Combine(Path.GetDirectoryName(savePath),
+                    Path.GetFileNameWithoutExtension(savePath) + $"_page{lastToolPageIndex}.dds");
+                SaveBitmapAsDDS(existingPageBitmap, existingPageDdsPath, lastToolPageIndex);
+
+                // Update the in-memory texture data for this page
+                ReplaceTexture(existingPageDdsPath, font.NewTex[lastToolPageIndex]);
+
+                textBoxLogOutput.AppendText($"  Updated: {Path.GetFileName(existingPageDdsPath)}\r\n");
+                modifiedExistingPage = true;
+
+                newTextureIndices.Add(lastToolPageIndex);
+
+                existingPageBitmap.Dispose();
+                existingPageBitmap = null;
+            }
+
             for (int texIndex = 0; texIndex < numTexturesNeeded; texIndex++)
             {
-                int startChar = texIndex * charsPerTexture;
+                int startChar = charsForExistingPage + texIndex * charsPerTexture;
                 int endChar = Math.Min(startChar + charsPerTexture, lastDetectedMissingChars.Count);
                 int charsInThisTexture = endChar - startChar;
 
@@ -3873,7 +4281,7 @@ namespace TTG_Tools
                         fontSizeAdjustment = parsedSizeAdjust;
                     float adjustedFontSize = Math.Max(1, fontSize + fontSizeAdjustment);
 
-                    using (System.Drawing.Font drawFont = new System.Drawing.Font(fontFamily, adjustedFontSize, GraphicsUnit.Pixel))
+                    using (System.Drawing.Font drawFont = new System.Drawing.Font(fontFamily, adjustedFontSize, selectedFontStyle, GraphicsUnit.Pixel))
                     {
                         for (int i = 0; i < charsInThisTexture; i++)
                         {
@@ -3962,14 +4370,24 @@ namespace TTG_Tools
 
                 textBoxLogOutput.AppendText($"  Saved: {Path.GetFileName(texturePath)}\r\n");
 
-                // Add new page to font
-                font.glyph.Pages++;
+                if (!isRegeneration)
+                {
+                    // Add new page to font
+                    font.glyph.Pages++;
+                }
                 currentTextureIndex++;
             }
 
             // Load generated DDS textures into font.NewTex so they're available for preview/save
             int oldTexCount = (font.NewTex != null) ? font.NewTex.Length : 0;
-            int totalTexCount = oldTexCount + numTexturesNeeded;
+
+            // Calculate total pages needed — regeneration may need more pages than before
+            // if missing chars count changed (e.g. user switched profile or re-detected)
+            int maxIndexNeeded = oldTexCount;
+            foreach (int idx in newTextureIndices)
+                if (idx + 1 > maxIndexNeeded) maxIndexNeeded = idx + 1;
+            int totalTexCount = maxIndexNeeded;
+
             TextureClass.NewT3Texture[] expandedTex = new TextureClass.NewT3Texture[totalTexCount];
 
             // Copy existing textures
@@ -3978,32 +4396,54 @@ namespace TTG_Tools
                 expandedTex[i] = font.NewTex[i];
             }
 
-            // Load each generated DDS into the new texture slots
+            // Load each newly generated DDS into the appropriate texture slots
             string saveDir = Path.GetDirectoryName(savePath);
             string baseName = Path.GetFileNameWithoutExtension(savePath);
-            for (int i = 0; i < numTexturesNeeded; i++)
+            int newSlotOffset = 0; // Tracks how many NEW slots we've used (excluding modified existing pages)
+            for (int i = 0; i < newTextureIndices.Count; i++)
             {
-                // Use the actual index that was used during generation
                 int texIdx = newTextureIndices[i];
+
+                // Skip the modified existing page - it was already updated in-place above
+                if (modifiedExistingPage && texIdx == lastToolPageIndex)
+                    continue;
+
                 string ddsPath = Path.Combine(saveDir, $"{baseName}_page{texIdx}.dds");
 
-                // Initialize new texture slot from template
-                if (oldTexCount > 0)
-                    expandedTex[oldTexCount + i] = new TextureClass.NewT3Texture(font.NewTex[0]);
+                int targetSlot;
+                if (isRegeneration)
+                {
+                    // Regeneration: overwrite existing slot
+                    targetSlot = texIdx;
+                }
                 else
                 {
-                    expandedTex[oldTexCount + i] = new TextureClass.NewT3Texture();
-                    expandedTex[oldTexCount + i].Tex = new TextureClass.NewT3Texture.TextureInfo();
+                    // New generation: append after existing textures
+                    targetSlot = oldTexCount + newSlotOffset;
+                    newSlotOffset++;
+                }
+
+                // Initialize slot if it doesn't exist yet (can happen during regeneration
+                // when more pages are needed than before)
+                if (targetSlot >= oldTexCount || expandedTex[targetSlot] == null)
+                {
+                    if (oldTexCount > 0)
+                        expandedTex[targetSlot] = new TextureClass.NewT3Texture(font.NewTex[0]);
+                    else
+                    {
+                        expandedTex[targetSlot] = new TextureClass.NewT3Texture();
+                        expandedTex[targetSlot].Tex = new TextureClass.NewT3Texture.TextureInfo();
+                    }
                 }
 
                 if (File.Exists(ddsPath))
                 {
-                    ReplaceTexture(ddsPath, expandedTex[oldTexCount + i]);
-                    textBoxLogOutput.AppendText($"  Loaded DDS into texture slot {oldTexCount + i}: {Path.GetFileName(ddsPath)}\r\n");
+                    ReplaceTexture(ddsPath, expandedTex[targetSlot]);
+                    textBoxLogOutput.AppendText($"  Loaded DDS into texture slot {targetSlot}: {Path.GetFileName(ddsPath)}\r\n");
                 }
                 else
                 {
-                    textBoxLogOutput.AppendText($"  WARNING: DDS not found for slot {oldTexCount + i}: {Path.GetFileName(ddsPath)}\r\n");
+                    textBoxLogOutput.AppendText($"  WARNING: DDS not found for slot {targetSlot}: {Path.GetFileName(ddsPath)}\r\n");
                 }
             }
 
@@ -4014,16 +4454,22 @@ namespace TTG_Tools
             textBoxLogOutput.AppendText($"Font textures updated: {oldTexCount} -> {totalTexCount}\r\n");
 
             // Record generation info for potential regeneration
-            lastGeneratedPagesStartIndex = originalPages;
+            lastGeneratedPagesStartIndex = isRegeneration ? regenerationStartPage : originalPages;
             lastGeneratedPagesCount = numTexturesNeeded;
-            lastGeneratedFontPath = sourceFontPath;
+            if (!isRegeneration)
+                lastOriginalPagesCount = originalPages;
+            lastGeneratedFontFamily = fontFamilyName;
             lastGeneratedSavePath = savePath;
+
+            // Clean up
+            fontCollection?.Dispose();
 
             // Sync CharCount with actual charsNew length to ensure accuracy
             font.glyph.CharCount = font.glyph.charsNew.Length;
 
             // Calculate how many characters were actually generated
             int generatedCharCount = font.glyph.CharCount - initialCharCount;
+            lastGeneratedCharCount = generatedCharCount;
 
             // Log character count statistics
             textBoxLogOutput.AppendText("\r\n=== Character Count Statistics ===\r\n");
@@ -4069,9 +4515,6 @@ namespace TTG_Tools
                 $"New textures and font saved to:\r\n{savePath}\r\n\r\n" +
                 $"Total characters: {font.glyph.CharCount}",
                 "Generation Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            // Clean up
-            fontCollection.Dispose();
         }
 
         private void SaveBitmapAsDDS(Bitmap bitmap, string outputPath, int pageIndex)

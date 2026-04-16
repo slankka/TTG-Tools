@@ -1890,6 +1890,10 @@ namespace TTG_Tools.Graphics
                             byte[] swizzledBlock = NintendoSwitch.NintendoSwizzle(tex.Tex.Textures[i].Block, w, h, (int)tex.TextureFormat, false);
                             int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
                             bw.Write(swizzledBlock, 0, writeSize);
+                            if (writeSize < tex.Tex.Textures[i].MipSize)
+                            {
+                                bw.Write(new byte[tex.Tex.Textures[i].MipSize - writeSize]);
+                            }
                             if (w > 1) w /= 2;
                             if (h > 1) h /= 2;
                         }
@@ -1905,6 +1909,10 @@ namespace TTG_Tools.Graphics
                             byte[] swizzledBlock = PS4.Swizzle(tex.Tex.Textures[i].Block, w, h, blockSize);
                             int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
                             bw.Write(swizzledBlock, 0, writeSize);
+                            if (writeSize < tex.Tex.Textures[i].MipSize)
+                            {
+                                bw.Write(new byte[tex.Tex.Textures[i].MipSize - writeSize]);
+                            }
                             if (w > 1) w /= 2;
                             if (h > 1) h /= 2;
                         }
@@ -1948,6 +1956,10 @@ namespace TTG_Tools.Graphics
                             byte[] swizzledBlock = Xbox360.Swizzle(blockData, w, h, texelBytePitch, blockPixelSize, performByteSwap);
                             int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
                             bw.Write(swizzledBlock, 0, writeSize);
+                            if (writeSize < tex.Tex.Textures[i].MipSize)
+                            {
+                                bw.Write(new byte[tex.Tex.Textures[i].MipSize - writeSize]);
+                            }
                             if (w > 1) w /= 2;
                             if (h > 1) h /= 2;
                         }
@@ -1976,10 +1988,18 @@ namespace TTG_Tools.Graphics
                                 byte[] swizzledBlock = PSVita.Swizzle(tex.Tex.Textures[i].Block, swizzleWidth, swizzleHeight, safeBppSet, formatBitsPerPixel);
                                 int writeSize = Math.Min(swizzledBlock.Length, tex.Tex.Textures[i].MipSize);
                                 bw.Write(swizzledBlock, 0, writeSize);
+                                if (writeSize < tex.Tex.Textures[i].MipSize)
+                                {
+                                    bw.Write(new byte[tex.Tex.Textures[i].MipSize - writeSize]);
+                                }
                             }
                             else
                             {
                                 bw.Write(tex.Tex.Textures[i].Block);
+                                if (tex.Tex.Textures[i].Block.Length < tex.Tex.Textures[i].MipSize)
+                                {
+                                    bw.Write(new byte[tex.Tex.Textures[i].MipSize - tex.Tex.Textures[i].Block.Length]);
+                                }
                             }
 
                             if (w > 1) w /= 2;
@@ -2403,14 +2423,44 @@ namespace TTG_Tools.Graphics
                 tex.UnknownData.Unknown1 = BitConverter.ToInt32(tmp, 0);
                 poz += 4;
 
-                tmp = new byte[4];
-                Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                tex.UnknownData.len = BitConverter.ToInt32(tmp, 0);
+                // Some files encode UnknownData as [len + payload], while others do not expose
+                // a reliable len marker here. Probe the candidate and only consume it when the
+                // next fields (Mip/Width/Height) still look sane.
+                int posAfterUnknown1 = poz;
+                bool useLenVariant = false;
+                int candidateLen = 0;
 
-                tex.UnknownData.someData = new byte[tex.UnknownData.len];
-                Array.Copy(binContent, poz, tex.UnknownData.someData, 0, tex.UnknownData.someData.Length);
+                if (posAfterUnknown1 + 4 <= binContent.Length)
+                {
+                    candidateLen = BitConverter.ToInt32(binContent, posAfterUnknown1);
+                    int probePos = posAfterUnknown1 + candidateLen;
 
-                poz += tex.UnknownData.len;
+                    if (candidateLen >= 0 && probePos + 12 <= binContent.Length)
+                    {
+                        int probeMip = BitConverter.ToInt32(binContent, probePos);
+                        int probeWidth = BitConverter.ToInt32(binContent, probePos + 4);
+                        int probeHeight = BitConverter.ToInt32(binContent, probePos + 8);
+
+                        useLenVariant = probeMip > 0 && probeMip <= 32
+                            && probeWidth > 0 && probeWidth <= 16384
+                            && probeHeight > 0 && probeHeight <= 16384;
+                    }
+                }
+
+                if (useLenVariant)
+                {
+                    tex.UnknownData.len = candidateLen;
+                    tex.UnknownData.someData = new byte[tex.UnknownData.len];
+                    Array.Copy(binContent, posAfterUnknown1, tex.UnknownData.someData, 0, tex.UnknownData.someData.Length);
+                    poz = posAfterUnknown1 + tex.UnknownData.len;
+                }
+                else
+                {
+                    tex.UnknownData.len = 0;
+                    tex.UnknownData.someData = new byte[0];
+                    poz = posAfterUnknown1;
+                    logCallback?.Invoke("[GetNewTextures] WARNING: UnknownData len marker is not valid. Fallback to len=0 to keep header alignment.");
+                }
             }
 
             tmp = new byte[4];
@@ -2599,6 +2649,11 @@ namespace TTG_Tools.Graphics
                 for (int i = 0; i < tex.Tex.MipCount; i++)
                 {
                     tex.Tex.Textures[i].Block = new byte[tex.Tex.Textures[i].MipSize];
+                    if (tmpPoz + (uint)tex.Tex.Textures[i].Block.Length > (uint)binContent.Length)
+                    {
+                        logCallback?.Invoke($"[GetNewTextures] ERROR: Nintendo mip read out of range. tmpPoz=0x{tmpPoz:x}, mipSize={tex.Tex.Textures[i].Block.Length}, fileSize={binContent.Length}");
+                        return null;
+                    }
                     Array.Copy(binContent, tmpPoz, tex.Tex.Textures[i].Block, 0, tex.Tex.Textures[i].Block.Length);
                     tex.Tex.Textures[i].Block = NintendoSwitch.NintendoSwizzle(tex.Tex.Textures[i].Block, w, h, (int)tex.TextureFormat, true);
                     tmpPoz += (uint)tex.Tex.Textures[i].MipSize;
@@ -2622,6 +2677,11 @@ namespace TTG_Tools.Graphics
                         {
                             texPoz -= tex.Tex.Textures[c].MipSize;
                             tex.Tex.Textures[c].Block = new byte[tex.Tex.Textures[c].MipSize];
+                            if (tmpPoz + (uint)tex.Tex.Textures[c].Block.Length > (uint)binContent.Length)
+                            {
+                                logCallback?.Invoke($"[GetNewTextures] ERROR: ArrayMembers mip read out of range. tmpPoz=0x{tmpPoz:x}, mipSize={tex.Tex.Textures[c].Block.Length}, fileSize={binContent.Length}");
+                                return null;
+                            }
                             Array.Copy(binContent, tmpPoz, tex.Tex.Textures[c].Block, 0, tex.Tex.Textures[c].Block.Length);
                             tmpPoz += (uint)tex.Tex.Textures[c].MipSize;
 
@@ -2636,6 +2696,11 @@ namespace TTG_Tools.Graphics
                     {
                         texPoz -= tex.Tex.Textures[i].MipSize;
                         tex.Tex.Textures[i].Block = new byte[tex.Tex.Textures[i].MipSize];
+                        if (tmpPoz + (uint)tex.Tex.Textures[i].Block.Length > (uint)binContent.Length)
+                        {
+                            logCallback?.Invoke($"[GetNewTextures] ERROR: Mip read out of range. tmpPoz=0x{tmpPoz:x}, mipSize={tex.Tex.Textures[i].Block.Length}, fileSize={binContent.Length}");
+                            return null;
+                        }
                         Array.Copy(binContent, tmpPoz, tex.Tex.Textures[i].Block, 0, tex.Tex.Textures[i].Block.Length);
 
                         tmpPoz += (uint)tex.Tex.Textures[i].MipSize;

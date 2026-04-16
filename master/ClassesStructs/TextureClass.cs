@@ -177,7 +177,40 @@
             public SubBlock subBlock2; //For versions 9
             public TextureInfo Tex;
 
-            public NewT3Texture() { }
+            public NewT3Texture()
+            {
+                // Initialize string fields to prevent null reference exceptions
+                ObjectName = "";
+                SubObjectName = "";
+                // Initialize byte arrays to prevent null reference
+                block = new byte[0];
+                // Initialize struct fields
+                unknownFlags = new UnknownFlags();
+                platform = new Platform();
+                subBlock = new SubBlock { Size = 0, Block = new byte[0] };
+                subBlock2 = new SubBlock { Size = 0, Block = new byte[0] };
+                // Initialize TextureInfo with defaults
+                Tex = new TextureInfo();
+                Tex.MipCount = 0;
+                Tex.SomeData = 0;
+                Tex.TexSize = 0;
+                Tex.Textures = new TextureStruct[0];
+                Tex.SubBlocks = new SubBlock[0];
+                Tex.headerSize = 0;
+                Tex.Content = new byte[0];
+                // Initialize TextureStruct arrays with empty blocks
+                for (int i = 0; i < Tex.Textures.Length; i++)
+                {
+                    Tex.Textures[i].BlockSize = 0;
+                    Tex.Textures[i].Block = new byte[0];
+                    Tex.Textures[i].MipSize = 0;
+                }
+                for (int i = 0; i < Tex.SubBlocks.Length; i++)
+                {
+                    Tex.SubBlocks[i].Size = 0;
+                    Tex.SubBlocks[i].Block = new byte[0];
+                }
+            }
 
             public NewT3Texture(NewT3Texture newClass)
             {

@@ -115,6 +115,15 @@
             this.buttonPickFont = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.newFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.scaleFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.groupBoxScaleFont = new System.Windows.Forms.GroupBox();
+            this.labelScaleFactor = new System.Windows.Forms.Label();
+            this.comboBoxScaleFactor = new System.Windows.Forms.ComboBox();
+            this.labelTextureSize = new System.Windows.Forms.Label();
+            this.comboBoxTextureSize = new System.Windows.Forms.ComboBox();
+            this.buttonScaleFont = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithTextures)).BeginInit();
@@ -126,6 +135,7 @@
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).BeginInit();
             this.groupBoxMatchTextures.SuspendLayout();
+            this.groupBoxScaleFont.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -268,16 +278,27 @@
             this.menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
-            // 
+            //
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.newFontToolStripMenuItem,
             this.openToolStripMenuItem,
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.scaleFontToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
             this.fileToolStripMenuItem.Text = "File";
-            // 
+            //
+            // newFontToolStripMenuItem
+            //
+            this.newFontToolStripMenuItem.Name = "newFontToolStripMenuItem";
+            this.newFontToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.newFontToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.newFontToolStripMenuItem.Text = "New Font";
+            this.newFontToolStripMenuItem.Click += new System.EventHandler(this.newFontToolStripMenuItem_Click);
+            //
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -310,6 +331,19 @@
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            //
+            // toolStripSeparator1
+            //
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(151, 6);
+            //
+            // scaleFontToolStripMenuItem
+            //
+            this.scaleFontToolStripMenuItem.Name = "scaleFontToolStripMenuItem";
+            this.scaleFontToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.scaleFontToolStripMenuItem.Text = "Scale Font...";
+            this.scaleFontToolStripMenuItem.Enabled = false;
+            this.scaleFontToolStripMenuItem.Click += new System.EventHandler(this.scaleFontToolStripMenuItem_Click);
             // 
             // dataGridViewWithTextures
             // 
@@ -726,7 +760,7 @@
             this.groupBox4.Controls.Add(this.rbPSVitaSwizzle);
             this.groupBox4.Controls.Add(this.rbWiiSwizzle);
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
-            this.groupBox4.Location = new System.Drawing.Point(12, 697);
+            this.groupBox4.Location = new System.Drawing.Point(12, 823);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(186, 153);
             this.groupBox4.TabIndex = 30;
@@ -966,6 +1000,75 @@
             this.buttonPickFont.Text = "Choose";
             this.buttonPickFont.UseVisualStyleBackColor = true;
             this.buttonPickFont.Click += new System.EventHandler(this.buttonPickFont_Click);
+            //
+            // groupBoxScaleFont
+            //
+            this.groupBoxScaleFont.Controls.Add(this.buttonScaleFont);
+            this.groupBoxScaleFont.Controls.Add(this.comboBoxTextureSize);
+            this.groupBoxScaleFont.Controls.Add(this.labelTextureSize);
+            this.groupBoxScaleFont.Controls.Add(this.comboBoxScaleFactor);
+            this.groupBoxScaleFont.Controls.Add(this.labelScaleFactor);
+            this.groupBoxScaleFont.Location = new System.Drawing.Point(13, 697);
+            this.groupBoxScaleFont.Name = "groupBoxScaleFont";
+            this.groupBoxScaleFont.Size = new System.Drawing.Size(185, 120);
+            this.groupBoxScaleFont.TabIndex = 36;
+            this.groupBoxScaleFont.TabStop = false;
+            this.groupBoxScaleFont.Text = "Scale Font";
+            //
+            // labelScaleFactor
+            //
+            this.labelScaleFactor.AutoSize = true;
+            this.labelScaleFactor.Location = new System.Drawing.Point(9, 22);
+            this.labelScaleFactor.Name = "labelScaleFactor";
+            this.labelScaleFactor.Size = new System.Drawing.Size(68, 13);
+            this.labelScaleFactor.TabIndex = 0;
+            this.labelScaleFactor.Text = "Scale factor:";
+            //
+            // comboBoxScaleFactor
+            //
+            this.comboBoxScaleFactor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxScaleFactor.Items.AddRange(new object[] {
+            "1.25",
+            "1.5",
+            "2.0",
+            "Custom"});
+            this.comboBoxScaleFactor.Location = new System.Drawing.Point(110, 19);
+            this.comboBoxScaleFactor.Name = "comboBoxScaleFactor";
+            this.comboBoxScaleFactor.Size = new System.Drawing.Size(68, 21);
+            this.comboBoxScaleFactor.TabIndex = 1;
+            this.comboBoxScaleFactor.SelectedIndex = 1;
+            //
+            // labelTextureSize
+            //
+            this.labelTextureSize.AutoSize = true;
+            this.labelTextureSize.Location = new System.Drawing.Point(9, 50);
+            this.labelTextureSize.Name = "labelTextureSize";
+            this.labelTextureSize.Size = new System.Drawing.Size(70, 13);
+            this.labelTextureSize.TabIndex = 2;
+            this.labelTextureSize.Text = "Texture size:";
+            //
+            // comboBoxTextureSize
+            //
+            this.comboBoxTextureSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxTextureSize.Items.AddRange(new object[] {
+            "1024",
+            "2048",
+            "4096"});
+            this.comboBoxTextureSize.Location = new System.Drawing.Point(110, 47);
+            this.comboBoxTextureSize.Name = "comboBoxTextureSize";
+            this.comboBoxTextureSize.Size = new System.Drawing.Size(68, 21);
+            this.comboBoxTextureSize.TabIndex = 3;
+            this.comboBoxTextureSize.SelectedIndex = 1;
+            //
+            // buttonScaleFont
+            //
+            this.buttonScaleFont.Location = new System.Drawing.Point(6, 76);
+            this.buttonScaleFont.Name = "buttonScaleFont";
+            this.buttonScaleFont.Size = new System.Drawing.Size(172, 34);
+            this.buttonScaleFont.TabIndex = 4;
+            this.buttonScaleFont.Text = "Scale Font";
+            this.buttonScaleFont.UseVisualStyleBackColor = true;
+            this.buttonScaleFont.Click += new System.EventHandler(this.buttonScaleFont_Click);
             // 
             // textBoxLogOutput
             // 
@@ -979,7 +1082,7 @@
             // 
             // buttonSaveLogAs
             // 
-            this.buttonSaveLogAs.Location = new System.Drawing.Point(12, 859);
+            this.buttonSaveLogAs.Location = new System.Drawing.Point(12, 982);
             this.buttonSaveLogAs.Name = "buttonSaveLogAs";
             this.buttonSaveLogAs.Size = new System.Drawing.Size(90, 27);
             this.buttonSaveLogAs.TabIndex = 35;
@@ -991,10 +1094,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1373, 898);
+            this.ClientSize = new System.Drawing.Size(1373, 1015);
             this.Controls.Add(this.textBoxLogOutput);
             this.Controls.Add(this.buttonSaveLogAs);
             this.Controls.Add(this.groupBoxMatchTextures);
+            this.Controls.Add(this.groupBoxScaleFont);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.labelTexturePreview);
@@ -1031,6 +1135,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).EndInit();
             this.groupBoxMatchTextures.ResumeLayout(false);
             this.groupBoxMatchTextures.PerformLayout();
+            this.groupBoxScaleFont.ResumeLayout(false);
+            this.groupBoxScaleFont.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1104,6 +1210,15 @@
         private System.Windows.Forms.Button buttonPickFont;
         private System.Windows.Forms.TextBox textBoxLogOutput;
         private System.Windows.Forms.Button buttonSaveLogAs;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem newFontToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem scaleFontToolStripMenuItem;
+        private System.Windows.Forms.GroupBox groupBoxScaleFont;
+        private System.Windows.Forms.Label labelScaleFactor;
+        private System.Windows.Forms.ComboBox comboBoxScaleFactor;
+        private System.Windows.Forms.Label labelTextureSize;
+        private System.Windows.Forms.ComboBox comboBoxTextureSize;
+        private System.Windows.Forms.Button buttonScaleFont;
         private System.Windows.Forms.DataGridViewTextBoxColumn N;
         private System.Windows.Forms.DataGridViewTextBoxColumn Height;
         private System.Windows.Forms.DataGridViewTextBoxColumn Width;

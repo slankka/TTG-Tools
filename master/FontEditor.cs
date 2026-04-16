@@ -101,6 +101,113 @@ namespace TTG_Tools
             openToolStripMenuItem_Click(this, EventArgs.Empty);
         }
 
+        private void newFontToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Check if there are unsaved changes
+            if (edited)
+            {
+                DialogResult result = MessageBox.Show(
+                    "You have unsaved changes. Do you want to save them before creating a new font?",
+                    "Unsaved Changes",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Cancel)
+                    return;
+
+                if (result == DialogResult.Yes)
+                {
+                    saveToolStripMenuItem_Click(sender, e);
+                }
+            }
+
+            // Reset all font-related data
+            font = null;
+            wiiFontData = null;
+            fontFlags = null;
+            encrypted = false;
+            edited = false;
+            droppedFontPath = null;
+
+            // Initialize headers for new font (6VSM format)
+            check_header = Encoding.ASCII.GetBytes("6VSM");
+            tmpHeader = Encoding.ASCII.GetBytes("6VSM");
+            version = 2;
+            encKey = null;
+
+            // Create a minimal font object for Save functionality
+            font = new ClassesStructs.FontClass.ClassFont();
+            font.NewFormat = true;
+            font.NewTex = new TextureClass.NewT3Texture[0];
+            font.glyph = new ClassesStructs.FontClass.ClassFont.GlyphInfo();
+            font.glyph.Pages = 0;
+            font.glyph.CharCount = 0;
+            font.glyph.charsNew = new ClassesStructs.FontClass.ClassFont.TRectNew[0];
+            font.glyph.BlockCoordSize = 12; // Minimal block size (4 + 4 + 4)
+            font.One = 0x31; // 0x31 for new format
+            font.FontName = "NewFont";
+            font.BaseSize = 32;
+            font.hasLineHeight = false;
+            font.blockSize = true;
+            font.headerSize = 0;
+            font.texSize = 0;
+            font.hasOneFloatValue = false;
+            font.LastZero = 0;
+            font.NewSomeValue = 0;
+            font.TexCount = 0;
+            font.feedFace = null;
+
+            // Initialize default 6VSM elements for game runtime compatibility.
+            InitializeDefault6VsmElements(font);
+
+            // Clear the coordinates grid
+            dataGridViewWithCoord.Rows.Clear();
+            dataGridViewWithCoord.Refresh();
+
+            // Clear the textures grid
+            dataGridViewWithTextures.Rows.Clear();
+            dataGridViewWithTextures.Refresh();
+
+            // Clear texture preview
+            if (pictureBoxTexturePreview.Image != null)
+            {
+                pictureBoxTexturePreview.Image.Dispose();
+                pictureBoxTexturePreview.Image = null;
+            }
+            pictureBoxTexturePreview.Invalidate();
+
+            // Clear log output
+            if (textBoxLogOutput != null)
+                textBoxLogOutput.Clear();
+
+            // Update UI state
+            saveToolStripMenuItem.Enabled = false;
+            saveAsToolStripMenuItem.Enabled = false;
+            exportToolStripMenuItem.Enabled = false;
+            exportCoordinatesToolStripMenuItem1.Enabled = false;
+            scaleFontToolStripMenuItem.Enabled = false;
+            exportCoordinatesToolStripMenuItem.Enabled = false;
+
+            // Enable import functions for new font
+            importDDSToolStripMenuItem.Enabled = false; // Will enable after coordinates import
+            toolStripImportFNT.Enabled = true;
+            importCoordinatesToolStripMenuItem.Enabled = true;
+
+            // Enable kerning radio buttons (they can be set for new font)
+            rbKerning.Enabled = true;
+            rbNoKerning.Enabled = true;
+
+            // Reset window title
+            if (Form.ActiveForm != null)
+                Form.ActiveForm.Text = "Font Editor - New Font";
+
+            // Log the action
+            if (textBoxLogOutput != null)
+                textBoxLogOutput.AppendText("=== New Font Created ===\r\n" +
+                    "Ready to import coordinates from .fnt file.\r\n" +
+                    "Use right-click on coordinates grid and select 'Import coordinates'.\r\n");
+        }
+
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
@@ -345,22 +452,24 @@ namespace TTG_Tools
             if (fi.Extension.ToLower() == ".dds")
             {
                 Graphics.TextureWorker.ReadDDSHeader(ms, ref NewTex.Width, ref NewTex.Height, ref NewTex.Mip, ref NewTex.TextureFormat, true);
-                NewTex.platform.platform = 2;
-
-                if (MainMenu.settings.swizzleNintendoSwitch) NewTex.platform.platform = 15;
-                if (MainMenu.settings.swizzlePS4) NewTex.platform.platform = 11;
-                if (MainMenu.settings.swizzleXbox360) NewTex.platform.platform = 4;
-                if (MainMenu.settings.swizzlePSVita) NewTex.platform.platform = 9;
+                NewTex.platform.platform = ResolveTargetPlatformForImportedDds(NewTex.platform.platform);
             }
             else
             {
                 Graphics.TextureWorker.ReadPvrHeader(ms, ref NewTex.Width, ref NewTex.Height, ref NewTex.Mip, ref NewTex.platform.platform, true);
-                NewTex.platform.platform = (NewTex.platform.platform != 7) || (NewTex.platform.platform != 9) ? 7 : NewTex.platform.platform;
+                if (NewTex.platform.platform != 7u && NewTex.platform.platform != 9u)
+                {
+                    NewTex.platform.platform = 7u;
+                }
             }
 
             NewTex.Mip = 1; //There is no need more than one mip map!
             NewTex.Tex.MipCount = NewTex.Mip;
             NewTex.Tex.Textures = new ClassesStructs.TextureClass.NewT3Texture.TextureStruct[NewTex.Mip];
+
+            // New font + Import DDS may produce textures without a valid NewT3 metadata shell.
+            // Fill a minimal, self-consistent header so Save/Open stays byte-aligned.
+            EnsureNewTextureHeaderDefaults(NewTex);
 
             int w = NewTex.Width;
             int h = NewTex.Height;
@@ -393,6 +502,157 @@ namespace TTG_Tools
                 if (w > 1) w /= 2;
                 if (h > 1) h /= 2;
             }
+        }
+
+        private static byte[] CreateMinimalSubBlock()
+        {
+            // Parser expects size-at-start and advances by this value.
+            // The minimal valid empty block is a 4-byte self-sized block.
+            return BitConverter.GetBytes(4);
+        }
+
+        private static int GetDefaultMainBlockSize(int someValue)
+        {
+            switch (someValue)
+            {
+                case 3:
+                case 4:
+                    return 0x28;
+                case 5:
+                case 7:
+                    return 0x34;
+                case 8:
+                case 9:
+                    return 0x38;
+                default:
+                    return 0x24;
+            }
+        }
+
+        private void EnsureNewTextureHeaderDefaults(ClassesStructs.TextureClass.NewT3Texture tex)
+        {
+            if (tex.SomeValue < 3)
+            {
+                tex.SomeValue = 9;
+            }
+
+            if (tex.unknownFlags.blockSize <= 0)
+            {
+                tex.unknownFlags.blockSize = 8;
+            }
+
+            if (tex.platform.blockSize <= 0)
+            {
+                tex.platform.blockSize = 8;
+            }
+
+            if (tex.OneByte == 0)
+            {
+                tex.OneByte = 0x30;
+            }
+
+            if (tex.ObjectName == null)
+            {
+                tex.ObjectName = string.Empty;
+            }
+
+            if (tex.SubObjectName == null)
+            {
+                tex.SubObjectName = string.Empty;
+            }
+
+            if (tex.SomeValue >= 8)
+            {
+                if (tex.Faces <= 0) tex.Faces = 1;
+                if (tex.ArrayMembers <= 0) tex.ArrayMembers = 1;
+            }
+
+            int defaultBlockSize = GetDefaultMainBlockSize(tex.SomeValue);
+            if (AddInfo)
+            {
+                defaultBlockSize += 4;
+            }
+            if (tex.block == null || tex.block.Length == 0)
+            {
+                tex.block = new byte[defaultBlockSize];
+            }
+
+            if (tex.subBlock.Block == null || tex.subBlock.Block.Length < 4)
+            {
+                tex.subBlock.Block = CreateMinimalSubBlock();
+            }
+            tex.subBlock.Size = tex.subBlock.Block.Length;
+
+            if (tex.SomeValue >= 8)
+            {
+                if (tex.subBlock2.Block == null || tex.subBlock2.Block.Length < 4)
+                {
+                    tex.subBlock2.Block = CreateMinimalSubBlock();
+                }
+                tex.subBlock2.Size = tex.subBlock2.Block.Length;
+            }
+
+            if (tex.Tex.SubBlocks == null)
+            {
+                tex.Tex.SubBlocks = new ClassesStructs.TextureClass.NewT3Texture.SubBlock[0];
+            }
+
+            tex.Tex.SomeData = 0;
+        }
+
+        private void InitializeDefault6VsmElements(ClassesStructs.FontClass.ClassFont targetFont)
+        {
+            targetFont.elements = new string[0];
+            byte[][] defaults = GetDefault6VsmElementTemplate();
+            targetFont.binElements = new byte[defaults.Length][];
+
+            for (int i = 0; i < defaults.Length; i++)
+            {
+                targetFont.binElements[i] = new byte[12];
+                Array.Copy(defaults[i], targetFont.binElements[i], 12);
+            }
+
+            // Template includes AddInfo GUID; keep write/read rules aligned.
+            AddInfo = true;
+        }
+
+        private static byte[][] GetDefault6VsmElementTemplate()
+        {
+            return new byte[][]
+            {
+                new byte[] { 0x81, 0x53, 0x37, 0x63, 0x9E, 0x4A, 0x3A, 0x9A, 0x12, 0x3A, 0xBA, 0x1B },
+                new byte[] { 0x2C, 0x29, 0xC2, 0x04, 0x23, 0xFA, 0x4B, 0xAB, 0x01, 0x12, 0xE9, 0x3F },
+                new byte[] { 0x95, 0x38, 0x98, 0x86, 0xAA, 0xB3, 0xA0, 0x53, 0x81, 0xAB, 0x6C, 0x37 },
+                new byte[] { 0xE2, 0xCC, 0x38, 0x6F, 0x7E, 0x9E, 0x24, 0x3E, 0x61, 0xAB, 0x30, 0xA7 },
+                new byte[] { 0xE3, 0x88, 0x09, 0x7A, 0x48, 0x5D, 0x7F, 0x93, 0xB0, 0xCE, 0xE3, 0xB2 },
+                new byte[] { 0x8C, 0x59, 0x05, 0x84, 0xB7, 0xFB, 0x88, 0x8E, 0xAF, 0x7D, 0xAC, 0xA4 },
+                new byte[] { 0x7A, 0xBA, 0x6E, 0x87, 0x89, 0x88, 0x6C, 0xFA, 0x05, 0x49, 0x48, 0x5B },
+                new byte[] { 0x07, 0x1A, 0x1F, 0xE6, 0x44, 0xA2, 0xBC, 0x7B, 0x02, 0xCC, 0x9F, 0xE1 },
+                new byte[] { 0x0F, 0xF4, 0x20, 0xE6, 0x20, 0xBA, 0xA1, 0xEF, 0x40, 0xFC, 0xF4, 0x9A },
+                new byte[] { 0xEA, 0x0E, 0x30, 0xAE, 0xF1, 0x19, 0x46, 0x58, 0x61, 0xEA, 0x57, 0x50 }
+            };
+        }
+
+        private static bool IsKnownTexturePlatform(uint platform)
+        {
+            // Keep in sync with parser/extractor supported platforms.
+            return platform == 2u || platform == 4u || platform == 7u || platform == 9u
+                || platform == 10u || platform == 11u || platform == 13u || platform == 15u;
+        }
+
+        private uint ResolveTargetPlatformForImportedDds(uint existingPlatform)
+        {
+            // Explicit swizzle selection has the highest priority.
+            if (MainMenu.settings.swizzleNintendoSwitch) return 15u;
+            if (MainMenu.settings.swizzlePS4) return 11u;
+            if (MainMenu.settings.swizzleXbox360) return 4u;
+            if (MainMenu.settings.swizzlePSVita) return 9u;
+
+            // Reuse platform parsed from source font/new texture template when valid.
+            if (IsKnownTexturePlatform(existingPlatform)) return existingPlatform;
+
+            // No explicit method selected and no known existing platform: default to PC.
+            return 2u;
         }
 
         private void fillTableofCoordinates(FontClass.ClassFont font, bool Modified)
@@ -1306,6 +1566,14 @@ namespace TTG_Tools
                         byte[] header = new byte[4];
                         Array.Copy(binContent, 0, header, 0, 4);
 
+                        if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                        {
+                            textBoxLogOutput.AppendText("\r\n=== [OpenFontDiag] Begin ===\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] File={FileName}\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] FileSize={binContent.Length}\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] Magic={Encoding.ASCII.GetString(header)}\r\n");
+                        }
+
                         int poz = 0;
 
                         //Experiments with too old fonts
@@ -1358,12 +1626,35 @@ namespace TTG_Tools
                             font.texSize = BitConverter.ToUInt32(tmpBytes, 0);
 
                             poz = 16;
+
+                            if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                            {
+                                textBoxLogOutput.AppendText($"[OpenFontDiag] headerSize=0x{font.headerSize:x} ({font.headerSize})\r\n");
+                                textBoxLogOutput.AppendText($"[OpenFontDiag] texSize=0x{font.texSize:x} ({font.texSize})\r\n");
+                            }
                         }
 
                         byte[] tmp = new byte[4];
                         Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                         poz += 4;
                         int countElements = BitConverter.ToInt32(tmp, 0);
+
+                        if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                        {
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] countElements(raw)={countElements}\r\n");
+                        }
+
+                        // Detect fonts saved without elements section (old SaveFont bug).
+                        // In those files, the bytes at poz are FontName/One data, not countElements.
+                        bool noElements = (countElements > 10000);
+                        if (noElements)
+                            countElements = 0;
+
+                        if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                        {
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] noElements={noElements}, countElements(effective)={countElements}\r\n");
+                        }
+
                         font.elements = new string[countElements];
                         font.binElements = new byte[countElements][];
                         int lenStr;
@@ -1372,70 +1663,75 @@ namespace TTG_Tools
                         tmp = new byte[8];
                         Array.Copy(binContent, poz, tmp, 0, tmp.Length);
 
-                        if ((BitConverter.ToString(tmp) == "81-53-37-63-9E-4A-3A-9A") && (countElements == 1) && (Encoding.ASCII.GetString(check_header) == "ERTM"))
+                        if (!noElements)
                         {
-                            MessageBox.Show("This font is empty!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                            font = null;
-                            GC.Collect();
-                            edited = false;
-                            return;
-                        }
-
-                        if (BitConverter.ToString(tmp) == "81-53-37-63-9E-4A-3A-9A")
-                        {
-                            if((countElements == 1) && (Encoding.ASCII.GetString(check_header) == "6VSM"))
+                            if ((BitConverter.ToString(tmp) == "81-53-37-63-9E-4A-3A-9A") && (countElements == 1) && (Encoding.ASCII.GetString(check_header) == "ERTM"))
                             {
-                                MessageBox.Show("This font is a vector font. Try use Auto (De)Packer.");
+                                MessageBox.Show("This font is empty!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                                 font = null;
                                 GC.Collect();
                                 edited = false;
                                 return;
                             }
 
-                            for (int i = 0; i < countElements; i++)
+                            if (BitConverter.ToString(tmp) == "81-53-37-63-9E-4A-3A-9A")
                             {
-                                font.binElements[i] = new byte[8];
-                                Array.Copy(binContent, poz, font.binElements[i], 0, font.binElements[i].Length);
-                                poz += 12;
-
-                                switch (BitConverter.ToString(font.binElements[i]))
+                                if((countElements == 1) && (Encoding.ASCII.GetString(check_header) == "6VSM"))
                                 {
-                                    case "41-16-D7-79-B9-3C-28-84":
-                                        fontFlags = new FlagsClass();
-                                        break;
+                                    MessageBox.Show("This font is a vector font. Try use Auto (De)Packer.");
+                                    font = null;
+                                    GC.Collect();
+                                    edited = false;
+                                    return;
+                                }
 
-                                    case "E3-88-09-7A-48-5D-7F-93":
-                                        someTexData = true;
-                                        font.hasScaleValue = true;
-                                        break;
+                                for (int i = 0; i < countElements; i++)
+                                {
+                                    font.binElements[i] = new byte[12];
+                                    Array.Copy(binContent, poz, font.binElements[i], 0, font.binElements[i].Length);
+                                    poz += 12;
 
-                                    case "0F-F4-20-E6-20-BA-A1-EF":
-                                        font.NewFormat = true;
-                                        break;
+                                    byte[] guidBytes = new byte[8];
+                                    Array.Copy(font.binElements[i], guidBytes, 8);
+                                    switch (BitConverter.ToString(guidBytes))
+                                    {
+                                        case "41-16-D7-79-B9-3C-28-84":
+                                            fontFlags = new FlagsClass();
+                                            break;
 
-                                    case "7A-BA-6E-87-89-88-6C-FA":
-                                        AddInfo = true;
-                                        break;
+                                        case "E3-88-09-7A-48-5D-7F-93":
+                                            someTexData = true;
+                                            font.hasScaleValue = true;
+                                            break;
+
+                                        case "0F-F4-20-E6-20-BA-A1-EF":
+                                            font.NewFormat = true;
+                                            break;
+
+                                        case "7A-BA-6E-87-89-88-6C-FA":
+                                            AddInfo = true;
+                                            break;
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < countElements; i++)
+                            else
                             {
-                                tmp = new byte[4];
-                                Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                                poz += 4;
-                                lenStr = BitConverter.ToInt32(tmp, 0);
-                                tmp = new byte[lenStr];
-                                Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                                poz += lenStr + 4; //Length element's name and 4 bytes data for Telltale Tool
-                                font.elements[i] = Encoding.ASCII.GetString(tmp);
-
-                                if (font.elements[i] == "class Flags")
+                                for (int i = 0; i < countElements; i++)
                                 {
-                                    fontFlags = new FlagsClass();
+                                    tmp = new byte[4];
+                                    Array.Copy(binContent, poz, tmp, 0, tmp.Length);
+                                    poz += 4;
+                                    lenStr = BitConverter.ToInt32(tmp, 0);
+                                    tmp = new byte[lenStr];
+                                    Array.Copy(binContent, poz, tmp, 0, tmp.Length);
+                                    poz += lenStr + 4; //Length element's name and 4 bytes data for Telltale Tool
+                                    font.elements[i] = Encoding.ASCII.GetString(tmp);
+
+                                    if (font.elements[i] == "class Flags")
+                                    {
+                                        fontFlags = new FlagsClass();
+                                    }
                                 }
                             }
                         }
@@ -1443,24 +1739,35 @@ namespace TTG_Tools
                         tmpHeader = new byte[poz];
                         Array.Copy(binContent, 0, tmpHeader, 0, tmpHeader.Length);
 
-                        tmp = new byte[4];
-                        Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                        int nameLen = BitConverter.ToInt32(tmp, 0);
-                        poz += 4;
-
-                        tmp = new byte[4];
-                        Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                        if (nameLen - BitConverter.ToInt32(tmp, 0) == 8)
+                        if (noElements)
                         {
-                            nameLen = BitConverter.ToInt32(tmp, 0);
-                            poz += 4;
+                            // Font saved without elements: FontName at offset 8 was partially
+                            // corrupted by texSize Seek(12), so it cannot be recovered.
+                            // poz is at 16, where One byte resides.
+                            font.FontName = "";
                             font.blockSize = true;
                         }
+                        else
+                        {
+                            tmp = new byte[4];
+                            Array.Copy(binContent, poz, tmp, 0, tmp.Length);
+                            int nameLen = BitConverter.ToInt32(tmp, 0);
+                            poz += 4;
 
-                        tmp = new byte[nameLen];
-                        Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                        font.FontName = Encoding.ASCII.GetString(tmp);
-                        poz += nameLen;
+                            tmp = new byte[4];
+                            Array.Copy(binContent, poz, tmp, 0, tmp.Length);
+                            if (nameLen - BitConverter.ToInt32(tmp, 0) == 8)
+                            {
+                                nameLen = BitConverter.ToInt32(tmp, 0);
+                                poz += 4;
+                                font.blockSize = true;
+                            }
+
+                            tmp = new byte[nameLen];
+                            Array.Copy(binContent, poz, tmp, 0, tmp.Length);
+                            font.FontName = Encoding.ASCII.GetString(tmp);
+                            poz += nameLen;
+                        }
 
                         font.One = binContent[poz];
                         poz++;
@@ -1704,12 +2011,23 @@ namespace TTG_Tools
                             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                             font.BlockTexSize = BitConverter.ToInt32(tmp, 0);
                             poz += 4;
+
+                            if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                            {
+                                textBoxLogOutput.AppendText($"[OpenFontDiag] BlockTexSize=0x{font.BlockTexSize:x} ({font.BlockTexSize}) at poz=0x{(poz - 4):x}\r\n");
+                            }
                         }
 
                         tmp = new byte[4];
                         Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                         font.TexCount = BitConverter.ToInt32(tmp, 0);
                         poz += 4;
+
+                        if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                        {
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] NewFormat={font.NewFormat}, CharCount={font.glyph.CharCount}, TexCount={font.TexCount}\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] TextureHeaderStartPoz=0x{poz:x}\r\n");
+                        }
 
                         if (!font.NewFormat)
                         {
@@ -1751,6 +2069,11 @@ namespace TTG_Tools
                                 tmpPosition = (uint)font.headerSize + 16 + ((uint)countElements * 12) + 4;
                             }
 
+                            if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                            {
+                                textBoxLogOutput.AppendText($"[OpenFontDiag] texDataStart(tmpPosition)=0x{tmpPosition:x}\r\n");
+                            }
+
                             for (int i = 0; i < font.TexCount; i++)
                             {
                                 // Create log callback to output logs to textBoxLogOutput
@@ -1763,10 +2086,23 @@ namespace TTG_Tools
 
                                 font.NewTex[i] = Graphics.TextureWorker.GetNewTextures(binContent, ref poz, ref tmpPosition, fontFlags != null, someTexData, true, ref format, AddInfo, logCallback);
 
+                                // For 6VSM/5VSM fonts, GetNewTextures leaves poz pointing to the next
+                                // texture header (correct), and only updates tmpPosition (texFontPoz)
+                                // to point past the pixel data. We should NOT sync poz with tmpPosition
+                                // for these formats. poz is already at the correct position for the
+                                // next texture header.
+                                // For ERTM format, GetNewTextures updates poz to point past the pixel
+                                // data, so no sync is needed either way.
+
                                 if (font.NewTex[i] == null)
                                 {
                                     MessageBox.Show("Maybe unsupported font.", "Error");
                                     return;
+                                }
+
+                                if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                                {
+                                    textBoxLogOutput.AppendText($"[OpenFontDiag] Tex[{i}] platform={font.NewTex[i].platform.platform}, someValue={font.NewTex[i].SomeValue}, oneByte=0x{font.NewTex[i].OneByte:x2}, mip={font.NewTex[i].Mip}, mipCount={font.NewTex[i].Tex.MipCount}, someData={font.NewTex[i].Tex.SomeData}, texSize={font.NewTex[i].Tex.TexSize}, nextHeaderPoz=0x{poz:x}, nextTexDataPoz=0x{tmpPosition:x}\r\n");
                                 }
                             }
 
@@ -1799,18 +2135,24 @@ namespace TTG_Tools
                         saveToolStripMenuItem.Enabled = true;
                         saveAsToolStripMenuItem.Enabled = true;
                         exportCoordinatesToolStripMenuItem1.Enabled = true;
+                        scaleFontToolStripMenuItem.Enabled = font.NewFormat;
                         rbKerning.Enabled = font.NewFormat;
                         rbNoKerning.Enabled = font.NewFormat;
                         edited = false;
                         FileInfo fi = new FileInfo(FileName);
                         if(Form.ActiveForm != null) Form.ActiveForm.Text = "Font Editor. Opened file " + fi.FullName;
 
+                        if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
+                        {
+                            textBoxLogOutput.AppendText("=== [OpenFontDiag] End ===\r\n");
+                        }
+
                     }
                     catch(Exception ex)
                     {
                         binContent = null;
                         GC.Collect();
-                        MessageBox.Show("Unknown error: " + ex.Message);
+                        MessageBox.Show("Unknown error:\r\n" + ex.ToString(), "Error");
                     }
                 }
         }
@@ -1865,8 +2207,6 @@ namespace TTG_Tools
             // If no font file is currently open, use Save As instead
             if (string.IsNullOrEmpty(ofd.FileName))
             {
-                MessageBox.Show("No font file is currently open. Please use 'Save As...' to save the font.", "Save Required",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 saveAsToolStripMenuItem_Click(sender, e);
                 return;
             }
@@ -1908,62 +2248,106 @@ namespace TTG_Tools
 
             BinaryWriter bw = new BinaryWriter(fs);
 
-            bw.Write(tmpHeader);
-            
+            // Ensure tmpHeader is not null
+            if (tmpHeader == null || tmpHeader.Length != 4)
+            {
+                tmpHeader = Encoding.ASCII.GetBytes("6VSM");
+            }
+
+            string checkHeaderStr = Encoding.ASCII.GetString(check_header);
+            bool isNewFormat = (checkHeaderStr == "5VSM" || checkHeaderStr == "6VSM");
+
+            bw.Write(tmpHeader); // offset 0: magic (4 bytes)
+
             //First need check textures import
             font.texSize = 0;
             font.headerSize = 0;
 
+            if (isNewFormat)
+            {
+                // Write headerSize placeholder (will be overwritten at the end)
+                bw.Write(0); // offset 4: headerSize placeholder
+                // Write TexCount placeholder at offset 8 (matches original format)
+                bw.Write(0); // offset 8: TexCount placeholder
+                // Write texSize placeholder (will be overwritten at the end)
+                bw.Write(0); // offset 12: texSize placeholder
+
+                // Write elements section (preserved from original file)
+                int countElements = (font.binElements != null) ? font.binElements.Length : 0;
+                bw.Write(countElements); // offset 16: countElements
+
+                for (int i = 0; i < countElements; i++)
+                {
+                    if (font.binElements[i] != null)
+                    {
+                        bw.Write(font.binElements[i]);
+                    }
+                    else
+                    {
+                        bw.Write(new byte[12]);
+                    }
+                }
+            }
+
+            // Ensure FontName is not null
+            if (string.IsNullOrEmpty(font.FontName))
+            {
+                font.FontName = "NewFont";
+            }
             int len = Encoding.ASCII.GetBytes(font.FontName).Length;
-            font.headerSize += 4;
+
+            // Record position BEFORE writing FontName (this is where headerSize should start counting from)
+            long headerSizeStartPosition = bw.BaseStream.Position;
+
+            if (!isNewFormat)
+            {
+                // Only used for old format, not 6VSM/5VSM
+            }
 
             if (font.blockSize)
             {
                 int subLen = len + 8;
-                font.headerSize += 4;
                 bw.Write(subLen);
             }
 
             bw.Write(len);
             bw.Write(Encoding.ASCII.GetBytes(font.FontName));
-            font.headerSize += len;
 
             bw.Write(font.One);
-            font.headerSize++;
 
             if ((font.One == 0x31 && (Encoding.ASCII.GetString(check_header) == "5VSM"))
                         || (Encoding.ASCII.GetString(check_header) == "6VSM"))
             {
                 bw.Write(font.NewSomeValue);
-                font.headerSize += 4;
             }
 
             bw.Write(font.BaseSize);
-            font.headerSize += 4;
 
             if(font.feedFace != null)
             {
                 bw.Write(font.feedFace);
-                font.headerSize += 4;
+            }
+
+            // Ensure check_header is not null
+            if (check_header == null || check_header.Length != 4)
+            {
+                check_header = Encoding.ASCII.GetBytes("6VSM");
             }
 
             if(Encoding.ASCII.GetString(check_header) == "5VSM"
                 && font.hasLineHeight)
             {
                 bw.Write(font.lineHeight);
-                font.headerSize += 4;
             }
 
             if(font.halfValue == 0.5f || font.halfValue == 1.0f)
             {
                 bw.Write(font.halfValue);
-                font.headerSize += 4;
             }
 
             if (font.hasScaleValue && font.hasOneFloatValue)
             {
                 bw.Write(font.oneValue);
-                font.headerSize += 4;
             }
 
             if (font.blockSize)
@@ -1985,11 +2369,9 @@ namespace TTG_Tools
                 font.glyph.BlockCoordSize += 4; //And block size itself
 
                 bw.Write(font.glyph.BlockCoordSize);
-                font.headerSize += 4;
             }
 
             bw.Write(font.glyph.CharCount);
-            font.headerSize += 4;
 
             if (!font.NewFormat)
             {
@@ -2056,23 +2438,27 @@ namespace TTG_Tools
                 for (int i = 0; i < font.glyph.CharCount; i++)
                 {
                     bw.Write(font.glyph.charsNew[i].charId);
-                    bw.Write(font.glyph.charsNew[i].TexNum);
-                    bw.Write(font.glyph.charsNew[i].Channel);
-
-                    // Safety check for TexNum
-                    if (font.glyph.charsNew[i].TexNum < 0 || font.glyph.charsNew[i].TexNum >= font.NewTex.Length)
+                    int safeTexNum = font.glyph.charsNew[i].TexNum;
+                    if (font.NewTex == null || font.NewTex.Length == 0)
                     {
-                        textBoxLogOutput.AppendText($"ERROR: Char {i} has invalid TexNum {font.glyph.charsNew[i].TexNum}\r\n");
-                        continue;
+                        safeTexNum = 0;
+                    }
+                    else if (safeTexNum < 0 || safeTexNum >= font.NewTex.Length)
+                    {
+                        textBoxLogOutput.AppendText($"WARNING: Char {i} has invalid TexNum {safeTexNum}. Using 0 instead.\r\n");
+                        safeTexNum = 0;
                     }
 
-                    var xSt = font.glyph.charsNew[i].XStart / font.NewTex[font.glyph.charsNew[i].TexNum].Width;
+                    bw.Write(safeTexNum);
+                    bw.Write(font.glyph.charsNew[i].Channel);
+
+                    var xSt = font.glyph.charsNew[i].XStart / font.NewTex[safeTexNum].Width;
                     bw.Write(xSt);
-                    var xEn = font.glyph.charsNew[i].XEnd / font.NewTex[font.glyph.charsNew[i].TexNum].Width;
+                    var xEn = font.glyph.charsNew[i].XEnd / font.NewTex[safeTexNum].Width;
                     bw.Write(xEn);
-                    var ySt = font.glyph.charsNew[i].YStart / font.NewTex[font.glyph.charsNew[i].TexNum].Height;
+                    var ySt = font.glyph.charsNew[i].YStart / font.NewTex[safeTexNum].Height;
                     bw.Write(ySt);
-                    var yEn = font.glyph.charsNew[i].YEnd / font.NewTex[font.glyph.charsNew[i].TexNum].Height;
+                    var yEn = font.glyph.charsNew[i].YEnd / font.NewTex[safeTexNum].Height;
                     bw.Write(yEn);
 
                     float xOffset = rbNoKerning.Checked ? 0 : font.glyph.charsNew[i].XOffset;
@@ -2084,62 +2470,90 @@ namespace TTG_Tools
                     bw.Write(xOffset);
                     bw.Write(yOffset);
                     bw.Write(xAdvance);
-
-                    font.headerSize += (4 * 12);
                 }
 
-                font.BlockTexSize = 0;
                 font.texSize = 0;
 
+                // Ensure check_header is not null before using it
+                if (check_header == null || check_header.Length != 4)
+                {
+                    check_header = Encoding.ASCII.GetBytes("6VSM");
+                    checkHeaderStr = Encoding.ASCII.GetString(check_header);
+                }
+
+                // texSize: sum of all mip pixel sizes (same as before)
                 for (int i = 0; i < font.TexCount; i++)
                 {
-                    font.BlockTexSize += font.NewTex[i].Tex.headerSize;
-                    font.headerSize += font.NewTex[i].Tex.headerSize;
-
                     for (int k = 0; k < font.NewTex[i].Mip; k++)
                     {
-                        switch (Encoding.ASCII.GetString(check_header)) {
-                            case "ERTM":
-                                font.BlockTexSize += font.NewTex[i].Tex.Textures[k].MipSize;
-                                break;
-
-                            default:
-                                font.texSize += (uint)font.NewTex[i].Tex.Textures[k].MipSize;
-                                break;
-                        }
+                        font.texSize += (uint)font.NewTex[i].Tex.Textures[k].MipSize;
                     }
                 }
 
-                font.BlockTexSize += 8; //4 bytes of block size and 4 bytes of block (if it empty)
-                font.headerSize += 8;
+                // Record position before BlockTexSize+TexCount
+                long posBeforeBlock = bw.BaseStream.Position;
 
-                bw.Write(font.BlockTexSize);
+                // Write placeholder for BlockTexSize (will be overwritten later)
+                bw.Write(0); // BlockTexSize placeholder
                 bw.Write(font.TexCount);
 
                 int c = 1;
 
-                if (Encoding.ASCII.GetString(check_header) == "ERTM")
+                if (checkHeaderStr == "ERTM")
                 {
                     for (int i = 0; i < font.TexCount; i++) {
-                        Graphics.TextureWorker.ReplaceNewTextures(fs, c, Encoding.ASCII.GetString(check_header), font.NewTex[i], true);
+                        Graphics.TextureWorker.ReplaceNewTextures(fs, c, checkHeaderStr, font.NewTex[i], true);
                     }
                 }
                 else
                 {
-                    if (font.NewTex[0].SomeValue > 4) font.headerSize++; //add 0x00 byte
-
-                    for(c = 2; c < 4; c++)
+                    if (font.NewTex != null && font.NewTex.Length > 0)
                     {
+                        // mode=2: write texture headers for all textures
                         for(int i = 0; i < font.TexCount; i++)
                         {
-                            Graphics.TextureWorker.ReplaceNewTextures(fs, c, Encoding.ASCII.GetString(check_header), font.NewTex[i], true);
+                            Graphics.TextureWorker.ReplaceNewTextures(fs, 2, checkHeaderStr, font.NewTex[i], true);
                         }
 
-                        if (font.NewTex[0].SomeValue > 4 && c == 2) bw.Write(font.LastZero);
+                        // LastZero belongs to the gap after texture headers and before pixel data.
+                        if (font.NewTex[0].SomeValue > 4)
+                        {
+                            bw.Write(font.LastZero);
+                        }
+
+                        // Record position after all texture headers (before pixel data)
+                        long posAfterHeaders = bw.BaseStream.Position;
+
+                        // Calculate BlockTexSize: size from BlockTexSize field to end of texture headers
+                        // This is: posAfterHeaders - posBeforeBlock
+                        int blockTexSize = (int)(posAfterHeaders - posBeforeBlock);
+
+                        // mode=3: write pixel data for all textures
+                        for(int i = 0; i < font.TexCount; i++)
+                        {
+                            Graphics.TextureWorker.ReplaceNewTextures(fs, 3, checkHeaderStr, font.NewTex[i], true);
+                        }
+
+                        // Write back BlockTexSize to file (it was a placeholder before)
+                        long currentPos = bw.BaseStream.Position;
+                        bw.BaseStream.Seek(posBeforeBlock, SeekOrigin.Begin);
+                        bw.Write(blockTexSize);
+                        bw.BaseStream.Seek(currentPos, SeekOrigin.Begin);
+
+                        // Calculate headerSize using formula from docs
+                        // Formula: tex_data_start = headerSize + 16 + countElements*12 + 4
+                        // Where tex_data_start is the position where texture pixel data starts
+                        // We know: tex_data_start = posBeforeBlock + blockTexSize
+                        // Therefore: headerSize = tex_data_start - 16 - countElements*12 - 4
+                        long pixelDataStart = posBeforeBlock + blockTexSize;
+                        int countElements = (font.binElements != null) ? font.binElements.Length : 0;
+                        font.headerSize = (int)(pixelDataStart - 16 - countElements * 12 - 4);
                     }
 
                     bw.BaseStream.Seek(4, SeekOrigin.Begin);
                     bw.Write(font.headerSize);
+                    bw.BaseStream.Seek(8, SeekOrigin.Begin);
+                    bw.Write(font.TexCount);
                     bw.BaseStream.Seek(12, SeekOrigin.Begin);
                     bw.Write(font.texSize);
                 }
@@ -2259,8 +2673,19 @@ namespace TTG_Tools
 
         private void CopyDataIndataGridViewWithCoord(int column, int first, int second)
         {
-            dataGridViewWithCoord[column, second].Value = dataGridViewWithCoord[column, first].Value;
-            dataGridViewWithCoord[column, second].Style.BackColor = System.Drawing.Color.Green;
+            // Check if cells exist before accessing them
+            if (dataGridViewWithCoord.RowCount > first && dataGridViewWithCoord.RowCount > second &&
+                dataGridViewWithCoord.ColumnCount > column)
+            {
+                var sourceCell = dataGridViewWithCoord[column, first];
+                var destCell = dataGridViewWithCoord[column, second];
+
+                if (sourceCell != null && destCell != null)
+                {
+                    destCell.Value = sourceCell.Value;
+                    destCell.Style.BackColor = System.Drawing.Color.Green;
+                }
+            }
         }
 
         private void contextMenuStripExport_Import_Opening(object sender, CancelEventArgs e)
@@ -2874,13 +3299,17 @@ namespace TTG_Tools
                     // Initialize required fields
                     check_header = new byte[4];
                     tmpHeader = new byte[4];
-                    font.One = 0;
+                    font.One = 0x31; // Required for 6VSM NewFormat
                     font.hasLineHeight = false;
                     font.blockSize = true;
                     font.headerSize = 0;
                     font.texSize = 0;
                     font.hasOneFloatValue = false;
                     font.LastZero = 0;
+                    font.NewSomeValue = 0;
+
+                    // Initialize default 6VSM elements for game runtime compatibility.
+                    InitializeDefault6VsmElements(font);
 
                     // Set default header based on FNT format
                     // 6VSM is the most common format for newer games
@@ -3043,6 +3472,9 @@ namespace TTG_Tools
                                                 // Create a default texture template
                                                 tmpNewTex[j] = new TextureClass.NewT3Texture();
                                                 tmpNewTex[j].Tex = new TextureClass.NewT3Texture.TextureInfo();
+                                                // Initialize required string fields to prevent null reference
+                                                tmpNewTex[j].ObjectName = "";
+                                                tmpNewTex[j].SubObjectName = "";
                                             }
                                         }
 
@@ -3163,6 +3595,11 @@ namespace TTG_Tools
 
                                     case "chnl":
                                         font.glyph.charsNew[ch].Channel = Convert.ToInt32(splitted[k + 1]);
+                                        // Auto-fix channel=0 to channel=15 (RGBA)
+                                        if (font.glyph.charsNew[ch].Channel == 0)
+                                        {
+                                            font.glyph.charsNew[ch].Channel = 15;
+                                        }
                                         break;
                                 }
                             }
@@ -3399,6 +3836,15 @@ namespace TTG_Tools
 
                     fillTableofCoordinates(font, true);
                     edited = true;
+
+                    // Enable Save/Export functions after successful import
+                    saveToolStripMenuItem.Enabled = true;
+                    saveAsToolStripMenuItem.Enabled = true;
+                    exportCoordinatesToolStripMenuItem1.Enabled = true;
+                    exportCoordinatesToolStripMenuItem.Enabled = true;
+                    scaleFontToolStripMenuItem.Enabled = true;
+
+                    textBoxLogOutput.AppendText("Font imported successfully. You can now save the font.\r\n");
             }
 
         }
@@ -4624,6 +5070,545 @@ namespace TTG_Tools
             textBoxLogOutput.AppendText($"  New pages in FNT: {newPageCount}\r\n");
             textBoxLogOutput.AppendText($"  Characters in FNT: {fntCharCount} (generated only)\r\n");
             textBoxLogOutput.AppendText($"  Total characters in font: {font.glyph.CharCount}\r\n");
+        }
+
+        private void scaleFontToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            buttonScaleFont_Click(sender, e);
+        }
+
+        private void buttonScaleFont_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("Please open a font file first.", "No Font Loaded",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!font.NewFormat)
+            {
+                MessageBox.Show("Scale Font currently only supports NewFormat (5VSM/6VSM) fonts.",
+                    "Unsupported Format", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (font.glyph.charsNew == null || font.glyph.charsNew.Length == 0)
+            {
+                MessageBox.Show("This font has no characters to scale.", "Empty Font",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(selectedFontFamilyName))
+            {
+                MessageBox.Show("Please select a font using the 'Choose' button in Match Textures first.\n" +
+                    "The selected font will be used to re-render all characters at the scaled size.",
+                    "No Font Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Parse scale factor
+            float scaleFactor;
+            if (comboBoxScaleFactor.SelectedItem?.ToString() == "Custom")
+            {
+                // Simple input dialog for custom scale
+                using (Form inputForm = new Form())
+                {
+                    inputForm.Text = "Custom Scale Factor";
+                    inputForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                    inputForm.StartPosition = FormStartPosition.CenterParent;
+                    inputForm.ClientSize = new Size(250, 100);
+                    inputForm.MaximizeBox = false;
+                    inputForm.MinimizeBox = false;
+
+                    var label = new Label() { Text = "Enter scale factor (0.01 - 10.0):", Left = 10, Top = 15, Width = 220 };
+                    var textBox = new TextBox() { Text = "1.5", Left = 10, Top = 40, Width = 220 };
+                    var btnOk = new Button() { Text = "OK", DialogResult = DialogResult.OK, Left = 60, Top = 65, Width = 75 };
+                    var btnCancel = new Button() { Text = "Cancel", DialogResult = DialogResult.Cancel, Left = 145, Top = 65, Width = 75 };
+
+                    inputForm.Controls.AddRange(new Control[] { label, textBox, btnOk, btnCancel });
+                    inputForm.AcceptButton = btnOk;
+                    inputForm.CancelButton = btnCancel;
+
+                    if (inputForm.ShowDialog() != DialogResult.OK) return;
+                    if (!float.TryParse(textBox.Text, out scaleFactor) || scaleFactor <= 0 || scaleFactor > 10)
+                    {
+                        MessageBox.Show("Please enter a valid scale factor (0.01 - 10.0).", "Invalid Scale",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (!float.TryParse(comboBoxScaleFactor.SelectedItem?.ToString(), out scaleFactor))
+                {
+                    scaleFactor = 1.5f;
+                }
+            }
+
+            // Parse texture size
+            int textureSize;
+            if (!int.TryParse(comboBoxTextureSize.SelectedItem?.ToString(), out textureSize))
+            {
+                textureSize = 2048;
+            }
+
+            // Confirm with user
+            DialogResult result = MessageBox.Show(
+                $"Scale all {font.glyph.CharCount} characters by {scaleFactor}x?\r\n\r\n" +
+                $"Texture size: {textureSize}x{textureSize}\r\n" +
+                $"This will replace ALL existing textures and character data.\r\n\r\n" +
+                $"A Save As dialog will follow.",
+                "Confirm Scale Font", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes) return;
+
+            // Prompt for save location
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Filter = "Font Files (*.font)|*.font|All Files (*.*)|*.*";
+                saveDialog.Title = "Save Scaled Font As";
+                if (!string.IsNullOrEmpty(ofd.FileName))
+                    saveDialog.FileName = Path.GetFileNameWithoutExtension(ofd.FileName) + $"_x{scaleFactor}.font";
+                else
+                    saveDialog.FileName = "scaled.font";
+
+                if (saveDialog.ShowDialog() != DialogResult.OK)
+                    return;
+
+                try
+                {
+                    ScaleFont(saveDialog.FileName, scaleFactor, textureSize);
+                }
+                catch (Exception ex)
+                {
+                    ShowErrorDialog("Scale Failed", $"Failed to scale font:\n\n{ex.ToString()}");
+                }
+            }
+        }
+
+        private static void ShowErrorDialog(string title, string message)
+        {
+            using (Form dlg = new Form())
+            {
+                dlg.Text = title;
+                dlg.Size = new Size(520, 340);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+
+                var textBox = new TextBox
+                {
+                    Multiline = true,
+                    ReadOnly = true,
+                    ScrollBars = ScrollBars.Vertical,
+                    Dock = DockStyle.Top,
+                    Height = 240,
+                    Text = message,
+                    Font = new Font("Consolas", 9F),
+                    BackColor = SystemColors.Window,
+                    WordWrap = true
+                };
+
+                var btnCopy = new Button
+                {
+                    Text = "Copy",
+                    DialogResult = DialogResult.None,
+                    Width = 80,
+                    Height = 30
+                };
+                btnCopy.Click += (s, e) =>
+                {
+                    textBox.SelectAll();
+                    textBox.Copy();
+                    btnCopy.Text = "Copied!";
+                };
+
+                var btnOk = new Button
+                {
+                    Text = "OK",
+                    DialogResult = DialogResult.OK,
+                    Width = 80,
+                    Height = 30
+                };
+
+                var bottomPanel = new Panel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 44
+                };
+                bottomPanel.Controls.Add(btnOk);
+                bottomPanel.Controls.Add(btnCopy);
+                btnOk.Location = new Point(520 - 80 - 12, 8);
+                btnCopy.Location = new Point(520 - 80 - 12 - 80 - 8, 8);
+
+                dlg.Controls.Add(textBox);
+                dlg.Controls.Add(bottomPanel);
+                dlg.AcceptButton = btnOk;
+
+                dlg.ShowDialog();
+            }
+        }
+
+        private void ScaleFont(string savePath, float scaleFactor, int textureSize)
+        {
+            textBoxLogOutput.AppendText($"\r\n=== Scaling Font by {scaleFactor}x ===\r\n");
+            textBoxLogOutput.AppendText($"Font family: {selectedFontFamilyName}\r\n");
+            textBoxLogOutput.AppendText($"Total characters: {font.glyph.CharCount}\r\n");
+            textBoxLogOutput.AppendText($"Texture size: {textureSize}x{textureSize}\r\n");
+            textBoxLogOutput.AppendText($"Target: {savePath}\r\n");
+            textBoxLogOutput.AppendText("===========================================\r\n\r\n");
+
+            // --- Step 1: Save original metrics ---
+            string originalFontName = font.FontName;
+            float originalBaseSize = font.BaseSize;
+            float originalLineHeight = font.lineHeight;
+            float originalNewSomeValue = font.NewSomeValue;
+            int originalCharCount = font.glyph.CharCount;
+
+            // Deep copy original charsNew for reference
+            var originalChars = new FontClass.ClassFont.TRectNew[font.glyph.charsNew.Length];
+            Array.Copy(font.glyph.charsNew, originalChars, originalChars.Length);
+
+            // --- Step 2: Analyze existing characters to get rendering params ---
+            int charWidth = 28, charHeight = 27, fontSize = 27, xAdvance = 25;
+            Dictionary<float, int> xoffsetStats = new Dictionary<float, int>();
+            Dictionary<float, int> yoffsetStats = new Dictionary<float, int>();
+            Dictionary<float, int> xadvanceStats = new Dictionary<float, int>();
+
+            var sizeStats = new Dictionary<string, int>();
+            int cjkCharCount = 0;
+
+            foreach (var ch in font.glyph.charsNew)
+            {
+                if (ch.charId >= 0x4E00 && ch.charId <= 0x9FFF)
+                {
+                    string sizeKey = $"{ch.CharWidth}x{ch.CharHeight}";
+                    if (sizeStats.ContainsKey(sizeKey))
+                        sizeStats[sizeKey]++;
+                    else
+                        sizeStats[sizeKey] = 1;
+
+                    if (xoffsetStats.ContainsKey(ch.XOffset))
+                        xoffsetStats[ch.XOffset]++;
+                    else
+                        xoffsetStats[ch.XOffset] = 1;
+
+                    if (yoffsetStats.ContainsKey(ch.YOffset))
+                        yoffsetStats[ch.YOffset]++;
+                    else
+                        yoffsetStats[ch.YOffset] = 1;
+
+                    if (xadvanceStats.ContainsKey(ch.XAdvance))
+                        xadvanceStats[ch.XAdvance]++;
+                    else
+                        xadvanceStats[ch.XAdvance] = 1;
+
+                    cjkCharCount++;
+                }
+            }
+
+            if (sizeStats.Count > 0)
+            {
+                var mostCommonSize = sizeStats.OrderByDescending(x => x.Value).First();
+                string[] dimensions = mostCommonSize.Key.Split('x');
+                charWidth = int.Parse(dimensions[0]);
+                charHeight = int.Parse(dimensions[1]);
+                fontSize = charHeight;
+                xAdvance = (int)xadvanceStats.OrderByDescending(x => x.Value).First().Key;
+            }
+            else
+            {
+                // No CJK: use average metrics from all non-zero characters
+                var validChars = font.glyph.charsNew.Where(c => c.charId != 0 && c.CharWidth > 0).ToList();
+                if (validChars.Count > 0)
+                {
+                    charWidth = (int)Math.Round(validChars.Average(c => c.CharWidth));
+                    charHeight = (int)Math.Round(validChars.Average(c => c.CharHeight));
+                    fontSize = charHeight;
+                    xAdvance = (int)Math.Round(validChars.Average(c => c.XAdvance));
+                }
+            }
+
+            float mostCommonXOffset = xoffsetStats.Count > 0
+                ? xoffsetStats.OrderByDescending(x => x.Value).First().Key : 0;
+            float mostCommonYOffset = yoffsetStats.Count > 0
+                ? yoffsetStats.OrderByDescending(x => x.Value).First().Key : 0;
+
+            // --- Step 3: Compute scaled metrics ---
+            // Read Font Size Adjust from UI (same as GenerateMissingCharacters)
+            int fontSizeAdjustment = 0;
+            if (int.TryParse(textBoxFontSizeAdjust.Text, out int parsedSizeAdjust))
+                fontSizeAdjustment = parsedSizeAdjust;
+
+            int scaledCharWidth = Math.Max(1, (int)Math.Round(charWidth * scaleFactor));
+            int scaledCharHeight = Math.Max(1, (int)Math.Round(charHeight * scaleFactor));
+            float scaledFontSize = Math.Max(1f, fontSize * scaleFactor + fontSizeAdjustment);
+            int scaledXAdvance = Math.Max(1, (int)Math.Round(xAdvance * scaleFactor));
+            short scaledXOffset = (short)Math.Round(mostCommonXOffset * scaleFactor);
+            short scaledYOffset = (short)Math.Round(mostCommonYOffset * scaleFactor);
+            float scaledBaseSize = (float)Math.Round(originalBaseSize * scaleFactor);
+            float scaledLineHeight = originalLineHeight > 0
+                ? (float)Math.Round(originalLineHeight * scaleFactor) : scaledBaseSize;
+            float scaledNewSomeValue = originalNewSomeValue > 0
+                ? (float)Math.Round(originalNewSomeValue * scaleFactor) : 0;
+
+            int padding = 0;
+            int cellWidth = scaledCharWidth + padding * 2;
+            int cellHeight = scaledCharHeight + padding * 2;
+
+            textBoxLogOutput.AppendText($"Original metrics: {charWidth}x{charHeight}, fontSize={fontSize}, xAdvance={xAdvance}\r\n");
+            textBoxLogOutput.AppendText($"Scaled metrics: {scaledCharWidth}x{scaledCharHeight}, fontSize={scaledFontSize:F1}, xAdvance={scaledXAdvance}\r\n");
+            textBoxLogOutput.AppendText($"Font size adjust: {fontSizeAdjustment}, Y offset: {textBoxYoffset.Text}\r\n");
+            textBoxLogOutput.AppendText($"Scaled BaseSize: {scaledBaseSize}, lineHeight: {scaledLineHeight}, NewSomeValue: {scaledNewSomeValue}\r\n\r\n");
+
+            // --- Step 4: Validate texture layout ---
+            if (cellWidth > textureSize || cellHeight > textureSize)
+            {
+                MessageBox.Show($"Scaled character size ({scaledCharWidth}x{scaledCharHeight}) exceeds texture size ({textureSize}x{textureSize}).\n" +
+                    "Choose a larger texture size or smaller scale factor.",
+                    "Invalid Configuration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int charsPerRow = Math.Max(1, textureSize / cellWidth);
+            int charsPerCol = Math.Max(1, textureSize / cellHeight);
+            int charsPerTexture = charsPerRow * charsPerCol;
+            int numTexturesNeeded = (int)Math.Ceiling((double)originalCharCount / charsPerTexture);
+
+            textBoxLogOutput.AppendText($"Layout: {charsPerRow}x{charsPerCol} per texture ({charsPerTexture} chars)\r\n");
+            textBoxLogOutput.AppendText($"Textures needed: {numTexturesNeeded}\r\n\r\n");
+
+            if (numTexturesNeeded > 50)
+            {
+                DialogResult bigResult = MessageBox.Show(
+                    $"Scaling will create {numTexturesNeeded} texture pages. This may be slow and produce large files.\nContinue?",
+                    "Many Pages Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (bigResult != DialogResult.Yes) return;
+            }
+
+            // --- Step 5: Load source font ---
+            System.Drawing.FontFamily fontFamily;
+            System.Drawing.Text.PrivateFontCollection fontCollection = null;
+            if (!string.IsNullOrEmpty(selectedFontFilePath) && File.Exists(selectedFontFilePath))
+            {
+                fontCollection = new System.Drawing.Text.PrivateFontCollection();
+                fontCollection.AddFontFile(selectedFontFilePath);
+                fontFamily = fontCollection.Families[0];
+            }
+            else
+            {
+                fontFamily = new System.Drawing.FontFamily(selectedFontFamilyName);
+            }
+
+            // --- Step 6: Re-render all characters ---
+            int yOffsetAdjustment = 0;
+            if (int.TryParse(textBoxYoffset.Text, out int parsedOffset))
+                yOffsetAdjustment = parsedOffset;
+
+            var newChars = new FontClass.ClassFont.TRectNew[originalCharCount];
+            string saveDir = Path.GetDirectoryName(savePath);
+            string saveBaseName = Path.GetFileNameWithoutExtension(savePath);
+
+            for (int texIndex = 0; texIndex < numTexturesNeeded; texIndex++)
+            {
+                int startChar = texIndex * charsPerTexture;
+                int endChar = Math.Min(startChar + charsPerTexture, originalCharCount);
+                int charsInThisTexture = endChar - startChar;
+
+                textBoxLogOutput.AppendText($"Rendering texture {texIndex + 1}/{numTexturesNeeded} (chars {startChar + 1}-{endChar})...\r\n");
+
+                using (Bitmap textureBitmap = new Bitmap(textureSize, textureSize))
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(textureBitmap))
+                {
+                    g.Clear(Color.Transparent);
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                    using (System.Drawing.Font drawFont = new System.Drawing.Font(
+                        fontFamily, scaledFontSize, selectedFontStyle, GraphicsUnit.Pixel))
+                    {
+                        for (int i = 0; i < charsInThisTexture; i++)
+                        {
+                            int charArrayIndex = startChar + i;
+                            var origChar = originalChars[charArrayIndex];
+
+                            // Skip null/empty characters
+                            if (origChar.charId == 0) continue;
+
+                            char c = (char)origChar.charId;
+
+                            int row = i / charsPerRow;
+                            int col = i % charsPerRow;
+
+                            int x = col * cellWidth + padding;
+                            int y = row * cellHeight + padding;
+
+                            // Scale per-character metrics proportionally
+                            int perCharWidth = Math.Max(1, (int)Math.Round(origChar.CharWidth * scaleFactor));
+                            int perCharHeight = Math.Max(1, (int)Math.Round(origChar.CharHeight * scaleFactor));
+                            int perCharXAdvance = Math.Max(1, (int)Math.Round(origChar.XAdvance * scaleFactor));
+                            short perCharXOffset = (short)Math.Round(origChar.XOffset * scaleFactor);
+                            short perCharYOffset = (short)Math.Round(origChar.YOffset * scaleFactor);
+
+                            // Draw character
+                            g.DrawString(c.ToString(), drawFont, Brushes.White,
+                                x, y - yOffsetAdjustment, StringFormat.GenericTypographic);
+
+                            // Create new character entry with scaled metrics
+                            newChars[charArrayIndex] = new FontClass.ClassFont.TRectNew
+                            {
+                                charId = origChar.charId,
+                                XStart = (short)x,
+                                XEnd = (short)(x + perCharWidth),
+                                YStart = (short)y,
+                                YEnd = (short)(y + perCharHeight),
+                                CharWidth = perCharWidth,
+                                CharHeight = perCharHeight,
+                                XOffset = perCharXOffset,
+                                YOffset = perCharYOffset,
+                                XAdvance = perCharXAdvance,
+                                Channel = origChar.Channel,
+                                TexNum = texIndex
+                            };
+                        }
+                    }
+
+                    // Save texture as DDS
+                    string texturePath = Path.Combine(saveDir, saveBaseName + $"_page{texIndex}.dds");
+                    SaveBitmapAsDDS(textureBitmap, texturePath, texIndex);
+                }
+
+                textBoxLogOutput.AppendText($"  Saved: {saveBaseName}_page{texIndex}.dds\r\n");
+            }
+
+            // --- Step 7: Update font in-memory state ---
+            font.glyph.charsNew = newChars;
+            font.glyph.CharCount = originalCharCount;
+            font.glyph.Pages = numTexturesNeeded;
+            font.TexCount = numTexturesNeeded;
+            font.BaseSize = scaledBaseSize;
+            font.lineHeight = scaledLineHeight;
+            font.NewSomeValue = scaledNewSomeValue;
+
+            // Build new texture array - deep copy metadata from original first texture
+            TextureClass.NewT3Texture[] newTexArray = new TextureClass.NewT3Texture[numTexturesNeeded];
+            TextureClass.NewT3Texture templateTex = (font.NewTex != null && font.NewTex.Length > 0)
+                ? font.NewTex[0] : null;
+
+            for (int i = 0; i < numTexturesNeeded; i++)
+            {
+                if (templateTex != null)
+                {
+                    // Use copy constructor to preserve ALL metadata (block, subBlock, platform, etc.)
+                    newTexArray[i] = new TextureClass.NewT3Texture(templateTex);
+                }
+                else
+                {
+                    newTexArray[i] = new TextureClass.NewT3Texture();
+                    newTexArray[i].Tex = new TextureClass.NewT3Texture.TextureInfo();
+                    newTexArray[i].ObjectName = "";
+                    newTexArray[i].SubObjectName = "";
+                    newTexArray[i].SomeValue = 0;
+                    newTexArray[i].Zero = 0;
+                    newTexArray[i].HasOneValueTex = false;
+                }
+
+                string ddsPath = Path.Combine(saveDir, saveBaseName + $"_page{i}.dds");
+                if (File.Exists(ddsPath))
+                {
+                    ReplaceTexture(ddsPath, newTexArray[i]);
+                }
+            }
+            font.NewTex = newTexArray;
+
+            // Clean up font collection
+            fontCollection?.Dispose();
+
+            // Reset generation tracking state
+            lastGeneratedPagesStartIndex = -1;
+            lastGeneratedPagesCount = 0;
+            lastGeneratedCharCount = 0;
+            lastOriginalPagesCount = -1;
+            lastModifiedExistingPageIndex = -1;
+            lastModifiedPageOriginalData = null;
+
+            // --- Step 8: Save FNT file (all characters) ---
+            SaveScaledFontFNT(savePath, originalFontName, scaledBaseSize, scaledLineHeight, numTexturesNeeded);
+
+            // --- Step 9: Save .font binary ---
+            // Ensure critical fields are not null before saving
+            if (string.IsNullOrEmpty(font.FontName))
+                font.FontName = originalFontName ?? "ScaledFont";
+            if (check_header == null)
+                check_header = Encoding.ASCII.GetBytes("6VSM");
+            if (tmpHeader == null)
+                tmpHeader = Encoding.ASCII.GetBytes("6VSM");
+            Methods.DeleteCurrentFile(savePath);
+            using (FileStream fs = new FileStream(savePath, FileMode.Create))
+            {
+                SaveFont(fs, font);
+            }
+            encFunc(savePath);
+
+            // --- Step 10: Refresh UI ---
+            fillTableofCoordinates(font, true);
+            fillTableofTextures(font);
+            UpdateTexturePreview();
+            edited = true;
+
+            textBoxLogOutput.AppendText($"\r\n=== Scale Complete ===\r\n");
+            textBoxLogOutput.AppendText($"Scaled {originalCharCount} characters by {scaleFactor}x\r\n");
+            textBoxLogOutput.AppendText($"Texture pages: {numTexturesNeeded} ({textureSize}x{textureSize})\r\n");
+            textBoxLogOutput.AppendText($"Saved to: {savePath}\r\n");
+            textBoxLogOutput.AppendText($"FNT saved to: {Path.ChangeExtension(savePath, ".fnt")}\r\n");
+
+            MessageBox.Show($"Font scaled by {scaleFactor}x successfully!\r\n\r\n" +
+                $"Characters: {originalCharCount}\r\n" +
+                $"Texture pages: {numTexturesNeeded} ({textureSize}x{textureSize})\r\n" +
+                $"BaseSize: {originalBaseSize} -> {scaledBaseSize}\r\n\r\n" +
+                $"Saved to:\r\n{savePath}",
+                "Scale Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SaveScaledFontFNT(string savePath, string fontName,
+            float scaledBaseSize, float scaledLineHeight, int totalPages)
+        {
+            string fntPath = Path.ChangeExtension(savePath, ".fnt");
+            string baseName = Path.GetFileNameWithoutExtension(savePath);
+
+            using (FileStream fs = new FileStream(fntPath, FileMode.Create))
+            using (StreamWriter sw = new StreamWriter(fs, Encoding.UTF8))
+            {
+                sw.WriteLine($"info face=\"{fontName}\" size={(int)scaledBaseSize} bold=0 italic=0 charset=\"\" unicode=1");
+                sw.WriteLine($"common lineHeight={(int)scaledLineHeight} base={(int)scaledBaseSize} pages={totalPages}");
+
+                for (int i = 0; i < totalPages; i++)
+                {
+                    string pageFileName = $"{baseName}_page{i}.dds";
+                    sw.WriteLine($"page id={i} file=\"{pageFileName}\"");
+                }
+
+                sw.WriteLine($"chars count={font.glyph.CharCount}");
+
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    var ch = font.glyph.charsNew[i];
+                    if (ch.charId != 0)
+                    {
+                        sw.WriteLine($"char id={ch.charId} x={ch.XStart} y={ch.YStart} " +
+                            $"width={ch.CharWidth} height={ch.CharHeight} " +
+                            $"xoffset={ch.XOffset} yoffset={ch.YOffset} " +
+                            $"xadvance={ch.XAdvance} page={ch.TexNum} chnl={ch.Channel}");
+                    }
+                }
+            }
+
+            textBoxLogOutput.AppendText($"  FNT file: {Path.GetFileName(fntPath)}\r\n");
+            textBoxLogOutput.AppendText($"  Characters in FNT: {font.glyph.CharCount}\r\n");
+            textBoxLogOutput.AppendText($"  Pages in FNT: {totalPages}\r\n");
         }
     }
 }

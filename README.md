@@ -15,6 +15,11 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 - **Lua Encryption Detection**: Improved — only marks .lenc files as encrypted by default, checks .lua files by reading actual content after decompression
 
 ### Font Editor Enhancements (2026)
+- **Switch Font Compatibility Fix**: Fixed two critical bugs that prevented NewFormat fonts from displaying on Nintendo Switch:
+  - **FontName overwrite**: FNT import no longer overwrites an existing FontName — only updates when the name is empty or the default `NewFont`. Prevents glyph block misalignment caused by name length mismatch.
+  - **Header offset 0x08**: Always written as `0` (structural separator). Was incorrectly written as the real texture count, corrupting the file header and causing Switch to reject the font.
+- **New Font Workflow**: `New → Import FNT → Import DDS → Save` now produces a fully compatible NewFormat font for Nintendo Switch (platform=15, BC3/DXT5, multi-page supported)
+  - **Switch Hardware Layout Block**: `EnsureNewTextureHeaderDefaults()` now injects the 60-byte hardware texture parameter block (`tex.block`) when it is uninitialized. Without this block, the game crashes with colorful texture artifacts because the Switch GPU cannot parse the texture memory layout. The template is derived from official Switch fonts and contains tile mode, format, and memory layout parameters required by the hardware decoder.
 - **UI Optimization**: Improved user interface with better layout and usability
 - **Font Detection**: Added automatic font detection capability for easier file handling
 - **Missing Character Generation**: Implemented automatic generation of missing characters for comprehensive font support

@@ -757,6 +757,44 @@ namespace TTG_Tools
             }
 
             tex.Tex.SomeData = 0;
+
+            // Nintendo Switch requires specific texture header fields to match the official format.
+            // Official Switch fonts always have: unknownFlags.block=0x111, HasOneValueTex=true,
+            // OneValue=1, subBlock/subBlock2 = 8-byte blocks.
+            // Without HasOneValueTex=true, the per-mip "One" field is omitted, causing the game
+            // to misread every subsequent byte in the texture header and crash on load.
+            if (tex.platform.platform == 15)
+            {
+                if (tex.unknownFlags.block == 0)
+                    tex.unknownFlags.block = 0x00000111;
+                if (!tex.HasOneValueTex)
+                    tex.HasOneValueTex = true;
+                if (tex.OneValue == 0)
+                    tex.OneValue = 1;
+                // Switch expects 8-byte subBlocks: first 4 bytes = size (8), next 4 bytes = padding.
+                if (tex.subBlock.Block == null || tex.subBlock.Block.Length < 8)
+                    tex.subBlock.Block = new byte[] { 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+                tex.subBlock.Size = tex.subBlock.Block.Length;
+                if (tex.SomeValue >= 8)
+                {
+                    if (tex.subBlock2.Block == null || tex.subBlock2.Block.Length < 8)
+                        tex.subBlock2.Block = new byte[] { 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+                    tex.subBlock2.Size = tex.subBlock2.Block.Length;
+                }
+                // Set Switch-specific main block if uninitialized (all zeros = game crash/artifacts).
+                // Template from Normal/cheapSignage_medium.font (2048x2048, BC3, platform=15, SomeValue=9).
+                if (tex.block == null || tex.block.Length == 0 || Array.TrueForAll(tex.block, b => b == 0))
+                {
+                    tex.block = new byte[]
+                    {
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x0f, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03,
+                        0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0xc0, 0x40, 0x00, 0x00, 0x80, 0xbf,
+                        0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x80, 0x3f
+                    };
+                }
+            }
         }
 
         private void InitializeDefault6VsmElements(ClassesStructs.FontClass.ClassFont targetFont)

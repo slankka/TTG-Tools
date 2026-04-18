@@ -76,6 +76,7 @@
             this.contextMenuStripExp_imp_Coord = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exportCoordinatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importCoordinatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearExistingFntDdsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeDuplicatesCharsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.labelFontName = new System.Windows.Forms.Label();
             this.labelSearchChar = new System.Windows.Forms.Label();
@@ -577,9 +578,10 @@
             this.contextMenuStripExp_imp_Coord.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exportCoordinatesToolStripMenuItem,
             this.importCoordinatesToolStripMenuItem,
+            this.clearExistingFntDdsToolStripMenuItem,
             this.removeDuplicatesCharsToolStripMenuItem});
             this.contextMenuStripExp_imp_Coord.Name = "contextMenuStripExp_imp_Coord";
-            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(222, 70);
+            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(223, 92);
             // 
             // exportCoordinatesToolStripMenuItem
             // 
@@ -594,6 +596,13 @@
             this.importCoordinatesToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.importCoordinatesToolStripMenuItem.Text = "Import coordinates";
             this.importCoordinatesToolStripMenuItem.Click += new System.EventHandler(this.importCoordinatesToolStripMenuItem_Click);
+            // 
+            // clearExistingFntDdsToolStripMenuItem
+            // 
+            this.clearExistingFntDdsToolStripMenuItem.Name = "clearExistingFntDdsToolStripMenuItem";
+            this.clearExistingFntDdsToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.clearExistingFntDdsToolStripMenuItem.Text = "Clear Existing FNT+DDS";
+            this.clearExistingFntDdsToolStripMenuItem.Click += new System.EventHandler(this.clearExistingFntDdsToolStripMenuItem_Click);
             // 
             // removeDuplicatesCharsToolStripMenuItem
             // 
@@ -1169,6 +1178,7 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStripExp_imp_Coord;
         private System.Windows.Forms.ToolStripMenuItem exportCoordinatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importCoordinatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearExistingFntDdsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportCoordinatesToolStripMenuItem1;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.RadioButton rbNoKerning;

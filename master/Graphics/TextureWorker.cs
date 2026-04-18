@@ -582,8 +582,19 @@ namespace TTG_Tools.Graphics
 
                 if (MipCount > 1) head.Caps |= caps.DDSCAPS_COMPLEX | caps.DDSCAPS_MIPMAP;
 
-                //Need find out how caps2 value works
-                head.Caps2 = caps.DDSCAPS2_CUBEMAP_POSITIVEY;
+                // Only set cubemap caps when this texture is explicitly marked as cubemap.
+                // For regular 2D atlases (font textures), Caps2 must stay 0.
+                if (Faces > 1)
+                {
+                    head.Caps |= caps.DDSCAPS_COMPLEX;
+                    head.Caps2 = caps.DDSCAPS2_CUBEMAP |
+                                 caps.DDSCAPS2_CUBEMAP_POSITIVEX |
+                                 caps.DDSCAPS2_CUBEMAP_NEGATIVEX |
+                                 caps.DDSCAPS2_CUBEMAP_POSITIVEY |
+                                 caps.DDSCAPS2_CUBEMAP_NEGATIVEY |
+                                 caps.DDSCAPS2_CUBEMAP_POSITIVEZ |
+                                 caps.DDSCAPS2_CUBEMAP_NEGATIVEZ;
+                }
 
                 bw.Write(head.Caps);
                 bw.Write(head.Caps2);

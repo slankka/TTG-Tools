@@ -38,8 +38,9 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 - **Header Accuracy**: Fixed zCTT header field ordering and chunksFirstOffset calculation for Oodle compressed archives
 - **Kraken Buffer Overflow Fix**: Fixed delayed AccessViolation crash when compressing large dense binary files (.font, .d3dtx) with Oodle Kraken — output buffer now includes extra padding to prevent native heap corruption
 
-### Text Import Improvements (2026)
-- **Newline punctuation normalization**: Added AutoPacker option to normalize punctuation before explicit `\n` markers during import, preventing malformed line breaks like `\n。` and preserving proper sentence structure. This option is enabled by default.
+### Text Normalization Improvements (2026)
+- **Newline punctuation normalization**: Added AutoPacker Text Normal option to normalize punctuation before explicit `\n` markers during import, preventing malformed line breaks like `\n。` and preserving proper sentence structure. This option is enabled by default.
+- **Text Normal UI**: Added a new AutoPacker checkbox in the Text Normal section so users can toggle normalization behavior directly in the import settings.
 
 ## Screenshots
 

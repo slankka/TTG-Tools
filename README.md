@@ -39,13 +39,9 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 - **Kraken Buffer Overflow Fix**: Fixed delayed AccessViolation crash when compressing large dense binary files (.font, .d3dtx) with Oodle Kraken — output buffer now includes extra padding to prevent native heap corruption
 
 ### Text Normalization Improvements (2026)
+- **Remove blanks between CJK characters**: Added an AutoPacker option to remove unnecessary spacing between CJK characters during import, preserving natural CJK text flow.
+- **Dot-to-Chinese-period replacement**: Added support for converting ASCII dots near CJK text into full-width Chinese periods during import, improving punctuation consistency in localized dialogue.
 - **Newline punctuation normalization**: Added AutoPacker Text Normal option to normalize punctuation before explicit `\n` markers during import, preventing malformed line breaks like `\n。` and preserving proper sentence structure. This option is enabled by default.
-- **Dot-to-Chinese-period replacement**: Added support for converting ASCII dots near CJK text into full-width Chinese periods during import, improving punctuation consistency in localized dialogue.
-- **Remove blanks between CJK characters**: Added an AutoPacker option to remove unnecessary spacing between CJK characters during import, preserving natural CJK text flow.
-- **Dot-to-Chinese-period replacement**: Added support for converting ASCII dots near CJK text into full-width Chinese periods during import, improving punctuation consistency in localized dialogue.
-- **Remove blanks between CJK characters**: Added an AutoPacker option to remove unnecessary spacing between CJK characters during import, preserving natural CJK text flow.
-- **Text Normal UI**: Added a new AutoPacker checkbox in the Text Normal section so users can toggle normalization behavior directly in the import settings.
-
 ## Screenshots
 
 ### Archive Unpacker

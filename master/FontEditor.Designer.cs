@@ -107,6 +107,9 @@
             this.textBoxYoffset = new System.Windows.Forms.TextBox();
             this.labelFontSizeAdjust = new System.Windows.Forms.Label();
             this.textBoxFontSizeAdjust = new System.Windows.Forms.TextBox();
+            this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
+            this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
+            this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
             this.labelProfile = new System.Windows.Forms.Label();
             this.comboBoxProfiles = new System.Windows.Forms.ComboBox();
             this.buttonSaveProfile = new System.Windows.Forms.Button();

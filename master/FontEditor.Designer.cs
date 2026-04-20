@@ -860,6 +860,9 @@
             this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffset);
             this.groupBoxMatchTextures.Controls.Add(this.labelFontSizeAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxFontSizeAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust2);
+            this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffsetAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.buttonApplyYoffsetAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.labelProfile);
             this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
             this.groupBoxMatchTextures.Controls.Add(this.buttonSaveProfile);
@@ -927,7 +930,34 @@
             this.textBoxFontSizeAdjust.Size = new System.Drawing.Size(68, 21);
             this.textBoxFontSizeAdjust.TabIndex = 5;
             this.textBoxFontSizeAdjust.Text = "0";
-            // 
+            //
+            // labelYoffsetAdjust2
+            //
+            this.labelYoffsetAdjust2.AutoSize = true;
+            this.labelYoffsetAdjust2.Location = new System.Drawing.Point(9, 114);
+            this.labelYoffsetAdjust2.Name = "labelYoffsetAdjust2";
+            this.labelYoffsetAdjust2.Size = new System.Drawing.Size(83, 13);
+            this.labelYoffsetAdjust2.TabIndex = 10;
+            this.labelYoffsetAdjust2.Text = "YOffset Adj:";
+            //
+            // textBoxYoffsetAdjust
+            //
+            this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(110, 111);
+            this.textBoxYoffsetAdjust.Name = "textBoxYoffsetAdjust";
+            this.textBoxYoffsetAdjust.Size = new System.Drawing.Size(50, 21);
+            this.textBoxYoffsetAdjust.TabIndex = 11;
+            this.textBoxYoffsetAdjust.Text = "0";
+            //
+            // buttonApplyYoffsetAdjust
+            //
+            this.buttonApplyYoffsetAdjust.Location = new System.Drawing.Point(160, 109);
+            this.buttonApplyYoffsetAdjust.Name = "buttonApplyYoffsetAdjust";
+            this.buttonApplyYoffsetAdjust.Size = new System.Drawing.Size(24, 23);
+            this.buttonApplyYoffsetAdjust.TabIndex = 12;
+            this.buttonApplyYoffsetAdjust.Text = ">";
+            this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
+            this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
+            //
             // labelProfile
             // 
             this.labelProfile.AutoSize = true;
@@ -1120,6 +1150,9 @@
         private System.Windows.Forms.Button buttonDetectMissingTextures;
         private System.Windows.Forms.Label labelYoffsetAdjust;
         private System.Windows.Forms.TextBox textBoxYoffset;
+        private System.Windows.Forms.Label labelYoffsetAdjust2;
+        private System.Windows.Forms.TextBox textBoxYoffsetAdjust;
+        private System.Windows.Forms.Button buttonApplyYoffsetAdjust;
         private System.Windows.Forms.Label labelFontSizeAdjust;
         private System.Windows.Forms.TextBox textBoxFontSizeAdjust;
         private System.Windows.Forms.Button buttonGenerateMissingChars;

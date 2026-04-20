@@ -178,6 +178,33 @@ namespace TTG_Tools
             RefreshProfileComboBox(profileList, null);
         }
 
+        private void buttonApplyYoffsetAdjust_Click(object sender, EventArgs e)
+        {
+            if (font == null || font.glyph.charsNew == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+
+            string input = textBoxYoffsetAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid adjustment value. Enter a number (e.g., -5 or +3).", "Error");
+                return;
+            }
+
+            for (int i = 0; i < font.glyph.CharCount; i++)
+            {
+                font.glyph.charsNew[i].YOffset += adjustment;
+            }
+
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[YOffset] Applied adjustment: {adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
         private void buttonPickFont_Click(object sender, EventArgs e)
         {
             using (FontPickerDialog pickForm = new FontPickerDialog())

@@ -103,23 +103,23 @@
             this.pictureBoxTexturePreview = new System.Windows.Forms.PictureBox();
             this.labelTexturePreview = new System.Windows.Forms.Label();
             this.groupBoxMatchTextures = new System.Windows.Forms.GroupBox();
-            this.groupBoxFntAdjust = new System.Windows.Forms.GroupBox();
-            this.buttonDetectMissingTextures = new System.Windows.Forms.Button();
             this.buttonGenerateMissingChars = new System.Windows.Forms.Button();
             this.labelYoffsetAdjust = new System.Windows.Forms.Label();
+            this.buttonDetectMissingTextures = new System.Windows.Forms.Button();
             this.textBoxYoffset = new System.Windows.Forms.TextBox();
             this.labelFontSizeAdjust = new System.Windows.Forms.Label();
             this.textBoxFontSizeAdjust = new System.Windows.Forms.TextBox();
             this.labelProfile = new System.Windows.Forms.Label();
-            this.comboBoxProfiles = new System.Windows.Forms.ComboBox();
-            this.buttonSaveProfile = new System.Windows.Forms.Button();
             this.buttonDeleteProfile = new System.Windows.Forms.Button();
+            this.buttonSaveProfile = new System.Windows.Forms.Button();
+            this.labelGenFont = new System.Windows.Forms.Label();
+            this.comboBoxProfiles = new System.Windows.Forms.ComboBox();
+            this.buttonPickFont = new System.Windows.Forms.Button();
+            this.textBoxGenFont = new System.Windows.Forms.TextBox();
+            this.groupBoxFntAdjust = new System.Windows.Forms.GroupBox();
             this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
             this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
             this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
-            this.labelGenFont = new System.Windows.Forms.Label();
-            this.textBoxGenFont = new System.Windows.Forms.TextBox();
-            this.buttonPickFont = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
@@ -133,6 +133,7 @@
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).BeginInit();
             this.groupBoxMatchTextures.SuspendLayout();
+            this.groupBoxFntAdjust.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -151,7 +152,7 @@
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox1.Size = new System.Drawing.Size(186, 126);
+            this.groupBox1.Size = new System.Drawing.Size(186, 109);
             this.groupBox1.TabIndex = 21;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Copy coordinates";
@@ -685,7 +686,7 @@
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Controls.Add(this.textBox1);
             this.groupBox3.Controls.Add(this.button1);
-            this.groupBox3.Location = new System.Drawing.Point(12, 316);
+            this.groupBox3.Location = new System.Drawing.Point(12, 299);
             this.groupBox3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -870,45 +871,46 @@
             this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
             this.groupBoxMatchTextures.Controls.Add(this.buttonPickFont);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxGenFont);
-            this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 450);
+            this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 430);
             this.groupBoxMatchTextures.Name = "groupBoxMatchTextures";
-            this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 278);
+            this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 226);
             this.groupBoxMatchTextures.TabIndex = 33;
             this.groupBoxMatchTextures.TabStop = false;
             this.groupBoxMatchTextures.Text = "Match Textures";
             // 
-            // buttonDetectMissingTextures
-            // 
-            this.buttonDetectMissingTextures.Location = new System.Drawing.Point(7, 134);
-            this.buttonDetectMissingTextures.Name = "buttonDetectMissingTextures";
-            this.buttonDetectMissingTextures.Size = new System.Drawing.Size(172, 31);
-            this.buttonDetectMissingTextures.TabIndex = 0;
-            this.buttonDetectMissingTextures.Text = "Detect Missing Textures";
-            this.buttonDetectMissingTextures.UseVisualStyleBackColor = true;
-            this.buttonDetectMissingTextures.Click += new System.EventHandler(this.buttonDetectMissingTextures_Click);
-            // 
             // buttonGenerateMissingChars
             // 
-            this.buttonGenerateMissingChars.Location = new System.Drawing.Point(5, 171);
+            this.buttonGenerateMissingChars.Location = new System.Drawing.Point(6, 189);
             this.buttonGenerateMissingChars.Name = "buttonGenerateMissingChars";
             this.buttonGenerateMissingChars.Size = new System.Drawing.Size(172, 31);
             this.buttonGenerateMissingChars.TabIndex = 1;
-            this.buttonGenerateMissingChars.Text = "Generate Missing Chars";
+            this.buttonGenerateMissingChars.Text = "Generate Missing Textures";
             this.buttonGenerateMissingChars.UseVisualStyleBackColor = true;
             this.buttonGenerateMissingChars.Click += new System.EventHandler(this.buttonGenerateMissingChars_Click);
             // 
             // labelYoffsetAdjust
             // 
             this.labelYoffsetAdjust.AutoSize = true;
-            this.labelYoffsetAdjust.Location = new System.Drawing.Point(3, 38);
+            this.labelYoffsetAdjust.Location = new System.Drawing.Point(7, 57);
             this.labelYoffsetAdjust.Name = "labelYoffsetAdjust";
-            this.labelYoffsetAdjust.Size = new System.Drawing.Size(83, 13);
+            this.labelYoffsetAdjust.Size = new System.Drawing.Size(72, 13);
             this.labelYoffsetAdjust.TabIndex = 2;
-            this.labelYoffsetAdjust.Text = "Adjust Y offset:";
+            this.labelYoffsetAdjust.Text = "DDS Y offset:";
+            this.labelYoffsetAdjust.Click += new System.EventHandler(this.labelYoffsetAdjust_Click);
+            // 
+            // buttonDetectMissingTextures
+            // 
+            this.buttonDetectMissingTextures.Location = new System.Drawing.Point(5, 152);
+            this.buttonDetectMissingTextures.Name = "buttonDetectMissingTextures";
+            this.buttonDetectMissingTextures.Size = new System.Drawing.Size(172, 31);
+            this.buttonDetectMissingTextures.TabIndex = 0;
+            this.buttonDetectMissingTextures.Text = "Detect Missing Chars";
+            this.buttonDetectMissingTextures.UseVisualStyleBackColor = true;
+            this.buttonDetectMissingTextures.Click += new System.EventHandler(this.buttonDetectMissingTextures_Click);
             // 
             // textBoxYoffset
             // 
-            this.textBoxYoffset.Location = new System.Drawing.Point(112, 35);
+            this.textBoxYoffset.Location = new System.Drawing.Point(106, 54);
             this.textBoxYoffset.Name = "textBoxYoffset";
             this.textBoxYoffset.Size = new System.Drawing.Size(73, 21);
             this.textBoxYoffset.TabIndex = 3;
@@ -917,7 +919,7 @@
             // labelFontSizeAdjust
             // 
             this.labelFontSizeAdjust.AutoSize = true;
-            this.labelFontSizeAdjust.Location = new System.Drawing.Point(5, 65);
+            this.labelFontSizeAdjust.Location = new System.Drawing.Point(6, 84);
             this.labelFontSizeAdjust.Name = "labelFontSizeAdjust";
             this.labelFontSizeAdjust.Size = new System.Drawing.Size(72, 13);
             this.labelFontSizeAdjust.TabIndex = 4;
@@ -925,34 +927,34 @@
             // 
             // textBoxFontSizeAdjust
             // 
-            this.textBoxFontSizeAdjust.Location = new System.Drawing.Point(112, 62);
+            this.textBoxFontSizeAdjust.Location = new System.Drawing.Point(106, 81);
             this.textBoxFontSizeAdjust.Name = "textBoxFontSizeAdjust";
-            this.textBoxFontSizeAdjust.Size = new System.Drawing.Size(68, 21);
+            this.textBoxFontSizeAdjust.Size = new System.Drawing.Size(74, 21);
             this.textBoxFontSizeAdjust.TabIndex = 5;
             this.textBoxFontSizeAdjust.Text = "0";
             // 
             // labelProfile
             // 
             this.labelProfile.AutoSize = true;
-            this.labelProfile.Location = new System.Drawing.Point(2, 17);
+            this.labelProfile.Location = new System.Drawing.Point(4, 17);
             this.labelProfile.Name = "labelProfile";
             this.labelProfile.Size = new System.Drawing.Size(41, 13);
             this.labelProfile.TabIndex = 6;
             this.labelProfile.Text = "Profile:";
             // 
-            // comboBoxProfiles
+            // buttonDeleteProfile
             // 
-            this.comboBoxProfiles.DisplayMember = "Name";
-            this.comboBoxProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxProfiles.Location = new System.Drawing.Point(44, 14);
-            this.comboBoxProfiles.Name = "comboBoxProfiles";
-            this.comboBoxProfiles.Size = new System.Drawing.Size(68, 21);
-            this.comboBoxProfiles.TabIndex = 7;
-            this.comboBoxProfiles.SelectedIndexChanged += new System.EventHandler(this.comboBoxProfiles_SelectedIndexChanged);
+            this.buttonDeleteProfile.Location = new System.Drawing.Point(142, 32);
+            this.buttonDeleteProfile.Name = "buttonDeleteProfile";
+            this.buttonDeleteProfile.Size = new System.Drawing.Size(36, 21);
+            this.buttonDeleteProfile.TabIndex = 9;
+            this.buttonDeleteProfile.Text = "Del";
+            this.buttonDeleteProfile.UseVisualStyleBackColor = true;
+            this.buttonDeleteProfile.Click += new System.EventHandler(this.buttonDeleteProfile_Click);
             // 
             // buttonSaveProfile
             // 
-            this.buttonSaveProfile.Location = new System.Drawing.Point(112, 13);
+            this.buttonSaveProfile.Location = new System.Drawing.Point(106, 32);
             this.buttonSaveProfile.Name = "buttonSaveProfile";
             this.buttonSaveProfile.Size = new System.Drawing.Size(36, 21);
             this.buttonSaveProfile.TabIndex = 8;
@@ -960,82 +962,82 @@
             this.buttonSaveProfile.UseVisualStyleBackColor = true;
             this.buttonSaveProfile.Click += new System.EventHandler(this.buttonSaveProfile_Click);
             // 
-            // buttonDeleteProfile
-            // 
-            this.buttonDeleteProfile.Location = new System.Drawing.Point(150, 13);
-            this.buttonDeleteProfile.Name = "buttonDeleteProfile";
-            this.buttonDeleteProfile.Size = new System.Drawing.Size(36, 21);
-            this.buttonDeleteProfile.TabIndex = 9;
-            this.buttonDeleteProfile.Text = "Del";
-            this.buttonDeleteProfile.UseVisualStyleBackColor = true;
-            this.buttonDeleteProfile.Click += new System.EventHandler(this.buttonDeleteProfile_Click);
-            //
             // labelGenFont
             // 
             this.labelGenFont.AutoSize = true;
-            this.labelGenFont.Location = new System.Drawing.Point(6, 88);
+            this.labelGenFont.Location = new System.Drawing.Point(6, 109);
             this.labelGenFont.Name = "labelGenFont";
             this.labelGenFont.Size = new System.Drawing.Size(33, 13);
             this.labelGenFont.TabIndex = 10;
             this.labelGenFont.Text = "Font:";
             // 
-            // textBoxGenFont
+            // comboBoxProfiles
             // 
-            this.textBoxGenFont.Location = new System.Drawing.Point(7, 104);
-            this.textBoxGenFont.Name = "textBoxGenFont";
-            this.textBoxGenFont.ReadOnly = true;
-            this.textBoxGenFont.Size = new System.Drawing.Size(116, 21);
-            this.textBoxGenFont.TabIndex = 11;
+            this.comboBoxProfiles.DisplayMember = "Name";
+            this.comboBoxProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxProfiles.Location = new System.Drawing.Point(4, 33);
+            this.comboBoxProfiles.Name = "comboBoxProfiles";
+            this.comboBoxProfiles.Size = new System.Drawing.Size(96, 21);
+            this.comboBoxProfiles.TabIndex = 7;
+            this.comboBoxProfiles.SelectedIndexChanged += new System.EventHandler(this.comboBoxProfiles_SelectedIndexChanged);
             // 
             // buttonPickFont
             // 
-            this.buttonPickFont.Location = new System.Drawing.Point(131, 104);
+            this.buttonPickFont.Location = new System.Drawing.Point(129, 125);
             this.buttonPickFont.Name = "buttonPickFont";
             this.buttonPickFont.Size = new System.Drawing.Size(51, 22);
             this.buttonPickFont.TabIndex = 12;
             this.buttonPickFont.Text = "Choose";
             this.buttonPickFont.UseVisualStyleBackColor = true;
             this.buttonPickFont.Click += new System.EventHandler(this.buttonPickFont_Click);
-            //
+            // 
+            // textBoxGenFont
+            // 
+            this.textBoxGenFont.Location = new System.Drawing.Point(5, 125);
+            this.textBoxGenFont.Name = "textBoxGenFont";
+            this.textBoxGenFont.ReadOnly = true;
+            this.textBoxGenFont.Size = new System.Drawing.Size(116, 21);
+            this.textBoxGenFont.TabIndex = 11;
+            // 
             // groupBoxFntAdjust
-            //
+            // 
             this.groupBoxFntAdjust.Controls.Add(this.labelYoffsetAdjust2);
             this.groupBoxFntAdjust.Controls.Add(this.textBoxYoffsetAdjust);
             this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
-            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 735);
+            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 662);
             this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
             this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 50);
             this.groupBoxFntAdjust.TabIndex = 35;
             this.groupBoxFntAdjust.TabStop = false;
             this.groupBoxFntAdjust.Text = "FNT Adjust";
-            //
+            // 
             // labelYoffsetAdjust2
-            //
+            // 
             this.labelYoffsetAdjust2.AutoSize = true;
             this.labelYoffsetAdjust2.Location = new System.Drawing.Point(7, 22);
             this.labelYoffsetAdjust2.Name = "labelYoffsetAdjust2";
             this.labelYoffsetAdjust2.Size = new System.Drawing.Size(67, 13);
             this.labelYoffsetAdjust2.TabIndex = 0;
             this.labelYoffsetAdjust2.Text = "YOffset Adj:";
-            //
+            // 
             // textBoxYoffsetAdjust
-            //
+            // 
             this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(80, 19);
             this.textBoxYoffsetAdjust.Name = "textBoxYoffsetAdjust";
             this.textBoxYoffsetAdjust.Size = new System.Drawing.Size(44, 21);
             this.textBoxYoffsetAdjust.TabIndex = 1;
             this.textBoxYoffsetAdjust.Text = "0";
-            //
+            // 
             // buttonApplyYoffsetAdjust
-            //
-            this.buttonApplyYoffsetAdjust.Location = new System.Drawing.Point(141, 17);
+            // 
+            this.buttonApplyYoffsetAdjust.Location = new System.Drawing.Point(134, 19);
             this.buttonApplyYoffsetAdjust.Name = "buttonApplyYoffsetAdjust";
             this.buttonApplyYoffsetAdjust.Size = new System.Drawing.Size(24, 23);
             this.buttonApplyYoffsetAdjust.TabIndex = 2;
             this.buttonApplyYoffsetAdjust.Text = ">";
             this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
             this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
-            //
+            // 
             // textBoxLogOutput
             // 
             this.textBoxLogOutput.Location = new System.Drawing.Point(222, 590);
@@ -1073,6 +1075,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.groupBoxFntAdjust);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -1100,6 +1103,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).EndInit();
             this.groupBoxMatchTextures.ResumeLayout(false);
             this.groupBoxMatchTextures.PerformLayout();
+            this.groupBoxFntAdjust.ResumeLayout(false);
+            this.groupBoxFntAdjust.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

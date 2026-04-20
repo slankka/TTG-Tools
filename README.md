@@ -15,6 +15,7 @@ Based on [TTG Tools by Den Em and Pashok6798](https://github.com/zenderovpaulo95
 - **Lua Encryption Detection**: Improved — only marks .lenc files as encrypted by default, checks .lua files by reading actual content after decompression
 
 ### Font Editor Enhancements (2026)
+- **YOffset Batch Adjustment**: Added "FNT Adjust" groupBox with YOffset adjustment controls — apply a delta value (e.g., +3 or -5) to all characters' YOffset at once, instead of per-character
 - **Switch Font Compatibility Fix**: Fixed two critical bugs that prevented NewFormat fonts from displaying on Nintendo Switch:
   - **FontName overwrite**: FNT import no longer overwrites an existing FontName — only updates when the name is empty or the default `NewFont`. Prevents glyph block misalignment caused by name length mismatch.
   - **Header offset 0x08**: Always written as `0` (structural separator). Was incorrectly written as the real texture count, corrupting the file header and causing Switch to reject the font.

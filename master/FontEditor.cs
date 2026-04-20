@@ -108,5 +108,9 @@ namespace TTG_Tools
             openToolStripMenuItem_Click(this, EventArgs.Empty);
         }
 
+        private void labelYoffsetAdjust_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

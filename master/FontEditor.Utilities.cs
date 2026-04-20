@@ -82,11 +82,13 @@ namespace TTG_Tools
             return "font";
         }
 
-        private static string GetTextureObjectName(FontClass.ClassFont font, ClassesStructs.TextureClass.NewT3Texture templateTex)
+        private static string GetTextureObjectName(FontClass.ClassFont font, ClassesStructs.TextureClass.NewT3Texture templateTex, string fntFaceName = null)
         {
-            if (!string.IsNullOrEmpty(font.FontName) && font.FontName != "NewFont")
+            // FNT face name takes priority when importing (may contain spaces which need sanitization)
+            string effectiveFaceName = fntFaceName ?? font.FontName;
+            if (!string.IsNullOrEmpty(effectiveFaceName) && effectiveFaceName != "NewFont")
             {
-                return SanitizeObjectHeaderName(font.FontName) + ".font";
+                return SanitizeObjectHeaderName(effectiveFaceName) + ".font";
             }
 
             string templateName = templateTex?.ObjectName ?? templateTex?.SubObjectName ?? string.Empty;

@@ -136,6 +136,7 @@ namespace TTG_Tools
                     TextureClass.NewT3Texture[] tmpNewTex = null;
                     int existingTexCount = 0;
                     int fntPageCount = 0;
+                    string fntFaceName = null; // Store FNT face name for ObjectName generation
 
                     if (font.NewTex != null && font.NewTex.Length > 0)
                     {
@@ -149,11 +150,12 @@ namespace TTG_Tools
 
                     for (int m = 0; m < strings.Length; m++)
                     {
-                        // Read font name - only apply if the font doesn't already have a valid name
-                        // (preserve the original .font file's FontName, e.g. "CheapSignage_50")
+                        // Read font name - capture FNT face name for texture ObjectName generation
+                        // (preserve the original .font file's FontName for display, e.g. "CheapSignage_50")
                         if (strings[m].ToLower().Contains("info face"))
                         {
                             string faceName = GetFntAttributeValue(strings[m], "face");
+                            fntFaceName = faceName; // Always capture for ObjectName generation
                             if (!string.IsNullOrEmpty(faceName) && (string.IsNullOrEmpty(font.FontName) || font.FontName == "NewFont"))
                                 font.FontName = faceName;
                         }
@@ -221,7 +223,7 @@ namespace TTG_Tools
                                                 tmpNewTex[j].Tex = new TextureClass.NewT3Texture.TextureInfo();
                                             }
 
-                                            tmpNewTex[j].ObjectName = GetTextureObjectName(font, templateSource);
+                                            tmpNewTex[j].ObjectName = GetTextureObjectName(font, templateSource, fntFaceName);
                                             tmpNewTex[j].SubObjectName = GetTextureSlotName(font, templateSource, j);
                                         }
 

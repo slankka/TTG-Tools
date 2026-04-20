@@ -45,9 +45,11 @@
             this.label4 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewWithTextures = new System.Windows.Forms.DataGridView();
             this.N = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -101,26 +103,25 @@
             this.pictureBoxTexturePreview = new System.Windows.Forms.PictureBox();
             this.labelTexturePreview = new System.Windows.Forms.Label();
             this.groupBoxMatchTextures = new System.Windows.Forms.GroupBox();
+            this.groupBoxFntAdjust = new System.Windows.Forms.GroupBox();
             this.buttonDetectMissingTextures = new System.Windows.Forms.Button();
             this.buttonGenerateMissingChars = new System.Windows.Forms.Button();
             this.labelYoffsetAdjust = new System.Windows.Forms.Label();
             this.textBoxYoffset = new System.Windows.Forms.TextBox();
             this.labelFontSizeAdjust = new System.Windows.Forms.Label();
             this.textBoxFontSizeAdjust = new System.Windows.Forms.TextBox();
-            this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
-            this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
-            this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
             this.labelProfile = new System.Windows.Forms.Label();
             this.comboBoxProfiles = new System.Windows.Forms.ComboBox();
             this.buttonSaveProfile = new System.Windows.Forms.Button();
             this.buttonDeleteProfile = new System.Windows.Forms.Button();
+            this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
+            this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
+            this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
             this.labelGenFont = new System.Windows.Forms.Label();
             this.textBoxGenFont = new System.Windows.Forms.TextBox();
             this.buttonPickFont = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.newFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithTextures)).BeginInit();
@@ -274,7 +275,7 @@
             this.menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
-            //
+            // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.newFontToolStripMenuItem,
             this.openToolStripMenuItem,
@@ -285,21 +286,21 @@
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
             this.fileToolStripMenuItem.Text = "File";
-            //
+            // 
             // newFontToolStripMenuItem
-            //
+            // 
             this.newFontToolStripMenuItem.Name = "newFontToolStripMenuItem";
             this.newFontToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newFontToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
+            this.newFontToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.newFontToolStripMenuItem.Text = "New Font";
             this.newFontToolStripMenuItem.Click += new System.EventHandler(this.newFontToolStripMenuItem_Click);
-            //
+            // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -308,7 +309,7 @@
             this.saveToolStripMenuItem.Enabled = false;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.saveToolStripMenuItem.Text = "&Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -316,22 +317,21 @@
             // 
             this.saveAsToolStripMenuItem.Enabled = false;
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.saveAsToolStripMenuItem.Text = "Save As ...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(175, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            //
-            // toolStripSeparator1
-            //
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(151, 6);
-            //
             // 
             // dataGridViewWithTextures
             // 
@@ -470,7 +470,7 @@
             this.dataGridViewWithCoord.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.dataGridViewWithCoord.Name = "dataGridViewWithCoord";
             this.dataGridViewWithCoord.RowHeadersWidth = 51;
-            this.dataGridViewWithCoord.Size = new System.Drawing.Size(1147, 297);
+            this.dataGridViewWithCoord.Size = new System.Drawing.Size(1147, 282);
             this.dataGridViewWithCoord.TabIndex = 27;
             this.dataGridViewWithCoord.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridViewWithCoord_CellBeginEdit);
             this.dataGridViewWithCoord.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewWithCoord_CellEndEdit);
@@ -568,7 +568,7 @@
             this.clearExistingFntDdsToolStripMenuItem,
             this.removeDuplicatesCharsToolStripMenuItem});
             this.contextMenuStripExp_imp_Coord.Name = "contextMenuStripExp_imp_Coord";
-            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(223, 92);
+            this.contextMenuStripExp_imp_Coord.Size = new System.Drawing.Size(222, 92);
             // 
             // exportCoordinatesToolStripMenuItem
             // 
@@ -587,7 +587,7 @@
             // clearExistingFntDdsToolStripMenuItem
             // 
             this.clearExistingFntDdsToolStripMenuItem.Name = "clearExistingFntDdsToolStripMenuItem";
-            this.clearExistingFntDdsToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.clearExistingFntDdsToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
             this.clearExistingFntDdsToolStripMenuItem.Text = "Clear Existing FNT+DDS";
             this.clearExistingFntDdsToolStripMenuItem.Click += new System.EventHandler(this.clearExistingFntDdsToolStripMenuItem_Click);
             // 
@@ -756,7 +756,7 @@
             this.groupBox4.Controls.Add(this.rbPSVitaSwizzle);
             this.groupBox4.Controls.Add(this.rbWiiSwizzle);
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
-            this.groupBox4.Location = new System.Drawing.Point(12, 823);
+            this.groupBox4.Location = new System.Drawing.Point(12, 734);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(186, 153);
             this.groupBox4.TabIndex = 30;
@@ -857,32 +857,29 @@
             // 
             // groupBoxMatchTextures
             // 
-            this.groupBoxMatchTextures.Controls.Add(this.buttonDetectMissingTextures);
             this.groupBoxMatchTextures.Controls.Add(this.buttonGenerateMissingChars);
             this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.buttonDetectMissingTextures);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffset);
             this.groupBoxMatchTextures.Controls.Add(this.labelFontSizeAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxFontSizeAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.labelProfile);
-            this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
-            this.groupBoxMatchTextures.Controls.Add(this.buttonSaveProfile);
             this.groupBoxMatchTextures.Controls.Add(this.buttonDeleteProfile);
-            this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust2);
-            this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffsetAdjust);
-            this.groupBoxMatchTextures.Controls.Add(this.buttonApplyYoffsetAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.buttonSaveProfile);
             this.groupBoxMatchTextures.Controls.Add(this.labelGenFont);
-            this.groupBoxMatchTextures.Controls.Add(this.textBoxGenFont);
+            this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
             this.groupBoxMatchTextures.Controls.Add(this.buttonPickFont);
+            this.groupBoxMatchTextures.Controls.Add(this.textBoxGenFont);
             this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 450);
             this.groupBoxMatchTextures.Name = "groupBoxMatchTextures";
-            this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 241);
+            this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 278);
             this.groupBoxMatchTextures.TabIndex = 33;
             this.groupBoxMatchTextures.TabStop = false;
             this.groupBoxMatchTextures.Text = "Match Textures";
             // 
             // buttonDetectMissingTextures
             // 
-            this.buttonDetectMissingTextures.Location = new System.Drawing.Point(6, 20);
+            this.buttonDetectMissingTextures.Location = new System.Drawing.Point(7, 134);
             this.buttonDetectMissingTextures.Name = "buttonDetectMissingTextures";
             this.buttonDetectMissingTextures.Size = new System.Drawing.Size(172, 31);
             this.buttonDetectMissingTextures.TabIndex = 0;
@@ -892,7 +889,7 @@
             // 
             // buttonGenerateMissingChars
             // 
-            this.buttonGenerateMissingChars.Location = new System.Drawing.Point(6, 200);
+            this.buttonGenerateMissingChars.Location = new System.Drawing.Point(5, 171);
             this.buttonGenerateMissingChars.Name = "buttonGenerateMissingChars";
             this.buttonGenerateMissingChars.Size = new System.Drawing.Size(172, 31);
             this.buttonGenerateMissingChars.TabIndex = 1;
@@ -903,7 +900,7 @@
             // labelYoffsetAdjust
             // 
             this.labelYoffsetAdjust.AutoSize = true;
-            this.labelYoffsetAdjust.Location = new System.Drawing.Point(9, 57);
+            this.labelYoffsetAdjust.Location = new System.Drawing.Point(3, 38);
             this.labelYoffsetAdjust.Name = "labelYoffsetAdjust";
             this.labelYoffsetAdjust.Size = new System.Drawing.Size(83, 13);
             this.labelYoffsetAdjust.TabIndex = 2;
@@ -911,16 +908,16 @@
             // 
             // textBoxYoffset
             // 
-            this.textBoxYoffset.Location = new System.Drawing.Point(110, 54);
+            this.textBoxYoffset.Location = new System.Drawing.Point(112, 35);
             this.textBoxYoffset.Name = "textBoxYoffset";
-            this.textBoxYoffset.Size = new System.Drawing.Size(68, 21);
+            this.textBoxYoffset.Size = new System.Drawing.Size(73, 21);
             this.textBoxYoffset.TabIndex = 3;
             this.textBoxYoffset.Text = "2";
             // 
             // labelFontSizeAdjust
             // 
             this.labelFontSizeAdjust.AutoSize = true;
-            this.labelFontSizeAdjust.Location = new System.Drawing.Point(9, 87);
+            this.labelFontSizeAdjust.Location = new System.Drawing.Point(5, 65);
             this.labelFontSizeAdjust.Name = "labelFontSizeAdjust";
             this.labelFontSizeAdjust.Size = new System.Drawing.Size(72, 13);
             this.labelFontSizeAdjust.TabIndex = 4;
@@ -928,61 +925,34 @@
             // 
             // textBoxFontSizeAdjust
             // 
-            this.textBoxFontSizeAdjust.Location = new System.Drawing.Point(110, 84);
+            this.textBoxFontSizeAdjust.Location = new System.Drawing.Point(112, 62);
             this.textBoxFontSizeAdjust.Name = "textBoxFontSizeAdjust";
             this.textBoxFontSizeAdjust.Size = new System.Drawing.Size(68, 21);
             this.textBoxFontSizeAdjust.TabIndex = 5;
             this.textBoxFontSizeAdjust.Text = "0";
-            //
-            // labelYoffsetAdjust2
-            //
-            this.labelYoffsetAdjust2.AutoSize = true;
-            this.labelYoffsetAdjust2.Location = new System.Drawing.Point(9, 114);
-            this.labelYoffsetAdjust2.Name = "labelYoffsetAdjust2";
-            this.labelYoffsetAdjust2.Size = new System.Drawing.Size(83, 13);
-            this.labelYoffsetAdjust2.TabIndex = 10;
-            this.labelYoffsetAdjust2.Text = "YOffset Adj:";
-            //
-            // textBoxYoffsetAdjust
-            //
-            this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(110, 111);
-            this.textBoxYoffsetAdjust.Name = "textBoxYoffsetAdjust";
-            this.textBoxYoffsetAdjust.Size = new System.Drawing.Size(50, 21);
-            this.textBoxYoffsetAdjust.TabIndex = 11;
-            this.textBoxYoffsetAdjust.Text = "0";
-            //
-            // buttonApplyYoffsetAdjust
-            //
-            this.buttonApplyYoffsetAdjust.Location = new System.Drawing.Point(160, 109);
-            this.buttonApplyYoffsetAdjust.Name = "buttonApplyYoffsetAdjust";
-            this.buttonApplyYoffsetAdjust.Size = new System.Drawing.Size(24, 23);
-            this.buttonApplyYoffsetAdjust.TabIndex = 12;
-            this.buttonApplyYoffsetAdjust.Text = ">";
-            this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
-            this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
-            //
+            // 
             // labelProfile
-            //
+            // 
             this.labelProfile.AutoSize = true;
-            this.labelProfile.Location = new System.Drawing.Point(9, 143);
+            this.labelProfile.Location = new System.Drawing.Point(2, 17);
             this.labelProfile.Name = "labelProfile";
             this.labelProfile.Size = new System.Drawing.Size(41, 13);
             this.labelProfile.TabIndex = 6;
             this.labelProfile.Text = "Profile:";
-            //
+            // 
             // comboBoxProfiles
-            //
+            // 
             this.comboBoxProfiles.DisplayMember = "Name";
             this.comboBoxProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxProfiles.Location = new System.Drawing.Point(7, 159);
+            this.comboBoxProfiles.Location = new System.Drawing.Point(44, 14);
             this.comboBoxProfiles.Name = "comboBoxProfiles";
-            this.comboBoxProfiles.Size = new System.Drawing.Size(130, 21);
+            this.comboBoxProfiles.Size = new System.Drawing.Size(68, 21);
             this.comboBoxProfiles.TabIndex = 7;
             this.comboBoxProfiles.SelectedIndexChanged += new System.EventHandler(this.comboBoxProfiles_SelectedIndexChanged);
-            //
+            // 
             // buttonSaveProfile
-            //
-            this.buttonSaveProfile.Location = new System.Drawing.Point(144, 143);
+            // 
+            this.buttonSaveProfile.Location = new System.Drawing.Point(112, 13);
             this.buttonSaveProfile.Name = "buttonSaveProfile";
             this.buttonSaveProfile.Size = new System.Drawing.Size(36, 21);
             this.buttonSaveProfile.TabIndex = 8;
@@ -992,18 +962,18 @@
             // 
             // buttonDeleteProfile
             // 
-            this.buttonDeleteProfile.Location = new System.Drawing.Point(143, 170);
+            this.buttonDeleteProfile.Location = new System.Drawing.Point(150, 13);
             this.buttonDeleteProfile.Name = "buttonDeleteProfile";
             this.buttonDeleteProfile.Size = new System.Drawing.Size(36, 21);
             this.buttonDeleteProfile.TabIndex = 9;
             this.buttonDeleteProfile.Text = "Del";
             this.buttonDeleteProfile.UseVisualStyleBackColor = true;
             this.buttonDeleteProfile.Click += new System.EventHandler(this.buttonDeleteProfile_Click);
-            // 
+            //
             // labelGenFont
             // 
             this.labelGenFont.AutoSize = true;
-            this.labelGenFont.Location = new System.Drawing.Point(9, 156);
+            this.labelGenFont.Location = new System.Drawing.Point(6, 88);
             this.labelGenFont.Name = "labelGenFont";
             this.labelGenFont.Size = new System.Drawing.Size(33, 13);
             this.labelGenFont.TabIndex = 10;
@@ -1011,7 +981,7 @@
             // 
             // textBoxGenFont
             // 
-            this.textBoxGenFont.Location = new System.Drawing.Point(7, 172);
+            this.textBoxGenFont.Location = new System.Drawing.Point(7, 104);
             this.textBoxGenFont.Name = "textBoxGenFont";
             this.textBoxGenFont.ReadOnly = true;
             this.textBoxGenFont.Size = new System.Drawing.Size(116, 21);
@@ -1019,14 +989,53 @@
             // 
             // buttonPickFont
             // 
-            this.buttonPickFont.Location = new System.Drawing.Point(131, 172);
+            this.buttonPickFont.Location = new System.Drawing.Point(131, 104);
             this.buttonPickFont.Name = "buttonPickFont";
             this.buttonPickFont.Size = new System.Drawing.Size(51, 22);
             this.buttonPickFont.TabIndex = 12;
             this.buttonPickFont.Text = "Choose";
             this.buttonPickFont.UseVisualStyleBackColor = true;
             this.buttonPickFont.Click += new System.EventHandler(this.buttonPickFont_Click);
-            // 
+            //
+            // groupBoxFntAdjust
+            //
+            this.groupBoxFntAdjust.Controls.Add(this.labelYoffsetAdjust2);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxYoffsetAdjust);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
+            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 735);
+            this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
+            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 50);
+            this.groupBoxFntAdjust.TabIndex = 35;
+            this.groupBoxFntAdjust.TabStop = false;
+            this.groupBoxFntAdjust.Text = "FNT Adjust";
+            //
+            // labelYoffsetAdjust2
+            //
+            this.labelYoffsetAdjust2.AutoSize = true;
+            this.labelYoffsetAdjust2.Location = new System.Drawing.Point(7, 22);
+            this.labelYoffsetAdjust2.Name = "labelYoffsetAdjust2";
+            this.labelYoffsetAdjust2.Size = new System.Drawing.Size(67, 13);
+            this.labelYoffsetAdjust2.TabIndex = 0;
+            this.labelYoffsetAdjust2.Text = "YOffset Adj:";
+            //
+            // textBoxYoffsetAdjust
+            //
+            this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(80, 19);
+            this.textBoxYoffsetAdjust.Name = "textBoxYoffsetAdjust";
+            this.textBoxYoffsetAdjust.Size = new System.Drawing.Size(44, 21);
+            this.textBoxYoffsetAdjust.TabIndex = 1;
+            this.textBoxYoffsetAdjust.Text = "0";
+            //
+            // buttonApplyYoffsetAdjust
+            //
+            this.buttonApplyYoffsetAdjust.Location = new System.Drawing.Point(141, 17);
+            this.buttonApplyYoffsetAdjust.Name = "buttonApplyYoffsetAdjust";
+            this.buttonApplyYoffsetAdjust.Size = new System.Drawing.Size(24, 23);
+            this.buttonApplyYoffsetAdjust.TabIndex = 2;
+            this.buttonApplyYoffsetAdjust.Text = ">";
+            this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
+            this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
+            //
             // textBoxLogOutput
             // 
             this.textBoxLogOutput.Location = new System.Drawing.Point(222, 590);
@@ -1034,12 +1043,12 @@
             this.textBoxLogOutput.Name = "textBoxLogOutput";
             this.textBoxLogOutput.ReadOnly = true;
             this.textBoxLogOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxLogOutput.Size = new System.Drawing.Size(629, 260);
+            this.textBoxLogOutput.Size = new System.Drawing.Size(629, 269);
             this.textBoxLogOutput.TabIndex = 34;
             // 
             // buttonSaveLogAs
             // 
-            this.buttonSaveLogAs.Location = new System.Drawing.Point(12, 982);
+            this.buttonSaveLogAs.Location = new System.Drawing.Point(222, 860);
             this.buttonSaveLogAs.Name = "buttonSaveLogAs";
             this.buttonSaveLogAs.Size = new System.Drawing.Size(90, 27);
             this.buttonSaveLogAs.TabIndex = 35;
@@ -1051,7 +1060,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1373, 1015);
+            this.ClientSize = new System.Drawing.Size(1373, 887);
             this.Controls.Add(this.textBoxLogOutput);
             this.Controls.Add(this.buttonSaveLogAs);
             this.Controls.Add(this.groupBoxMatchTextures);
@@ -1150,6 +1159,7 @@
         private System.Windows.Forms.PictureBox pictureBoxTexturePreview;
         private System.Windows.Forms.Label labelTexturePreview;
         private System.Windows.Forms.GroupBox groupBoxMatchTextures;
+        private System.Windows.Forms.GroupBox groupBoxFntAdjust;
         private System.Windows.Forms.Button buttonDetectMissingTextures;
         private System.Windows.Forms.Label labelYoffsetAdjust;
         private System.Windows.Forms.TextBox textBoxYoffset;

@@ -25,9 +25,34 @@ namespace TTG_Tools
                 }
             }
 
-            int nextSpace = line.IndexOf(' ', valueStart);
-            if (nextSpace >= 0)
-                return line.Substring(valueStart, nextSpace - valueStart).Trim();
+            // No quotes found - value may contain spaces (e.g. face=Source Han Serif Medium size=64)
+            // Value ends when we hit another attribute= pattern
+            // Common FNT attributes that follow 'face='
+            string[] attrNames = { "size", "bold", "italic", "charset", "stretchH", "smooth", "aa", "padding", "spacing", "lineheight", "base", "scaleW", "scaleH", "pages", "alphaChnl", "redChnl", "greenChnl", "blueChnl" };
+
+            int bestEnd = -1;
+            for (int s = valueStart + 1; s < line.Length; s++)
+            {
+                if (line[s] == ' ')
+                {
+                    // Check if this space is followed by an attribute name and =
+                    foreach (string attrName in attrNames)
+                    {
+                        if (s + 1 + attrName.Length < line.Length &&
+                            line.Substring(s + 1, attrName.Length) == attrName &&
+                            s + 1 + attrName.Length < line.Length &&
+                            line[s + 1 + attrName.Length] == '=')
+                        {
+                            bestEnd = s;
+                            break;
+                        }
+                    }
+                    if (bestEnd >= 0) break;
+                }
+            }
+
+            if (bestEnd > valueStart)
+                return line.Substring(valueStart, bestEnd - valueStart).Trim();
 
             return line.Substring(valueStart).Trim();
         }

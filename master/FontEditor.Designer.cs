@@ -860,13 +860,13 @@
             this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffset);
             this.groupBoxMatchTextures.Controls.Add(this.labelFontSizeAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxFontSizeAdjust);
-            this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust2);
-            this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffsetAdjust);
-            this.groupBoxMatchTextures.Controls.Add(this.buttonApplyYoffsetAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.labelProfile);
             this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
             this.groupBoxMatchTextures.Controls.Add(this.buttonSaveProfile);
             this.groupBoxMatchTextures.Controls.Add(this.buttonDeleteProfile);
+            this.groupBoxMatchTextures.Controls.Add(this.labelYoffsetAdjust2);
+            this.groupBoxMatchTextures.Controls.Add(this.textBoxYoffsetAdjust);
+            this.groupBoxMatchTextures.Controls.Add(this.buttonApplyYoffsetAdjust);
             this.groupBoxMatchTextures.Controls.Add(this.labelGenFont);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxGenFont);
             this.groupBoxMatchTextures.Controls.Add(this.buttonPickFont);
@@ -959,27 +959,27 @@
             this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
             //
             // labelProfile
-            // 
+            //
             this.labelProfile.AutoSize = true;
-            this.labelProfile.Location = new System.Drawing.Point(9, 116);
+            this.labelProfile.Location = new System.Drawing.Point(9, 143);
             this.labelProfile.Name = "labelProfile";
             this.labelProfile.Size = new System.Drawing.Size(41, 13);
             this.labelProfile.TabIndex = 6;
             this.labelProfile.Text = "Profile:";
-            // 
+            //
             // comboBoxProfiles
-            // 
+            //
             this.comboBoxProfiles.DisplayMember = "Name";
             this.comboBoxProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxProfiles.Location = new System.Drawing.Point(7, 132);
+            this.comboBoxProfiles.Location = new System.Drawing.Point(7, 159);
             this.comboBoxProfiles.Name = "comboBoxProfiles";
             this.comboBoxProfiles.Size = new System.Drawing.Size(130, 21);
             this.comboBoxProfiles.TabIndex = 7;
             this.comboBoxProfiles.SelectedIndexChanged += new System.EventHandler(this.comboBoxProfiles_SelectedIndexChanged);
-            // 
+            //
             // buttonSaveProfile
-            // 
-            this.buttonSaveProfile.Location = new System.Drawing.Point(144, 116);
+            //
+            this.buttonSaveProfile.Location = new System.Drawing.Point(144, 143);
             this.buttonSaveProfile.Name = "buttonSaveProfile";
             this.buttonSaveProfile.Size = new System.Drawing.Size(36, 21);
             this.buttonSaveProfile.TabIndex = 8;
@@ -989,7 +989,7 @@
             // 
             // buttonDeleteProfile
             // 
-            this.buttonDeleteProfile.Location = new System.Drawing.Point(143, 143);
+            this.buttonDeleteProfile.Location = new System.Drawing.Point(143, 170);
             this.buttonDeleteProfile.Name = "buttonDeleteProfile";
             this.buttonDeleteProfile.Size = new System.Drawing.Size(36, 21);
             this.buttonDeleteProfile.TabIndex = 9;

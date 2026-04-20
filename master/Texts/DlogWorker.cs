@@ -384,7 +384,11 @@ namespace TTG_Tools.Texts
                     }
 
                     index = Methods.GetIndex(commonTexts, dlog.landb.landbs[i].lang[j].stringNumber);
-                    if(index != -1) dlog.landb.landbs[i].lang[j].actorSpeech = commonTexts[index].actorSpeechTranslation;
+                    if(index != -1)
+                    {
+                        string translatedSpeech = commonTexts[index].actorSpeechTranslation;
+                        dlog.landb.landbs[i].lang[j].actorSpeech = Methods.NormalizeImportedSpeechTranslationForCjk(translatedSpeech);
+                    }
                 }
             }
 
@@ -518,6 +522,9 @@ namespace TTG_Tools.Texts
                     ClassesStructs.Text.CommonTextClass txts = new CommonTextClass();
                     txts.txtList = ReadText.GetStrings(TxtFile);
 
+                    Methods.ImportTextTransformStats transformStats = Methods.ApplyImportTextTransformsToCommonTexts(txts.txtList);
+                    Methods.AddImportReplaceTotals(transformStats);
+
                     int type = CheckNumbers(txts.txtList, dlog);
 
                     switch(type)
@@ -542,6 +549,11 @@ namespace TTG_Tools.Texts
                     ms.Close();
 
                     result = "File " + fi.Name + " successfully imported.";
+
+                    if (MainMenu.settings.enableImportTextReplace && Methods.HasEnabledImportReplaceRules())
+                    {
+                        result += " ReplaceLog[O=" + transformStats.ReplacedInOriginal + ", T=" + transformStats.ReplacedInTranslation + ", Total=" + transformStats.TotalReplaced + "]";
+                    }
 
                     if (rebuildResult == -1)
                     {

@@ -13,6 +13,30 @@ namespace TTG_Tools
     class Methods
     {
         private static bool _forceAnsiForCurrentOperation = false;
+        private static bool _normalizeImportTextForCurrentOperation = false;
+        private static int _importReplaceTotalOriginal = 0;
+        private static int _importReplaceTotalTranslation = 0;
+        private static int _importNormalizedTranslationTotal = 0;
+        private static int _importInsertedNewlineMarkerTotal = 0;
+        private const int SubtitleScreenWidthSwitch = 1280;
+        private const int SubtitleStartXSwitch = 296;
+        private const double SubtitleAuthorScale = 0.65;
+        private const double ReferenceToSwitchScale = 1280.0 / 1920.0;
+        private const double RuntimeGapBetweenAdjacentCjkRef = 18.0;
+        private const double FallbackGlyphAdvanceRef = 37.0;
+
+        public struct ImportTextTransformStats
+        {
+            public int ReplacedInOriginal;
+            public int ReplacedInTranslation;
+            public int NormalizedInTranslation;
+            public int InsertedNewlineMarkers;
+
+            public int TotalReplaced
+            {
+                get { return ReplacedInOriginal + ReplacedInTranslation; }
+            }
+        }
 
         public static void SetForceAnsiForCurrentOperation(bool enabled)
         {
@@ -22,6 +46,637 @@ namespace TTG_Tools
         public static bool GetForceAnsiForCurrentOperation()
         {
             return _forceAnsiForCurrentOperation;
+        }
+
+        public static void SetNormalizeImportTextForCurrentOperation(bool enabled)
+        {
+            _normalizeImportTextForCurrentOperation = enabled;
+        }
+
+        public static bool GetNormalizeImportTextForCurrentOperation()
+        {
+            return _normalizeImportTextForCurrentOperation;
+        }
+
+        public static void ResetImportReplaceTotals()
+        {
+            _importReplaceTotalOriginal = 0;
+            _importReplaceTotalTranslation = 0;
+            _importNormalizedTranslationTotal = 0;
+            _importInsertedNewlineMarkerTotal = 0;
+        }
+
+        public static void AddImportReplaceTotals(ImportTextTransformStats stats)
+        {
+            _importReplaceTotalOriginal += stats.ReplacedInOriginal;
+            _importReplaceTotalTranslation += stats.ReplacedInTranslation;
+            _importNormalizedTranslationTotal += stats.NormalizedInTranslation;
+            _importInsertedNewlineMarkerTotal += stats.InsertedNewlineMarkers;
+        }
+
+        public static ImportTextTransformStats GetImportReplaceTotals()
+        {
+            ImportTextTransformStats stats = new ImportTextTransformStats();
+            stats.ReplacedInOriginal = _importReplaceTotalOriginal;
+            stats.ReplacedInTranslation = _importReplaceTotalTranslation;
+            stats.NormalizedInTranslation = _importNormalizedTranslationTotal;
+            stats.InsertedNewlineMarkers = _importInsertedNewlineMarkerTotal;
+            return stats;
+        }
+
+        public static string NormalizeImportedSpeechTranslationForCjk(string text)
+        {
+            if (!_normalizeImportTextForCurrentOperation) return text;
+            string result = NormalizeImportedSpeechForReplace(text);
+            return ApplyAutoSubtitleWrapAfterReplace(result);
+        }
+
+        public static ImportTextTransformStats ApplyImportTextTransformsToCommonTexts(List<CommonText> texts)
+        {
+            ImportTextTransformStats stats = new ImportTextTransformStats();
+
+            if (!_normalizeImportTextForCurrentOperation) return stats;
+            if (texts == null || texts.Count == 0) return stats;
+
+            bool enableReplace = MainMenu.settings.enableImportTextReplace;
+            List<ImportTextReplaceRule> activeRules = GetActiveImportReplaceRules();
+
+            for (int i = 0; i < texts.Count; i++)
+            {
+                CommonText tmp = texts[i];
+
+                if (!String.IsNullOrEmpty(tmp.actorSpeechOriginal))
+                {
+                    tmp.actorSpeechOriginal = NormalizeImportedSpeechForReplace(tmp.actorSpeechOriginal);
+                }
+
+                string beforeNormalizeTranslation = tmp.actorSpeechTranslation ?? "";
+                if (!String.IsNullOrEmpty(tmp.actorSpeechTranslation))
+                {
+                    tmp.actorSpeechTranslation = NormalizeImportedSpeechForReplace(tmp.actorSpeechTranslation);
+                }
+
+                if (enableReplace && activeRules.Count > 0)
+                {
+                    for (int ruleIndex = 0; ruleIndex < activeRules.Count; ruleIndex++)
+                    {
+                        ImportTextReplaceRule rule = activeRules[ruleIndex];
+
+                        if (!String.IsNullOrEmpty(tmp.actorSpeechOriginal))
+                        {
+                            int replacedInOriginal;
+                            tmp.actorSpeechOriginal = ReplaceOutsideMarkers(tmp.actorSpeechOriginal, rule.find, rule.replaceWith, out replacedInOriginal);
+                            stats.ReplacedInOriginal += replacedInOriginal;
+                        }
+
+                        if (!String.IsNullOrEmpty(tmp.actorSpeechTranslation))
+                        {
+                            int replacedInTranslation;
+                            tmp.actorSpeechTranslation = ReplaceOutsideMarkers(tmp.actorSpeechTranslation, rule.find, rule.replaceWith, out replacedInTranslation);
+                            stats.ReplacedInTranslation += replacedInTranslation;
+                        }
+                    }
+                }
+
+                tmp.actorSpeechTranslation = ApplyAutoSubtitleWrapAfterReplace(tmp.actorSpeechTranslation);
+
+                string afterNormalizeTranslation = tmp.actorSpeechTranslation ?? "";
+                if (!String.Equals(beforeNormalizeTranslation, afterNormalizeTranslation, StringComparison.Ordinal))
+                {
+                    stats.NormalizedInTranslation++;
+                }
+
+                int beforeNewlineMarkers = CountLiteralNewlineMarkers(beforeNormalizeTranslation);
+                int afterNewlineMarkers = CountLiteralNewlineMarkers(afterNormalizeTranslation);
+                if (afterNewlineMarkers > beforeNewlineMarkers)
+                {
+                    stats.InsertedNewlineMarkers += (afterNewlineMarkers - beforeNewlineMarkers);
+                }
+
+                texts[i] = tmp;
+            }
+
+            return stats;
+        }
+
+        private static string NormalizeImportedSpeechForReplace(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            // Convert literal markers from txt ("\\n") to actual line breaks before
+            // game text encoding; otherwise game may show trailing 'n' without wrapping.
+            string result = ConvertLiteralNewlineMarkers(text);
+
+            if (MainMenu.settings.normalizePunctuationBeforeNewlineInImport)
+            {
+                // Normalize punctuation so line breaks occur after sentence-ending marks,
+                // not before them. Example: "... \n。" -> "... 。\n".
+                result = TransformOutsideMarkers(result, NormalizePunctuationBeforeNewline);
+            }
+
+            if (!ContainsCjkCharacters(result)) return result;
+
+            if (MainMenu.settings.removeBlanksBetweenCjkCharsInImport)
+            {
+                result = TransformOutsideMarkers(result, RemoveWhitespacesBetweenCjkCharacters);
+            }
+
+            if (MainMenu.settings.replaceDotToChinesePeriodInImport)
+            {
+                result = TransformOutsideMarkers(result, ReplaceDotsNearCjkWithChinesePeriod);
+            }
+
+            return result;
+        }
+
+        private static string ConvertLiteralNewlineMarkers(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            // Handle explicit escaped markers typed in txt exports.
+            return text
+                .Replace("\\r\\n", "\n")
+                .Replace("\\n", "\n")
+                .Replace("\\r", "\n");
+        }
+
+        private static string ApplyAutoSubtitleWrapAfterReplace(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+            if (!MainMenu.settings.autoInsertSubtitleNewlineInImport) return text;
+            if (!ContainsCjkCharacters(text)) return text;
+
+            return AutoInsertSubtitleNewlineMarkers(text);
+        }
+
+        public static bool HasEnabledImportReplaceRules()
+        {
+            return GetActiveImportReplaceRules().Count > 0;
+        }
+
+        public static List<ImportTextReplaceRule> GetActiveImportReplaceRules()
+        {
+            List<ImportTextReplaceRule> result = new List<ImportTextReplaceRule>();
+
+            if (MainMenu.settings == null) return result;
+
+            if (MainMenu.settings.importTextReplaceRules != null && MainMenu.settings.importTextReplaceRules.Count > 0)
+            {
+                for (int i = 0; i < MainMenu.settings.importTextReplaceRules.Count; i++)
+                {
+                    ImportTextReplaceRule rule = MainMenu.settings.importTextReplaceRules[i];
+                    if (rule == null) continue;
+
+                    string find = rule.find ?? "";
+                    if (!rule.enabled || find.Length == 0) continue;
+
+                    result.Add(new ImportTextReplaceRule
+                    {
+                        enabled = true,
+                        find = find,
+                        replaceWith = rule.replaceWith ?? ""
+                    });
+                }
+
+                return result;
+            }
+
+            // Backward compatibility: legacy single find/replace settings.
+            string legacyFind = MainMenu.settings.importTextReplaceFind ?? "";
+            if (legacyFind.Length > 0)
+            {
+                result.Add(new ImportTextReplaceRule
+                {
+                    enabled = true,
+                    find = legacyFind,
+                    replaceWith = MainMenu.settings.importTextReplaceWith ?? ""
+                });
+            }
+
+            return result;
+        }
+
+        private static string TransformOutsideMarkers(string text, Func<string, string> transformer)
+        {
+            if (String.IsNullOrEmpty(text) || transformer == null) return text;
+
+            string[] segments = Regex.Split(text, "(\\[[^\\]]*\\]|\\{[^\\}]*\\})");
+            StringBuilder sb = new StringBuilder(text.Length);
+
+            for (int i = 0; i < segments.Length; i++)
+            {
+                string segment = segments[i];
+                if (String.IsNullOrEmpty(segment)) continue;
+
+                if (IsMarkerSegment(segment))
+                {
+                    sb.Append(segment);
+                }
+                else
+                {
+                    sb.Append(transformer(segment));
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string ReplaceOutsideMarkers(string text, string find, string replaceWith, out int replacedCount)
+        {
+            replacedCount = 0;
+
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(find)) return text;
+
+            string[] segments = Regex.Split(text, "(\\[[^\\]]*\\]|\\{[^\\}]*\\})");
+            StringBuilder sb = new StringBuilder(text.Length);
+
+            for (int i = 0; i < segments.Length; i++)
+            {
+                string segment = segments[i];
+                if (String.IsNullOrEmpty(segment)) continue;
+
+                if (IsMarkerSegment(segment))
+                {
+                    sb.Append(segment);
+                    continue;
+                }
+
+                replacedCount += CountOccurrences(segment, find);
+                sb.Append(segment.Replace(find, replaceWith));
+            }
+
+            return sb.ToString();
+        }
+
+        private static bool IsMarkerSegment(string segment)
+        {
+            if (String.IsNullOrEmpty(segment) || segment.Length < 2) return false;
+
+            return (segment[0] == '[' && segment[segment.Length - 1] == ']')
+                || (segment[0] == '{' && segment[segment.Length - 1] == '}');
+        }
+
+        private static string NormalizePunctuationBeforeNewline(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            // Move punctuation before an explicit newline marker to keep the newline
+            // after the sentence-ending character.
+            return Regex.Replace(text, "\\s*\\n([。！？…])", "$1\\n");
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            if (String.IsNullOrEmpty(source) || String.IsNullOrEmpty(value)) return 0;
+
+            int count = 0;
+            int index = 0;
+
+            while (true)
+            {
+                index = source.IndexOf(value, index, StringComparison.Ordinal);
+                if (index < 0) break;
+
+                count++;
+                index += value.Length;
+            }
+
+            return count;
+        }
+
+        private static int CountLiteralNewlineMarkers(string text)
+        {
+            return CountOccurrences(text ?? "", "\\n");
+        }
+
+        private static bool ContainsCjkCharacters(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return false;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (IsCjkCharacter(text[i])) return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsCjkCharacter(char c)
+        {
+            return
+                (c >= '\u3400' && c <= '\u4DBF') ||   // CJK Unified Ideographs Extension A
+                (c >= '\u4E00' && c <= '\u9FFF') ||   // CJK Unified Ideographs
+                (c >= '\u3040' && c <= '\u309F') ||   // Hiragana
+                (c >= '\u30A0' && c <= '\u30FF') ||   // Katakana
+                (c >= '\uAC00' && c <= '\uD7AF') ||   // Hangul syllables
+                (c >= '\uFF66' && c <= '\uFF9D');     // Halfwidth Katakana
+        }
+
+        private static string RemoveWhitespacesBetweenCjkCharacters(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            StringBuilder sb = new StringBuilder(text.Length);
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char current = text[i];
+
+                if (Char.IsWhiteSpace(current))
+                {
+                    int prevIndex = i - 1;
+                    int nextIndex = i + 1;
+
+                    if (prevIndex >= 0 && nextIndex < text.Length
+                        && IsCjkCharacter(text[prevIndex])
+                        && IsCjkCharacter(text[nextIndex]))
+                    {
+                        continue;
+                    }
+                }
+
+                sb.Append(current);
+            }
+
+            return sb.ToString();
+        }
+
+        private static string ReplaceDotsNearCjkWithChinesePeriod(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            StringBuilder sb = new StringBuilder(text);
+
+            for (int i = 0; i < sb.Length; i++)
+            {
+                if (sb[i] != '.') continue;
+
+                int prevNonWhitespace = i - 1;
+                while (prevNonWhitespace >= 0 && Char.IsWhiteSpace(sb[prevNonWhitespace])) prevNonWhitespace--;
+
+                int nextNonWhitespace = i + 1;
+                while (nextNonWhitespace < sb.Length && Char.IsWhiteSpace(sb[nextNonWhitespace])) nextNonWhitespace++;
+
+                bool prevIsCjk = prevNonWhitespace >= 0 && IsCjkCharacter(sb[prevNonWhitespace]);
+                bool nextIsCjk = nextNonWhitespace < sb.Length && IsCjkCharacter(sb[nextNonWhitespace]);
+
+                if (prevIsCjk || nextIsCjk)
+                {
+                    sb[i] = '\u3002';
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string AutoInsertSubtitleNewlineMarkers(string text)
+        {
+            if (String.IsNullOrEmpty(text)) return text;
+
+            double maxRefWidth = GetMaxSubtitleWidthInReferencePixels();
+            if (maxRefWidth <= 0) return text;
+
+            StringBuilder output = new StringBuilder(text.Length + 16);
+            StringBuilder currentLine = new StringBuilder(text.Length);
+
+            double currentLineWidth = 0.0;
+            char? previousVisibleChar = null;
+            int lastStrongSentenceBreakIndex = -1;
+            int lastSpaceBreakIndex = -1;
+            List<int> visibleCharIndexes = new List<int>(64);
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char current = text[i];
+
+                string markerToken;
+                if (TryReadMarkerToken(text, ref i, out markerToken))
+                {
+                    currentLine.Append(markerToken);
+                    continue;
+                }
+
+                // Existing literal newline marker should remain and reset width.
+                if (current == '\\' && i + 1 < text.Length && text[i + 1] == 'n')
+                {
+                    output.Append(currentLine);
+                    output.Append("\n");
+                    currentLine.Length = 0;
+
+                    currentLineWidth = 0.0;
+                    previousVisibleChar = null;
+                    lastStrongSentenceBreakIndex = -1;
+                    lastSpaceBreakIndex = -1;
+                    visibleCharIndexes.Clear();
+
+                    i++;
+                    continue;
+                }
+
+                if (current == '\r')
+                {
+                    continue;
+                }
+
+                if (current == '\n')
+                {
+                    output.Append(currentLine);
+                    output.Append("\n");
+                    currentLine.Length = 0;
+
+                    currentLineWidth = 0.0;
+                    previousVisibleChar = null;
+                    lastStrongSentenceBreakIndex = -1;
+                    lastSpaceBreakIndex = -1;
+                    visibleCharIndexes.Clear();
+
+                    continue;
+                }
+
+                double charWidth = EstimateReferenceAdvance(current);
+                if (previousVisibleChar.HasValue && IsCjkCharacter(previousVisibleChar.Value) && IsCjkCharacter(current))
+                {
+                    // Approximate runtime-inserted inter-CJK spacing to wrap earlier and avoid overflow.
+                    charWidth += RuntimeGapBetweenAdjacentCjkRef;
+                }
+
+                if (currentLineWidth > 0.0 && (currentLineWidth + charWidth) > maxRefWidth)
+                {
+                    int breakIndex = ResolveBestBreakIndex(lastStrongSentenceBreakIndex, lastSpaceBreakIndex, visibleCharIndexes);
+
+                    if (breakIndex >= 0)
+                    {
+                        output.Append(currentLine.ToString(0, breakIndex + 1));
+                        output.Append("\n");
+
+                        string remainder = currentLine.ToString(breakIndex + 1, currentLine.Length - (breakIndex + 1));
+                        currentLine.Clear();
+                        currentLine.Append(remainder);
+                    }
+                    else
+                    {
+                        output.Append(currentLine);
+                        output.Append("\n");
+                        currentLine.Length = 0;
+                    }
+
+                    RecalculateWrapState(
+                        currentLine,
+                        out currentLineWidth,
+                        out previousVisibleChar,
+                        out lastStrongSentenceBreakIndex,
+                        out lastSpaceBreakIndex,
+                        visibleCharIndexes);
+                }
+
+                currentLine.Append(current);
+                currentLineWidth += charWidth;
+                visibleCharIndexes.Add(currentLine.Length - 1);
+
+                if (Char.IsWhiteSpace(current))
+                {
+                    lastSpaceBreakIndex = currentLine.Length - 1;
+                }
+
+                if (IsPreferredSentenceBreakChar(current))
+                {
+                    lastStrongSentenceBreakIndex = currentLine.Length - 1;
+                }
+
+                if (!Char.IsWhiteSpace(current))
+                {
+                    previousVisibleChar = current;
+                }
+            }
+
+            output.Append(currentLine);
+            return output.ToString();
+        }
+
+        private static bool TryReadMarkerToken(string text, ref int index, out string token)
+        {
+            token = null;
+            if (String.IsNullOrEmpty(text) || index < 0 || index >= text.Length) return false;
+
+            char open = text[index];
+            if (open != '{' && open != '[') return false;
+
+            char close = open == '{' ? '}' : ']';
+            int closeIndex = text.IndexOf(close, index + 1);
+            if (closeIndex <= index) return false;
+
+            token = text.Substring(index, closeIndex - index + 1);
+            index = closeIndex;
+            return true;
+        }
+
+        private static int ResolveBestBreakIndex(int sentenceBreakIndex, int spaceBreakIndex, List<int> visibleCharIndexes)
+        {
+            if (sentenceBreakIndex >= 0) return sentenceBreakIndex;
+            if (spaceBreakIndex >= 0) return spaceBreakIndex;
+
+            if (visibleCharIndexes != null && visibleCharIndexes.Count > 1)
+            {
+                int mid = visibleCharIndexes.Count / 2;
+                if (mid <= 0) mid = 1;
+                return visibleCharIndexes[mid - 1];
+            }
+
+            return -1;
+        }
+
+        private static bool IsPreferredSentenceBreakChar(char c)
+        {
+            return c == '\u3002' || c == '。'
+                || c == '\uFF01' || c == '！'
+                || c == '\uFF1F' || c == '？'
+                || c == ';' || c == '\uFF1B' || c == '；'
+                || c == '.' || c == '…';
+        }
+
+        private static void RecalculateWrapState(
+            StringBuilder line,
+            out double lineWidth,
+            out char? previousVisibleChar,
+            out int lastSentenceBreakIndex,
+            out int lastSpaceBreakIndex,
+            List<int> visibleCharIndexes)
+        {
+            lineWidth = 0.0;
+            previousVisibleChar = null;
+            lastSentenceBreakIndex = -1;
+            lastSpaceBreakIndex = -1;
+
+            if (visibleCharIndexes != null) visibleCharIndexes.Clear();
+            if (line == null || line.Length == 0) return;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char current = line[i];
+
+                if (current == '{' || current == '[')
+                {
+                    char close = current == '{' ? '}' : ']';
+                    int closeIndex = line.ToString().IndexOf(close, i + 1);
+                    if (closeIndex > i)
+                    {
+                        i = closeIndex;
+                        continue;
+                    }
+                }
+
+                if (current == '\\' && i + 1 < line.Length && line[i + 1] == 'n')
+                {
+                    lineWidth = 0.0;
+                    previousVisibleChar = null;
+                    lastSentenceBreakIndex = -1;
+                    lastSpaceBreakIndex = -1;
+                    if (visibleCharIndexes != null) visibleCharIndexes.Clear();
+                    i++;
+                    continue;
+                }
+
+                double charWidth = EstimateReferenceAdvance(current);
+                if (previousVisibleChar.HasValue && IsCjkCharacter(previousVisibleChar.Value) && IsCjkCharacter(current))
+                {
+                    charWidth += RuntimeGapBetweenAdjacentCjkRef;
+                }
+
+                lineWidth += charWidth;
+                if (visibleCharIndexes != null) visibleCharIndexes.Add(i);
+
+                if (Char.IsWhiteSpace(current))
+                {
+                    lastSpaceBreakIndex = i;
+                }
+
+                if (IsPreferredSentenceBreakChar(current))
+                {
+                    lastSentenceBreakIndex = i;
+                }
+
+                if (!Char.IsWhiteSpace(current))
+                {
+                    previousVisibleChar = current;
+                }
+            }
+        }
+
+        private static double GetMaxSubtitleWidthInReferencePixels()
+        {
+            int availableSwitchWidth = SubtitleScreenWidthSwitch - SubtitleStartXSwitch;
+            if (availableSwitchWidth <= 0) return 0.0;
+
+            double totalScale = SubtitleAuthorScale * ReferenceToSwitchScale;
+            if (totalScale <= 0.0) return 0.0;
+
+            return availableSwitchWidth / totalScale;
+        }
+
+        private static double EstimateReferenceAdvance(char c)
+        {
+            if (c == '\t') return FallbackGlyphAdvanceRef * 2.0;
+            return FallbackGlyphAdvanceRef;
         }
 
         public static bool IsCheckpointPropAnsiException(string fileName)

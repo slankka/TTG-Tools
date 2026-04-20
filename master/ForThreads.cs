@@ -36,6 +36,8 @@ namespace TTG_Tools
             bool useTwdNintendoSwitchAnsi = Methods.ShouldUseTwdNintendoSwitchAnsi(versionOfGame);
 
             Methods.SetForceAnsiForCurrentOperation(useTwdNintendoSwitchAnsi);
+            Methods.SetNormalizeImportTextForCurrentOperation(true);
+            Methods.ResetImportReplaceTotals();
 
             bool[] show = { false, false, false, false, false, false, false };
 
@@ -302,6 +304,21 @@ namespace TTG_Tools
 
                 if (emptyFiles) ReportForWork("Nothing to import. Empty folder.");
 
+                Methods.ImportTextTransformStats totalReplaceStats = Methods.GetImportReplaceTotals();
+                bool hasAnyTransformFeatureEnabled = MainMenu.settings.enableImportTextReplace
+                    || MainMenu.settings.removeBlanksBetweenCjkCharsInImport
+                    || MainMenu.settings.replaceDotToChinesePeriodInImport
+                    || MainMenu.settings.autoInsertSubtitleNewlineInImport;
+
+                if (hasAnyTransformFeatureEnabled)
+                {
+                    ReportForWork("IMPORT TEXT TRANSFORM SUMMARY: replacedOriginal=" + totalReplaceStats.ReplacedInOriginal
+                        + ", replacedTranslation=" + totalReplaceStats.ReplacedInTranslation
+                        + ", replacedTotal=" + totalReplaceStats.TotalReplaced
+                        + ", normalizedTranslation=" + totalReplaceStats.NormalizedInTranslation
+                        + ", inserted\\n=" + totalReplaceStats.InsertedNewlineMarkers + ".");
+                }
+
                 // DISPARAR O POP-UP DE ERRO
                 if (failedFiles.Count > 0)
                 {
@@ -317,6 +334,7 @@ namespace TTG_Tools
             finally
             {
                 Methods.SetForceAnsiForCurrentOperation(false);
+                Methods.SetNormalizeImportTextForCurrentOperation(false);
 
                 // RESTAURAR: Garante que o caminho original volte ao normal, mesmo se der erro
                 MainMenu.settings.pathForOutputFolder = originalGlobalOutputPath;

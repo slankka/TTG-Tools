@@ -504,7 +504,11 @@ namespace TTG_Tools.Texts
                 }
                 
                 index = type == 1 ? Methods.GetIndex(commonTexts, landb.landbs[i].anmID) : Methods.GetIndex(commonTexts, landb.landbs[i].stringNumber);
-                if (index != -1) landb.landbs[i].actorSpeech = commonTexts[index].actorSpeechTranslation;
+                if (index != -1)
+                {
+                    string translatedSpeech = commonTexts[index].actorSpeechTranslation;
+                    landb.landbs[i].actorSpeech = Methods.NormalizeImportedSpeechTranslationForCjk(translatedSpeech);
+                }
 
                 if (landb.isUnicode && MainMenu.settings.unicodeSettings == 1) landb.landbs[i].actorSpeech = Methods.ConvertString(landb.landbs[i].actorSpeech, false);
                 /*if(landb.isUnicode && (MainMenu.settings.unicodeSettings == 2) && (landb.landbs[i].actorName.Contains("\""))) 
@@ -634,6 +638,9 @@ namespace TTG_Tools.Texts
                     ClassesStructs.Text.CommonTextClass txts = new CommonTextClass();
                     txts.txtList = ReadText.GetStrings(TxtFile);
 
+                    Methods.ImportTextTransformStats transformStats = Methods.ApplyImportTextTransformsToCommonTexts(txts.txtList);
+                    Methods.AddImportReplaceTotals(transformStats);
+
                     if (mapOpeningCreditsReplacement && txts.txtList != null)
                     {
                         for (int i = 0; i < txts.txtList.Count; i++)
@@ -669,6 +676,11 @@ namespace TTG_Tools.Texts
                     ms.Close();
 
                     result = "File " + fi.Name + " successfully imported.";
+
+                    if (MainMenu.settings.enableImportTextReplace && Methods.HasEnabledImportReplaceRules())
+                    {
+                        result += " ReplaceLog[O=" + transformStats.ReplacedInOriginal + ", T=" + transformStats.ReplacedInTranslation + ", Total=" + transformStats.TotalReplaced + "]";
+                    }
 
                     if(rebuildResult == -1)
                     {

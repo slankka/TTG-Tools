@@ -188,12 +188,12 @@ namespace TTG_Tools.Texts
                             tmpTxt.flags = "";
 
                             if (tmpTxt.actorSpeechOriginal.Contains("\\r")) tmpTxt.actorSpeechOriginal = tmpTxt.actorSpeechOriginal.Replace("\\r", "\r");
-                            if (tmpTxt.actorSpeechOriginal.Contains("\n")) tmpTxt.actorSpeechOriginal = tmpTxt.actorSpeechOriginal.Replace("\\n", "\n");
-                            if (tmpTxt.actorSpeechOriginal.Contains("\t")) tmpTxt.actorSpeechOriginal = tmpTxt.actorSpeechOriginal.Replace("\\t", "\t");
+                            if (tmpTxt.actorSpeechOriginal.Contains("\\n")) tmpTxt.actorSpeechOriginal = tmpTxt.actorSpeechOriginal.Replace("\\n", "\n");
+                            if (tmpTxt.actorSpeechOriginal.Contains("\\t")) tmpTxt.actorSpeechOriginal = tmpTxt.actorSpeechOriginal.Replace("\\t", "\t");
 
                             if (tmpTxt.actorSpeechTranslation.Contains("\\r")) tmpTxt.actorSpeechTranslation = tmpTxt.actorSpeechTranslation.Replace("\\r", "\r");
-                            if (tmpTxt.actorSpeechTranslation.Contains("\n")) tmpTxt.actorSpeechTranslation = tmpTxt.actorSpeechTranslation.Replace("\\n", "\n");
-                            if (tmpTxt.actorSpeechTranslation.Contains("\t")) tmpTxt.actorSpeechTranslation = tmpTxt.actorSpeechTranslation.Replace("\\t", "\t");
+                            if (tmpTxt.actorSpeechTranslation.Contains("\\n")) tmpTxt.actorSpeechTranslation = tmpTxt.actorSpeechTranslation.Replace("\\n", "\n");
+                            if (tmpTxt.actorSpeechTranslation.Contains("\\t")) tmpTxt.actorSpeechTranslation = tmpTxt.actorSpeechTranslation.Replace("\\t", "\t");
 
                             txts.Add(tmpTxt);
                         }

@@ -166,6 +166,13 @@
     <Compile Include="FontEditor.Designer.cs">
       <DependentUpon>FontEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="FontEditor.FileOperations.cs" />
+    <Compile Include="FontEditor.TextureOperations.cs" />
+    <Compile Include="FontEditor.UIHandlers.cs" />
+    <Compile Include="FontEditor.CharacterGenerator.cs" />
+    <Compile Include="FontEditor.FntImporter.cs" />
+    <Compile Include="FontEditor.MissingCharDetector.cs" />
+    <Compile Include="FontEditor.Utilities.cs" />
     <Compile Include="FormSettings.cs">
       <SubType>Form</SubType>
     </Compile>

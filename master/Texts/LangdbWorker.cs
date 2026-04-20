@@ -273,7 +273,11 @@ namespace TTG_Tools.Texts
                 }
 
                 index = type == 1 ? Methods.GetIndex(commonTexts, langdb.langdbs[i].anmID) : Methods.GetIndex(commonTexts, langdb.langdbs[i].stringNumber);
-                if (index != -1) langdb.langdbs[i].actorSpeech = commonTexts[index].actorSpeechTranslation;
+                if (index != -1)
+                {
+                    string translatedSpeech = commonTexts[index].actorSpeechTranslation;
+                    langdb.langdbs[i].actorSpeech = Methods.NormalizeImportedSpeechTranslationForCjk(translatedSpeech);
+                }
 
                 if(MainMenu.settings.newTxtFormat && MainMenu.settings.changeLangFlags && (index != -1))
                 {
@@ -447,6 +451,9 @@ namespace TTG_Tools.Texts
                     ClassesStructs.Text.CommonTextClass txt = new CommonTextClass();
                     txt.txtList = ReadText.GetStrings(txtFile);
 
+                    Methods.ImportTextTransformStats transformStats = Methods.ApplyImportTextTransformsToCommonTexts(txt.txtList);
+                    Methods.AddImportReplaceTotals(transformStats);
+
                     int type = CheckNumbers(txt.txtList, langdbs);
                     if (type == -1) return "I don't know which type of number strings select for " + fi.Name + " file.";
 
@@ -460,6 +467,11 @@ namespace TTG_Tools.Texts
                     int rebuildResult = RebuildLangdb(br, outputFile, langdbs);
 
                     result = "File " + fi.Name + " successfully imported.";
+
+                    if (MainMenu.settings.enableImportTextReplace && Methods.HasEnabledImportReplaceRules())
+                    {
+                        result += " ReplaceLog[O=" + transformStats.ReplacedInOriginal + ", T=" + transformStats.ReplacedInTranslation + ", Total=" + transformStats.TotalReplaced + "]";
+                    }
 
                     if (rebuildResult == -1)
                     {

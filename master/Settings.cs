@@ -4,6 +4,26 @@ using System.Xml.Serialization;
 namespace TTG_Tools
 {
     [Serializable()]
+    public class ImportTextReplaceRule
+    {
+        [XmlAttribute("enabled")]
+        public bool enabled { get; set; }
+
+        [XmlAttribute("find")]
+        public string find { get; set; }
+
+        [XmlAttribute("replaceWith")]
+        public string replaceWith { get; set; }
+
+        public ImportTextReplaceRule()
+        {
+            enabled = true;
+            find = "";
+            replaceWith = "";
+        }
+    }
+
+    [Serializable()]
     public class Settings
     {
         public static void SaveConfig(Settings settings)
@@ -55,6 +75,14 @@ namespace TTG_Tools
         private bool _swizzlePSVita;
         private bool _swizzleNintendoWii;
         private bool _supportTwdNintendoSwitch;
+        private bool _removeBlanksBetweenCjkCharsInImport;
+        private bool _replaceDotToChinesePeriodInImport;
+        private bool _normalizePunctuationBeforeNewlineInImport = true;
+        private bool _autoInsertSubtitleNewlineInImport;
+        private bool _enableImportTextReplace;
+        private string _importTextReplaceFind;
+        private string _importTextReplaceWith;
+        private System.Collections.Generic.List<ImportTextReplaceRule> _importTextReplaceRules;
 
         private int _languageIndex;
         private System.Collections.Generic.List<string> _scanTextFilePaths;
@@ -541,6 +569,113 @@ namespace TTG_Tools
             }
         }
 
+        [XmlAttribute("removeBlanksBetweenCjkCharsInImport")]
+        public bool removeBlanksBetweenCjkCharsInImport
+        {
+            get
+            {
+                return _removeBlanksBetweenCjkCharsInImport;
+            }
+            set
+            {
+                _removeBlanksBetweenCjkCharsInImport = value;
+            }
+        }
+
+        [XmlAttribute("replaceDotToChinesePeriodInImport")]
+        public bool replaceDotToChinesePeriodInImport
+        {
+            get
+            {
+                return _replaceDotToChinesePeriodInImport;
+            }
+            set
+            {
+                _replaceDotToChinesePeriodInImport = value;
+            }
+        }
+
+        [XmlAttribute("normalizePunctuationBeforeNewlineInImport")]
+        public bool normalizePunctuationBeforeNewlineInImport
+        {
+            get
+            {
+                return _normalizePunctuationBeforeNewlineInImport;
+            }
+            set
+            {
+                _normalizePunctuationBeforeNewlineInImport = value;
+            }
+        }
+
+        [XmlAttribute("autoInsertSubtitleNewlineInImport")]
+        public bool autoInsertSubtitleNewlineInImport
+        {
+            get
+            {
+                return _autoInsertSubtitleNewlineInImport;
+            }
+            set
+            {
+                _autoInsertSubtitleNewlineInImport = value;
+            }
+        }
+
+        [XmlAttribute("enableImportTextReplace")]
+        public bool enableImportTextReplace
+        {
+            get
+            {
+                return _enableImportTextReplace;
+            }
+            set
+            {
+                _enableImportTextReplace = value;
+            }
+        }
+
+        [XmlAttribute("importTextReplaceFind")]
+        public string importTextReplaceFind
+        {
+            get
+            {
+                return _importTextReplaceFind;
+            }
+            set
+            {
+                _importTextReplaceFind = value;
+            }
+        }
+
+        [XmlAttribute("importTextReplaceWith")]
+        public string importTextReplaceWith
+        {
+            get
+            {
+                return _importTextReplaceWith;
+            }
+            set
+            {
+                _importTextReplaceWith = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlArray("ImportTextReplaceRules")]
+        [System.Xml.Serialization.XmlArrayItem("Rule")]
+        public System.Collections.Generic.List<ImportTextReplaceRule> importTextReplaceRules
+        {
+            get
+            {
+                if (_importTextReplaceRules == null)
+                    _importTextReplaceRules = new System.Collections.Generic.List<ImportTextReplaceRule>();
+                return _importTextReplaceRules;
+            }
+            set
+            {
+                _importTextReplaceRules = value;
+            }
+        }
+
         [System.Xml.Serialization.XmlArray("ScanTextFilePaths")]
         [System.Xml.Serialization.XmlArrayItem("Path")]
         public System.Collections.Generic.List<string> scanTextFilePaths
@@ -593,6 +728,12 @@ namespace TTG_Tools
             bool _swizzleXbox360,
             bool _swizzlePSVita,
             bool _swizzleNintendoWii,
+            bool _removeBlanksBetweenCjkCharsInImport,
+            bool _replaceDotToChinesePeriodInImport,
+            bool _autoInsertSubtitleNewlineInImport,
+            bool _enableImportTextReplace,
+            string _importTextReplaceFind,
+            string _importTextReplaceWith,
             int _languageIndex,
             bool _supportTwdNintendoSwitch)
         {
@@ -631,6 +772,13 @@ namespace TTG_Tools
             this.swizzleXbox360 = _swizzleXbox360;
             this.swizzlePSVita = _swizzlePSVita;
             this.swizzleNintendoWii = _swizzleNintendoWii;
+            this.removeBlanksBetweenCjkCharsInImport = _removeBlanksBetweenCjkCharsInImport;
+            this.replaceDotToChinesePeriodInImport = _replaceDotToChinesePeriodInImport;
+            this.autoInsertSubtitleNewlineInImport = _autoInsertSubtitleNewlineInImport;
+            this.enableImportTextReplace = _enableImportTextReplace;
+            this.importTextReplaceFind = _importTextReplaceFind;
+            this.importTextReplaceWith = _importTextReplaceWith;
+            this.importTextReplaceRules = new System.Collections.Generic.List<ImportTextReplaceRule>();
             this.languageIndex = _languageIndex;
             this.supportTwdNintendoSwitch = _supportTwdNintendoSwitch;
             this.scanTextFilePaths = new System.Collections.Generic.List<string>();
@@ -638,6 +786,7 @@ namespace TTG_Tools
 
         public Settings()
         {
+            this.importTextReplaceRules = new System.Collections.Generic.List<ImportTextReplaceRule>();
             this.scanTextFilePaths = new System.Collections.Generic.List<string>();
         }
     }

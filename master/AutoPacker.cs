@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
@@ -22,6 +23,11 @@ namespace TTG_Tools
 
         Thread threadExport;
         Thread threadImport;
+        private bool _suppressImportReplaceRuleEvents;
+        private DataGridViewTextBoxEditingControl _activeRuleEditingControl;
+        private int _editingRuleRowIndex = -1;
+        private int _editingRuleColumnIndex = -1;
+        private string _editingRuleTextDraft;
 
         public struct langdb
         {
@@ -59,25 +65,34 @@ namespace TTG_Tools
                     MessageBox.Show(realMessage, "Error Report", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                     // Adiciona um aviso no log apenas para constar
-                    listBox1.Items.Add(">>> Error report displayed on screen. <<<");
-
-                    // Rola para o final
-                    listBox1.SelectedIndex = listBox1.Items.Count - 1;
-                    listBox1.SelectedIndex = -1;
+                    listBox1.AppendText(">>> Error report displayed on screen. <<<" + Environment.NewLine);
+                    listBox1.SelectionStart = listBox1.TextLength;
+                    listBox1.ScrollToCaret();
                     return;
                 }
 
                 // Comportamento normal para mensagens que não são de erro crítico
-                listBox1.Items.Add(report);
-                listBox1.SelectedIndex = listBox1.Items.Count - 1;
-                listBox1.SelectedIndex = -1;
+                listBox1.AppendText(report + Environment.NewLine);
+                listBox1.SelectionStart = listBox1.TextLength;
+                listBox1.ScrollToCaret();
             }
         }
 
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (MainMenu.settings.clearMessages) listBox1.Items.Clear();
+            if (MainMenu.settings.clearMessages) listBox1.Clear();
+
+            // Keep runtime setting in sync with UI checkbox state.
+            MainMenu.settings.enableImportTextReplace = checkEnableImportTextReplace.Checked;
+
+            SaveImportReplaceRulesFromGrid(false);
+
+            if (checkEnableImportTextReplace.Checked && !Methods.HasEnabledImportReplaceRules())
+            {
+                MessageBox.Show("At least one enabled Replace rule must have non-empty Find text.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             try
             {
@@ -126,7 +141,7 @@ namespace TTG_Tools
 
         private void buttonDecrypt_Click(object sender, EventArgs e)
         {
-            if (MainMenu.settings.clearMessages) listBox1.Items.Clear();
+            if (MainMenu.settings.clearMessages) listBox1.Clear();
 
             string versionOfGame = MainMenu.gamelist[comboBox1.SelectedIndex].gamename;
             numKey = comboBox1.SelectedIndex;
@@ -168,7 +183,7 @@ namespace TTG_Tools
                 StreamWriter sw = new StreamWriter(MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
                 sw.Write(debug);
                 sw.Close();
-                listBox1.Items.Add("Bugs have been written in file " + MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
+                AddNewReport("Bugs have been written in file " + MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
             }
         }
 
@@ -210,6 +225,14 @@ namespace TTG_Tools
             checkIOS.Checked = MainMenu.settings.iOSsupport;
             checkEncLangdb.Checked = MainMenu.settings.encLangdb;
             CheckNewEngine.Checked = MainMenu.settings.encNewLua;
+            checkRemoveBlanksBetweenCjk.Checked = MainMenu.settings.removeBlanksBetweenCjkCharsInImport;
+            checkReplaceDotToChinesePeriod.Checked = MainMenu.settings.replaceDotToChinesePeriodInImport;
+            checkNormalizeNewlinePunctuation.Checked = MainMenu.settings.normalizePunctuationBeforeNewlineInImport;
+            checkAutoInsertSubtitleNewline.Checked = MainMenu.settings.autoInsertSubtitleNewlineInImport;
+            checkEnableImportTextReplace.Checked = MainMenu.settings.enableImportTextReplace;
+            textBoxImportTextReplaceFind.Text = MainMenu.settings.importTextReplaceFind ?? "";
+            textBoxImportTextReplaceWith.Text = MainMenu.settings.importTextReplaceWith ?? "";
+            LoadImportReplaceRulesToGrid();
 
             if (MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita || MainMenu.settings.swizzleNintendoWii)
             {
@@ -236,6 +259,27 @@ namespace TTG_Tools
 
         private void AutoPacker_FormClosing(object sender, FormClosingEventArgs e)
         {
+            try
+            {
+                Validate();
+
+                if (_importReplaceRulesGrid != null)
+                {
+                    CaptureCurrentEditingTextCellValue();
+                    _importReplaceRulesGrid.EndEdit();
+                }
+
+                SaveImportReplaceRulesFromGrid(false);
+            }
+            catch
+            {
+                // Ignore grid commit errors on close to avoid blocking form shutdown.
+            }
+            finally
+            {
+                Settings.SaveConfig(MainMenu.settings);
+            }
+
             if ((threadExport != null) && threadExport.IsAlive)
             {
                 threadExport.Abort();
@@ -413,6 +457,412 @@ namespace TTG_Tools
                 MainMenu.settings.swizzleNintendoWii = true;
                 Settings.SaveConfig(MainMenu.settings);
             }
+        }
+
+        private void checkRemoveBlanksBetweenCjk_CheckedChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.removeBlanksBetweenCjkCharsInImport = checkRemoveBlanksBetweenCjk.Checked;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void checkReplaceDotToChinesePeriod_CheckedChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.replaceDotToChinesePeriodInImport = checkReplaceDotToChinesePeriod.Checked;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void checkNormalizeNewlinePunctuation_CheckedChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.normalizePunctuationBeforeNewlineInImport = checkNormalizeNewlinePunctuation.Checked;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void checkAutoInsertSubtitleNewline_CheckedChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.autoInsertSubtitleNewlineInImport = checkAutoInsertSubtitleNewline.Checked;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void checkEnableImportTextReplace_CheckedChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.enableImportTextReplace = checkEnableImportTextReplace.Checked;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void textBoxImportTextReplaceFind_TextChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.importTextReplaceFind = textBoxImportTextReplaceFind.Text;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void textBoxImportTextReplaceWith_TextChanged(object sender, EventArgs e)
+        {
+            MainMenu.settings.importTextReplaceWith = textBoxImportTextReplaceWith.Text;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void LoadImportReplaceRulesToGrid()
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            _suppressImportReplaceRuleEvents = true;
+
+            _importReplaceRulesGrid.Rows.Clear();
+
+            List<ImportTextReplaceRule> rules = MainMenu.settings.importTextReplaceRules;
+
+            if (rules != null && rules.Count > 0)
+            {
+                for (int i = 0; i < rules.Count; i++)
+                {
+                    ImportTextReplaceRule rule = rules[i] ?? new ImportTextReplaceRule();
+                    _importReplaceRulesGrid.Rows.Add(rule.enabled, rule.find ?? "", rule.replaceWith ?? "");
+                }
+            }
+            else if (!String.IsNullOrEmpty(MainMenu.settings.importTextReplaceFind))
+            {
+                _importReplaceRulesGrid.Rows.Add(true, MainMenu.settings.importTextReplaceFind, MainMenu.settings.importTextReplaceWith ?? "");
+            }
+            else
+            {
+                _importReplaceRulesGrid.Rows.Add(true, "", "");
+            }
+
+            _suppressImportReplaceRuleEvents = false;
+        }
+
+        private void SaveImportReplaceRulesFromGrid(bool saveConfig = true)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            CaptureCurrentEditingTextCellValue();
+            try
+            {
+                _importReplaceRulesGrid.EndEdit();
+            }
+            catch
+            {
+            }
+
+            List<ImportTextReplaceRule> rules = new List<ImportTextReplaceRule>();
+            List<ImportTextReplaceRule> existingRules = MainMenu.settings.importTextReplaceRules == null
+                ? new List<ImportTextReplaceRule>()
+                : MainMenu.settings.importTextReplaceRules;
+
+            for (int i = 0; i < _importReplaceRulesGrid.Rows.Count; i++)
+            {
+                DataGridViewRow row = _importReplaceRulesGrid.Rows[i];
+                // Keep the active editing placeholder row (new row) so typed data is not dropped.
+                if (row.IsNewRow && row.Index != _editingRuleRowIndex) continue;
+
+                bool enabled = false;
+                if (row.Cells[0].Value != null)
+                {
+                    bool.TryParse(row.Cells[0].Value.ToString(), out enabled);
+                }
+                else if (row.Index < MainMenu.settings.importTextReplaceRules.Count && MainMenu.settings.importTextReplaceRules[row.Index] != null)
+                {
+                    enabled = MainMenu.settings.importTextReplaceRules[row.Index].enabled;
+                }
+
+                string find = row.Cells[1].Value == null ? "" : row.Cells[1].Value.ToString();
+                string replaceWith = row.Cells[2].Value == null ? "" : row.Cells[2].Value.ToString();
+
+                // If current edit is not committed yet (e.g. IME composition / close via [X]),
+                // prefer the in-memory draft text for the active cell.
+                if (row.Index == _editingRuleRowIndex && _editingRuleTextDraft != null)
+                {
+                    if (_editingRuleColumnIndex == 1)
+                    {
+                        find = _editingRuleTextDraft;
+                    }
+                    else if (_editingRuleColumnIndex == 2)
+                    {
+                        replaceWith = _editingRuleTextDraft;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(find) && String.IsNullOrEmpty(replaceWith) && !enabled) continue;
+
+                rules.Add(new ImportTextReplaceRule
+                {
+                    enabled = enabled,
+                    find = find,
+                    replaceWith = replaceWith
+                });
+            }
+
+            // If grid parsing yields no meaningful rules, do not wipe existing effective rules.
+            // This protects against shutdown timing where DataGridView has not committed text yet.
+            if (!HasMeaningfulImportReplaceRules(rules) && HasMeaningfulImportReplaceRules(existingRules))
+            {
+                rules = CloneImportReplaceRules(existingRules);
+            }
+
+            MainMenu.settings.importTextReplaceRules = rules;
+
+            ImportTextReplaceRule firstActive = null;
+            for (int i = 0; i < rules.Count; i++)
+            {
+                if (rules[i] != null && rules[i].enabled && !String.IsNullOrEmpty(rules[i].find))
+                {
+                    firstActive = rules[i];
+                    break;
+                }
+            }
+
+            MainMenu.settings.importTextReplaceFind = firstActive == null ? "" : firstActive.find;
+            MainMenu.settings.importTextReplaceWith = firstActive == null ? "" : (firstActive.replaceWith ?? "");
+
+            // If user has configured effective rules, auto-enable Replace to avoid silent no-op.
+            if (HasMeaningfulImportReplaceRules(rules) && !MainMenu.settings.enableImportTextReplace)
+            {
+                MainMenu.settings.enableImportTextReplace = true;
+                if (checkEnableImportTextReplace != null && !checkEnableImportTextReplace.Checked)
+                {
+                    checkEnableImportTextReplace.Checked = true;
+                }
+            }
+
+            if (saveConfig)
+            {
+                Settings.SaveConfig(MainMenu.settings);
+            }
+        }
+
+        private static bool HasMeaningfulImportReplaceRules(List<ImportTextReplaceRule> rules)
+        {
+            if (rules == null || rules.Count == 0) return false;
+
+            for (int i = 0; i < rules.Count; i++)
+            {
+                ImportTextReplaceRule rule = rules[i];
+                if (rule == null) continue;
+
+                if (rule.enabled && !String.IsNullOrEmpty(rule.find)) return true;
+                if (!String.IsNullOrEmpty(rule.find) || !String.IsNullOrEmpty(rule.replaceWith)) return true;
+            }
+
+            return false;
+        }
+
+        private static List<ImportTextReplaceRule> CloneImportReplaceRules(List<ImportTextReplaceRule> rules)
+        {
+            if (rules == null) return new List<ImportTextReplaceRule>();
+
+            return rules.Select(r => new ImportTextReplaceRule
+            {
+                enabled = r != null && r.enabled,
+                find = r == null ? "" : (r.find ?? ""),
+                replaceWith = r == null ? "" : (r.replaceWith ?? "")
+            }).ToList();
+        }
+
+        private void CaptureCurrentEditingTextCellValue()
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            DataGridViewCell currentCell = _importReplaceRulesGrid.CurrentCell;
+            if (currentCell == null) return;
+            if (!(currentCell is DataGridViewTextBoxCell)) return;
+
+            TextBox editingTextBox = _importReplaceRulesGrid.EditingControl as TextBox;
+            if (editingTextBox == null) return;
+
+            currentCell.Value = editingTextBox.Text;
+            _editingRuleRowIndex = currentCell.RowIndex;
+            _editingRuleColumnIndex = currentCell.ColumnIndex;
+            _editingRuleTextDraft = editingTextBox.Text;
+        }
+
+        private void ImportReplaceRulesGrid_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (_activeRuleEditingControl != null)
+            {
+                _activeRuleEditingControl.TextChanged -= ImportReplaceRulesEditingControl_TextChanged;
+            }
+
+            _activeRuleEditingControl = e.Control as DataGridViewTextBoxEditingControl;
+            if (_activeRuleEditingControl == null) return;
+
+            if (_importReplaceRulesGrid != null && _importReplaceRulesGrid.CurrentCell != null)
+            {
+                _editingRuleRowIndex = _importReplaceRulesGrid.CurrentCell.RowIndex;
+                _editingRuleColumnIndex = _importReplaceRulesGrid.CurrentCell.ColumnIndex;
+                _editingRuleTextDraft = _activeRuleEditingControl.Text;
+            }
+
+            _activeRuleEditingControl.ImeMode = ImeMode.On;
+            _activeRuleEditingControl.TextChanged += ImportReplaceRulesEditingControl_TextChanged;
+        }
+
+        private void ImportReplaceRulesEditingControl_TextChanged(object sender, EventArgs e)
+        {
+            if (_suppressImportReplaceRuleEvents) return;
+
+            TextBox editingTextBox = sender as TextBox;
+            if (editingTextBox == null) return;
+
+            _editingRuleTextDraft = editingTextBox.Text;
+            ApplyEditingDraftToSettings();
+            PersistImportReplaceRulesDraftToConfig();
+        }
+
+        private void ApplyEditingDraftToSettings()
+        {
+            if (_editingRuleRowIndex < 0) return;
+            if (_editingRuleColumnIndex != 1 && _editingRuleColumnIndex != 2) return;
+
+            List<ImportTextReplaceRule> rules = MainMenu.settings.importTextReplaceRules;
+            while (rules.Count <= _editingRuleRowIndex)
+            {
+                rules.Add(new ImportTextReplaceRule());
+            }
+
+            ImportTextReplaceRule rule = rules[_editingRuleRowIndex] ?? new ImportTextReplaceRule();
+            if (_editingRuleColumnIndex == 1)
+            {
+                rule.find = _editingRuleTextDraft ?? "";
+            }
+            else
+            {
+                rule.replaceWith = _editingRuleTextDraft ?? "";
+            }
+
+            rules[_editingRuleRowIndex] = rule;
+            MainMenu.settings.importTextReplaceRules = rules;
+        }
+
+        private void PersistImportReplaceRulesDraftToConfig()
+        {
+            List<ImportTextReplaceRule> rules = MainMenu.settings.importTextReplaceRules;
+
+            ImportTextReplaceRule firstActive = null;
+            for (int i = 0; i < rules.Count; i++)
+            {
+                if (rules[i] != null && rules[i].enabled && !String.IsNullOrEmpty(rules[i].find))
+                {
+                    firstActive = rules[i];
+                    break;
+                }
+            }
+
+            MainMenu.settings.importTextReplaceFind = firstActive == null ? "" : firstActive.find;
+            MainMenu.settings.importTextReplaceWith = firstActive == null ? "" : (firstActive.replaceWith ?? "");
+
+            if (HasMeaningfulImportReplaceRules(rules) && !MainMenu.settings.enableImportTextReplace)
+            {
+                MainMenu.settings.enableImportTextReplace = true;
+                if (checkEnableImportTextReplace != null && !checkEnableImportTextReplace.Checked)
+                {
+                    checkEnableImportTextReplace.Checked = true;
+                }
+            }
+
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        private void ImportReplaceRulesGrid_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            if (!_importReplaceRulesGrid.IsCurrentCellDirty) return;
+
+            DataGridViewCell currentCell = _importReplaceRulesGrid.CurrentCell;
+            if (currentCell == null) return;
+
+            // Only commit immediately for checkbox cells.
+            // Text cells should keep the IME composition flow (space confirms candidate).
+            if (currentCell is DataGridViewCheckBoxCell)
+            {
+                _importReplaceRulesGrid.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+        private void ImportReplaceRulesGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_suppressImportReplaceRuleEvents) return;
+            SaveImportReplaceRulesFromGrid();
+        }
+
+        private void ImportReplaceRulesGrid_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_suppressImportReplaceRuleEvents) return;
+            SaveImportReplaceRulesFromGrid();
+
+            _editingRuleRowIndex = -1;
+            _editingRuleColumnIndex = -1;
+            _editingRuleTextDraft = null;
+        }
+
+        private void BtnAddReplaceRule_Click(object sender, EventArgs e)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            _importReplaceRulesGrid.Rows.Add(true, "", "");
+            SaveImportReplaceRulesFromGrid();
+        }
+
+        private void BtnRemoveReplaceRule_Click(object sender, EventArgs e)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            if (_importReplaceRulesGrid.SelectedRows.Count == 0)
+            {
+                if (_importReplaceRulesGrid.CurrentRow != null && !_importReplaceRulesGrid.CurrentRow.IsNewRow)
+                    _importReplaceRulesGrid.Rows.Remove(_importReplaceRulesGrid.CurrentRow);
+            }
+            else
+            {
+                for (int i = _importReplaceRulesGrid.SelectedRows.Count - 1; i >= 0; i--)
+                {
+                    DataGridViewRow row = _importReplaceRulesGrid.SelectedRows[i];
+                    if (!row.IsNewRow) _importReplaceRulesGrid.Rows.Remove(row);
+                }
+            }
+
+            if (_importReplaceRulesGrid.Rows.Count == 0)
+            {
+                _importReplaceRulesGrid.Rows.Add(true, "", "");
+            }
+
+            SaveImportReplaceRulesFromGrid();
+        }
+
+        private void BtnEnableAllReplaceRules_Click(object sender, EventArgs e)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            _suppressImportReplaceRuleEvents = true;
+            for (int i = 0; i < _importReplaceRulesGrid.Rows.Count; i++)
+            {
+                DataGridViewRow row = _importReplaceRulesGrid.Rows[i];
+                if (!row.IsNewRow) row.Cells[0].Value = true;
+            }
+            _suppressImportReplaceRuleEvents = false;
+
+            SaveImportReplaceRulesFromGrid();
+        }
+
+        private void BtnInvertReplaceRules_Click(object sender, EventArgs e)
+        {
+            if (_importReplaceRulesGrid == null) return;
+
+            _suppressImportReplaceRuleEvents = true;
+            for (int i = 0; i < _importReplaceRulesGrid.Rows.Count; i++)
+            {
+                DataGridViewRow row = _importReplaceRulesGrid.Rows[i];
+                if (row.IsNewRow) continue;
+
+                bool enabled = false;
+                if (row.Cells[0].Value != null)
+                    bool.TryParse(row.Cells[0].Value.ToString(), out enabled);
+
+                row.Cells[0].Value = !enabled;
+            }
+            _suppressImportReplaceRuleEvents = false;
+
+            SaveImportReplaceRulesFromGrid();
         }
 
         private void convertArgb8888Cb_CheckedChanged(object sender, EventArgs e)

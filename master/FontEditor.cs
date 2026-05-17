@@ -148,5 +148,22 @@ namespace TTG_Tools
                 about.Show();
             }
         }
+
+        private void ttarch2ScannerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Application.OpenForms.OfType<Ttarch2Scanner>().Count() == 0)
+            {
+                Form scannerForm = new Ttarch2Scanner();
+                scannerForm.Show();
+            }
+        }
+
+        private void quickToolsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var dialog = new QuickToolsDialog(this))
+            {
+                dialog.ShowDialog(this);
+            }
+        }
     }
 }

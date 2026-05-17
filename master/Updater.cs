@@ -13,8 +13,8 @@ namespace TTG_Tools
 {
     internal static class Updater
     {
-        private const string GithubOwner = "HeitorSpectre";
-        private const string GithubRepo = "TTG-Tools";
+        private const string GithubOwner = "slankka";
+        private const string GithubRepo = "TTG-Font-Creator";
         private const string LatestReleaseApi = "https://api.github.com/repos/" + GithubOwner + "/" + GithubRepo + "/releases/latest";
         private const string ReleasesPageUrl = "https://github.com/" + GithubOwner + "/" + GithubRepo + "/releases";
 
@@ -53,7 +53,7 @@ namespace TTG_Tools
         private static void PromptAndUpdate(Form owner, ReleaseInfo release, Version currentVersion, Version latestVersion)
         {
             string message = string.Format(
-                "A new TTG Tools version is available.\n\nCurrent version: {0}\nLatest version: {1}\n\nDo you want to update now?",
+                "A new TTG Font Creator version is available.\n\nCurrent version: {0}\nLatest version: {1}\n\nDo you want to update now?",
                 currentVersion,
                 latestVersion);
 
@@ -95,14 +95,14 @@ namespace TTG_Tools
 
             using (WebClient client = new WebClient())
             {
-                client.Headers[HttpRequestHeader.UserAgent] = "TTG-Tools-Updater";
+                client.Headers[HttpRequestHeader.UserAgent] = "TTG-Font-Creator-Updater";
                 client.DownloadFile(release.DownloadUrl, downloadFile);
             }
 
             if (extension == ".exe")
             {
                 Process.Start(downloadFile);
-                MessageBox.Show(owner, "The updater executable was launched. TTG Tools will close now.", "Updater", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(owner, "The updater executable was launched. TTG Font Creator will close now.", "Updater", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Application.Exit();
                 return;
             }
@@ -158,7 +158,7 @@ namespace TTG_Tools
                 UseShellExecute = false
             });
 
-            MessageBox.Show(owner, "Update downloaded. TTG Tools will close and restart automatically.", "Updater", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(owner, "Update downloaded. TTG Font Creator will close and restart automatically.", "Updater", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Application.Exit();
         }
 

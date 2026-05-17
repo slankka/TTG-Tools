@@ -1,4 +1,4 @@
-﻿namespace TTG_Tools
+namespace TTG_Tools
 {
     partial class FontEditor
     {
@@ -54,6 +54,8 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.archivePackerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.archiveUnpackerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ttarch2ScannerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quickToolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsFormToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -130,6 +132,9 @@
             this.labelYAdjust = new System.Windows.Forms.Label();
             this.textBoxYAdjust = new System.Windows.Forms.TextBox();
             this.buttonApplyYAdjust = new System.Windows.Forms.Button();
+            this.labelYAdjust = new System.Windows.Forms.Label();
+            this.textBoxYAdjust = new System.Windows.Forms.TextBox();
+            this.buttonApplyYAdjust = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
@@ -166,6 +171,7 @@
             this.groupBox1.TabIndex = 21;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Copy coordinates";
+            this.groupBox1.Visible = false;
             // 
             // buttonClear
             // 
@@ -305,7 +311,9 @@
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.archivePackerToolStripMenuItem,
-            this.archiveUnpackerToolStripMenuItem});
+            this.archiveUnpackerToolStripMenuItem,
+            this.ttarch2ScannerToolStripMenuItem,
+            this.quickToolsToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -323,6 +331,20 @@
             this.archiveUnpackerToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
             this.archiveUnpackerToolStripMenuItem.Text = "Archive Unpacker";
             this.archiveUnpackerToolStripMenuItem.Click += new System.EventHandler(this.archiveUnpackerToolStripMenuItem_Click);
+            // 
+            // ttarch2ScannerToolStripMenuItem
+            // 
+            this.ttarch2ScannerToolStripMenuItem.Name = "ttarch2ScannerToolStripMenuItem";
+            this.ttarch2ScannerToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.ttarch2ScannerToolStripMenuItem.Text = "Ttarch2 Scanner";
+            this.ttarch2ScannerToolStripMenuItem.Click += new System.EventHandler(this.ttarch2ScannerToolStripMenuItem_Click);
+            // 
+            // quickToolsToolStripMenuItem
+            // 
+            this.quickToolsToolStripMenuItem.Name = "quickToolsToolStripMenuItem";
+            this.quickToolsToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.quickToolsToolStripMenuItem.Text = "Quick Tools...";
+            this.quickToolsToolStripMenuItem.Click += new System.EventHandler(this.quickToolsToolStripMenuItem_Click);
             // 
             // settingsToolStripMenuItem
             // 
@@ -760,6 +782,7 @@
             this.groupBox3.TabIndex = 29;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Change char width to:";
+            this.groupBox3.Visible = false;
             // 
             // radioButtonXstart
             // 
@@ -1075,7 +1098,7 @@
             this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
             this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 658);
             this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
-            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 70);
+            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 90);
             this.groupBoxFntAdjust.TabIndex = 35;
             this.groupBoxFntAdjust.TabStop = false;
             this.groupBoxFntAdjust.Text = "FNT Adjust";
@@ -1106,6 +1129,33 @@
             this.buttonApplyYoffsetAdjust.Text = ">";
             this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
             this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
+            // 
+            // labelYAdjust
+            // 
+            this.labelYAdjust.AutoSize = true;
+            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
+            this.labelYAdjust.Name = "labelYAdjust";
+            this.labelYAdjust.Size = new System.Drawing.Size(41, 13);
+            this.labelYAdjust.TabIndex = 3;
+            this.labelYAdjust.Text = "Y Adj:";
+            // 
+            // textBoxYAdjust
+            // 
+            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
+            this.textBoxYAdjust.Name = "textBoxYAdjust";
+            this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
+            this.textBoxYAdjust.TabIndex = 4;
+            this.textBoxYAdjust.Text = "20";
+            // 
+            // buttonApplyYAdjust
+            // 
+            this.buttonApplyYAdjust.Location = new System.Drawing.Point(134, 42);
+            this.buttonApplyYAdjust.Name = "buttonApplyYAdjust";
+            this.buttonApplyYAdjust.Size = new System.Drawing.Size(24, 23);
+            this.buttonApplyYAdjust.TabIndex = 5;
+            this.buttonApplyYAdjust.Text = ">";
+            this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
+            this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
             // 
             // labelYAdjust
             // 
@@ -1179,7 +1229,7 @@
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.MaximizeBox = false;
             this.Name = "FontEditor";
-            this.Text = "TTG Font Builder";
+            this.Text = "TTG Font Creator";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FontEditor_FormClosing);
             this.Load += new System.EventHandler(this.FontEditor_Load);
             this.groupBox1.ResumeLayout(false);
@@ -1222,7 +1272,7 @@
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.DataGridView dataGridViewWithTextures;
-        private System.Windows.Forms.DataGridView dataGridViewWithCoord;
+        internal System.Windows.Forms.DataGridView dataGridViewWithCoord;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button buttonClear;
@@ -1233,6 +1283,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem archivePackerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem archiveUnpackerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ttarch2ScannerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem quickToolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem settingsFormToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;

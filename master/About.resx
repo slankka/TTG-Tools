@@ -118,17 +118,17 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="richTextBox1.Text" xml:space="preserve">
-    <value>TTG Font Builder
+    <value>TTG Font Creator
 ========================================
-A specialized tool for Telltale Games font editing,
+A specialized tool for Telltale Games font creating and editing,
 with Archive Packer &amp; Unpacker as auxiliary utilities.
 
 Based on TTG Tools by Den Em (Е.Д.В.) and Pashok6798.
 Originally modded by Krisp and HeitorSpectre.
-Fork enhanced by Arvin (github.com/ArvinZHC).
+Fork enhanced by Arvin (github.com/slankka).
 
 Source code:
-GitHub: https://github.com/ArvinZHC/TTG-Font-Builder
+GitHub: https://github.com/slankka/TTG-Font-Creator
 
 Special thanks to:
 - Den Em for accepting to upload his source code.
@@ -194,7 +194,7 @@ Batman (S1 &amp; S2), Guardians of the Galaxy.
 [Version history]
 
 v.1.16.0 (2026-05)
-+ Font Editor is now a standalone app: TTG Font Builder
++ Font Editor is now a standalone app: TTG Font Creator
 + Menu bar: Tools (Archive Packer/Unpacker), Settings, Help (About)
 + Y Adjust batch control for all character Y coordinates
 + FNT adjust group box with YOffset + YAdj controls

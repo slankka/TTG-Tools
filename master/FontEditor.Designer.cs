@@ -32,17 +32,6 @@ namespace TTG_Tools
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FontEditor));
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.buttonClear = new System.Windows.Forms.Button();
-            this.textBox8 = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.buttonCopyCoordinates = new System.Windows.Forms.Button();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.textBox9 = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -96,12 +85,6 @@ namespace TTG_Tools
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.rbNoKerning = new System.Windows.Forms.RadioButton();
             this.rbKerning = new System.Windows.Forms.RadioButton();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.radioButtonXstart = new System.Windows.Forms.RadioButton();
-            this.radioButtonXend = new System.Windows.Forms.RadioButton();
-            this.label5 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.rbSwitchSwizzle = new System.Windows.Forms.RadioButton();
             this.rbPS4Swizzle = new System.Windows.Forms.RadioButton();
@@ -126,158 +109,25 @@ namespace TTG_Tools
             this.buttonPickFont = new System.Windows.Forms.Button();
             this.textBoxGenFont = new System.Windows.Forms.TextBox();
             this.groupBoxFntAdjust = new System.Windows.Forms.GroupBox();
+            this.labelYAdjust = new System.Windows.Forms.Label();
+            this.textBoxYAdjust = new System.Windows.Forms.TextBox();
+            this.buttonApplyYAdjust = new System.Windows.Forms.Button();
             this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
             this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
             this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
-            this.labelYAdjust = new System.Windows.Forms.Label();
-            this.textBoxYAdjust = new System.Windows.Forms.TextBox();
-            this.buttonApplyYAdjust = new System.Windows.Forms.Button();
-            this.labelYAdjust = new System.Windows.Forms.Label();
-            this.textBoxYAdjust = new System.Windows.Forms.TextBox();
-            this.buttonApplyYAdjust = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
-            this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithTextures)).BeginInit();
             this.contextMenuStripExport_Import.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithCoord)).BeginInit();
             this.contextMenuStripExp_imp_Coord.SuspendLayout();
             this.groupBox2.SuspendLayout();
-            this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).BeginInit();
             this.groupBoxMatchTextures.SuspendLayout();
             this.groupBoxFntAdjust.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.buttonClear);
-            this.groupBox1.Controls.Add(this.textBox8);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.checkBox1);
-            this.groupBox1.Controls.Add(this.buttonCopyCoordinates);
-            this.groupBox1.Controls.Add(this.checkBox2);
-            this.groupBox1.Controls.Add(this.textBox9);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(12, 184);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox1.Size = new System.Drawing.Size(186, 109);
-            this.groupBox1.TabIndex = 21;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Copy coordinates";
-            this.groupBox1.Visible = false;
-            // 
-            // buttonClear
-            // 
-            this.buttonClear.Location = new System.Drawing.Point(124, 72);
-            this.buttonClear.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.buttonClear.Name = "buttonClear";
-            this.buttonClear.Size = new System.Drawing.Size(57, 23);
-            this.buttonClear.TabIndex = 16;
-            this.buttonClear.Text = "Clear";
-            this.buttonClear.UseVisualStyleBackColor = true;
-            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
-            // 
-            // textBox8
-            // 
-            this.textBox8.Location = new System.Drawing.Point(46, 20);
-            this.textBox8.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.textBox8.Name = "textBox8";
-            this.textBox8.Size = new System.Drawing.Size(72, 21);
-            this.textBox8.TabIndex = 13;
-            this.textBox8.TextChanged += new System.EventHandler(this.textBox8_TextChanged);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(123, 48);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(21, 13);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "(0)";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(123, 23);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(21, 13);
-            this.label1.TabIndex = 11;
-            this.label1.Text = "(0)";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 23);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(31, 13);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "From";
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.Location = new System.Drawing.Point(151, 22);
-            this.checkBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(32, 17);
-            this.checkBox1.TabIndex = 15;
-            this.checkBox1.Text = "x";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // buttonCopyCoordinates
-            // 
-            this.buttonCopyCoordinates.Location = new System.Drawing.Point(46, 72);
-            this.buttonCopyCoordinates.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.buttonCopyCoordinates.Name = "buttonCopyCoordinates";
-            this.buttonCopyCoordinates.Size = new System.Drawing.Size(70, 23);
-            this.buttonCopyCoordinates.TabIndex = 14;
-            this.buttonCopyCoordinates.Text = "Do it!";
-            this.buttonCopyCoordinates.UseVisualStyleBackColor = true;
-            this.buttonCopyCoordinates.Click += new System.EventHandler(this.buttonCopyCoordinates_Click);
-            // 
-            // checkBox2
-            // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Checked = true;
-            this.checkBox2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox2.Location = new System.Drawing.Point(151, 48);
-            this.checkBox2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(32, 17);
-            this.checkBox2.TabIndex = 15;
-            this.checkBox2.Text = "y";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            // 
-            // textBox9
-            // 
-            this.textBox9.Location = new System.Drawing.Point(46, 46);
-            this.textBox9.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.textBox9.Name = "textBox9";
-            this.textBox9.Size = new System.Drawing.Size(72, 21);
-            this.textBox9.TabIndex = 13;
-            this.textBox9.TextChanged += new System.EventHandler(this.textBox9_TextChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(20, 49);
-            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(19, 13);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "To";
             // 
             // menuStrip1
             // 
@@ -306,75 +156,6 @@ namespace TTG_Tools
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 21);
             this.fileToolStripMenuItem.Text = "File";
-            // 
-            // toolsToolStripMenuItem
-            // 
-            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.archivePackerToolStripMenuItem,
-            this.archiveUnpackerToolStripMenuItem,
-            this.ttarch2ScannerToolStripMenuItem,
-            this.quickToolsToolStripMenuItem});
-            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
-            this.toolsToolStripMenuItem.Text = "Tools";
-            // 
-            // archivePackerToolStripMenuItem
-            // 
-            this.archivePackerToolStripMenuItem.Name = "archivePackerToolStripMenuItem";
-            this.archivePackerToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
-            this.archivePackerToolStripMenuItem.Text = "Archive Packer";
-            this.archivePackerToolStripMenuItem.Click += new System.EventHandler(this.archivePackerToolStripMenuItem_Click);
-            // 
-            // archiveUnpackerToolStripMenuItem
-            // 
-            this.archiveUnpackerToolStripMenuItem.Name = "archiveUnpackerToolStripMenuItem";
-            this.archiveUnpackerToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
-            this.archiveUnpackerToolStripMenuItem.Text = "Archive Unpacker";
-            this.archiveUnpackerToolStripMenuItem.Click += new System.EventHandler(this.archiveUnpackerToolStripMenuItem_Click);
-            // 
-            // ttarch2ScannerToolStripMenuItem
-            // 
-            this.ttarch2ScannerToolStripMenuItem.Name = "ttarch2ScannerToolStripMenuItem";
-            this.ttarch2ScannerToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
-            this.ttarch2ScannerToolStripMenuItem.Text = "Ttarch2 Scanner";
-            this.ttarch2ScannerToolStripMenuItem.Click += new System.EventHandler(this.ttarch2ScannerToolStripMenuItem_Click);
-            // 
-            // quickToolsToolStripMenuItem
-            // 
-            this.quickToolsToolStripMenuItem.Name = "quickToolsToolStripMenuItem";
-            this.quickToolsToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
-            this.quickToolsToolStripMenuItem.Text = "Quick Tools...";
-            this.quickToolsToolStripMenuItem.Click += new System.EventHandler(this.quickToolsToolStripMenuItem_Click);
-            // 
-            // settingsToolStripMenuItem
-            // 
-            this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.settingsFormToolStripMenuItem});
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
-            this.settingsToolStripMenuItem.Text = "Settings";
-            // 
-            // settingsFormToolStripMenuItem
-            // 
-            this.settingsFormToolStripMenuItem.Name = "settingsFormToolStripMenuItem";
-            this.settingsFormToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
-            this.settingsFormToolStripMenuItem.Text = "Settings";
-            this.settingsFormToolStripMenuItem.Click += new System.EventHandler(this.settingsFormToolStripMenuItem_Click);
-            // 
-            // helpToolStripMenuItem
-            // 
-            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem});
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
-            this.helpToolStripMenuItem.Text = "Help";
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // newFontToolStripMenuItem
             // 
@@ -421,6 +202,75 @@ namespace TTG_Tools
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.archivePackerToolStripMenuItem,
+            this.archiveUnpackerToolStripMenuItem,
+            this.ttarch2ScannerToolStripMenuItem,
+            this.quickToolsToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // archivePackerToolStripMenuItem
+            // 
+            this.archivePackerToolStripMenuItem.Name = "archivePackerToolStripMenuItem";
+            this.archivePackerToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.archivePackerToolStripMenuItem.Text = "Archive Packer";
+            this.archivePackerToolStripMenuItem.Click += new System.EventHandler(this.archivePackerToolStripMenuItem_Click);
+            // 
+            // archiveUnpackerToolStripMenuItem
+            // 
+            this.archiveUnpackerToolStripMenuItem.Name = "archiveUnpackerToolStripMenuItem";
+            this.archiveUnpackerToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.archiveUnpackerToolStripMenuItem.Text = "Archive Unpacker";
+            this.archiveUnpackerToolStripMenuItem.Click += new System.EventHandler(this.archiveUnpackerToolStripMenuItem_Click);
+            // 
+            // ttarch2ScannerToolStripMenuItem
+            // 
+            this.ttarch2ScannerToolStripMenuItem.Name = "ttarch2ScannerToolStripMenuItem";
+            this.ttarch2ScannerToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.ttarch2ScannerToolStripMenuItem.Text = "Ttarch2 Scanner";
+            this.ttarch2ScannerToolStripMenuItem.Click += new System.EventHandler(this.ttarch2ScannerToolStripMenuItem_Click);
+            // 
+            // quickToolsToolStripMenuItem
+            // 
+            this.quickToolsToolStripMenuItem.Name = "quickToolsToolStripMenuItem";
+            this.quickToolsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.quickToolsToolStripMenuItem.Text = "Quick Tools...";
+            this.quickToolsToolStripMenuItem.Click += new System.EventHandler(this.quickToolsToolStripMenuItem_Click);
+            // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.settingsFormToolStripMenuItem});
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(66, 21);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            // 
+            // settingsFormToolStripMenuItem
+            // 
+            this.settingsFormToolStripMenuItem.Name = "settingsFormToolStripMenuItem";
+            this.settingsFormToolStripMenuItem.Size = new System.Drawing.Size(122, 22);
+            this.settingsFormToolStripMenuItem.Text = "Settings";
+            this.settingsFormToolStripMenuItem.Click += new System.EventHandler(this.settingsFormToolStripMenuItem_Click);
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // dataGridViewWithTextures
             // 
@@ -767,77 +617,6 @@ namespace TTG_Tools
             this.rbKerning.Text = "with Kerning";
             this.rbKerning.UseVisualStyleBackColor = true;
             // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.radioButtonXstart);
-            this.groupBox3.Controls.Add(this.radioButtonXend);
-            this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Controls.Add(this.textBox1);
-            this.groupBox3.Controls.Add(this.button1);
-            this.groupBox3.Location = new System.Drawing.Point(12, 299);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.groupBox3.Size = new System.Drawing.Size(186, 125);
-            this.groupBox3.TabIndex = 29;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Change char width to:";
-            this.groupBox3.Visible = false;
-            // 
-            // radioButtonXstart
-            // 
-            this.radioButtonXstart.AutoSize = true;
-            this.radioButtonXstart.Location = new System.Drawing.Point(67, 47);
-            this.radioButtonXstart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.radioButtonXstart.Name = "radioButtonXstart";
-            this.radioButtonXstart.Size = new System.Drawing.Size(57, 17);
-            this.radioButtonXstart.TabIndex = 4;
-            this.radioButtonXstart.Text = "X start";
-            this.radioButtonXstart.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonXend
-            // 
-            this.radioButtonXend.AutoSize = true;
-            this.radioButtonXend.Checked = true;
-            this.radioButtonXend.Location = new System.Drawing.Point(7, 47);
-            this.radioButtonXend.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.radioButtonXend.Name = "radioButtonXend";
-            this.radioButtonXend.Size = new System.Drawing.Size(52, 17);
-            this.radioButtonXend.TabIndex = 3;
-            this.radioButtonXend.TabStop = true;
-            this.radioButtonXend.Text = "X end";
-            this.radioButtonXend.UseVisualStyleBackColor = true;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(71, 22);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(38, 13);
-            this.label5.TabIndex = 2;
-            this.label5.Text = "pixels.";
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(7, 18);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(58, 21);
-            this.textBox1.TabIndex = 1;
-            this.textBox1.Text = "0";
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(7, 69);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(148, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Change";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // groupBox4
             // 
             this.groupBox4.Controls.Add(this.rbSwitchSwizzle);
@@ -846,7 +625,7 @@ namespace TTG_Tools
             this.groupBox4.Controls.Add(this.rbPSVitaSwizzle);
             this.groupBox4.Controls.Add(this.rbWiiSwizzle);
             this.groupBox4.Controls.Add(this.rbNoSwizzle);
-            this.groupBox4.Location = new System.Drawing.Point(12, 734);
+            this.groupBox4.Location = new System.Drawing.Point(7, 706);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(186, 153);
             this.groupBox4.TabIndex = 30;
@@ -960,7 +739,7 @@ namespace TTG_Tools
             this.groupBoxMatchTextures.Controls.Add(this.comboBoxProfiles);
             this.groupBoxMatchTextures.Controls.Add(this.buttonPickFont);
             this.groupBoxMatchTextures.Controls.Add(this.textBoxGenFont);
-            this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 430);
+            this.groupBoxMatchTextures.Location = new System.Drawing.Point(13, 184);
             this.groupBoxMatchTextures.Name = "groupBoxMatchTextures";
             this.groupBoxMatchTextures.Size = new System.Drawing.Size(185, 226);
             this.groupBoxMatchTextures.TabIndex = 33;
@@ -1096,12 +875,39 @@ namespace TTG_Tools
             this.groupBoxFntAdjust.Controls.Add(this.labelYoffsetAdjust2);
             this.groupBoxFntAdjust.Controls.Add(this.textBoxYoffsetAdjust);
             this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
-            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 658);
+            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 416);
             this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
             this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 90);
             this.groupBoxFntAdjust.TabIndex = 35;
             this.groupBoxFntAdjust.TabStop = false;
             this.groupBoxFntAdjust.Text = "FNT Adjust";
+            // 
+            // labelYAdjust
+            // 
+            this.labelYAdjust.AutoSize = true;
+            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
+            this.labelYAdjust.Name = "labelYAdjust";
+            this.labelYAdjust.Size = new System.Drawing.Size(36, 13);
+            this.labelYAdjust.TabIndex = 3;
+            this.labelYAdjust.Text = "Y Adj:";
+            // 
+            // textBoxYAdjust
+            // 
+            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
+            this.textBoxYAdjust.Name = "textBoxYAdjust";
+            this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
+            this.textBoxYAdjust.TabIndex = 4;
+            this.textBoxYAdjust.Text = "20";
+            // 
+            // buttonApplyYAdjust
+            // 
+            this.buttonApplyYAdjust.Location = new System.Drawing.Point(134, 42);
+            this.buttonApplyYAdjust.Name = "buttonApplyYAdjust";
+            this.buttonApplyYAdjust.Size = new System.Drawing.Size(24, 23);
+            this.buttonApplyYAdjust.TabIndex = 5;
+            this.buttonApplyYAdjust.Text = ">";
+            this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
+            this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
             // 
             // labelYoffsetAdjust2
             // 
@@ -1129,60 +935,6 @@ namespace TTG_Tools
             this.buttonApplyYoffsetAdjust.Text = ">";
             this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
             this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
-            // 
-            // labelYAdjust
-            // 
-            this.labelYAdjust.AutoSize = true;
-            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
-            this.labelYAdjust.Name = "labelYAdjust";
-            this.labelYAdjust.Size = new System.Drawing.Size(41, 13);
-            this.labelYAdjust.TabIndex = 3;
-            this.labelYAdjust.Text = "Y Adj:";
-            // 
-            // textBoxYAdjust
-            // 
-            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
-            this.textBoxYAdjust.Name = "textBoxYAdjust";
-            this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
-            this.textBoxYAdjust.TabIndex = 4;
-            this.textBoxYAdjust.Text = "20";
-            // 
-            // buttonApplyYAdjust
-            // 
-            this.buttonApplyYAdjust.Location = new System.Drawing.Point(134, 42);
-            this.buttonApplyYAdjust.Name = "buttonApplyYAdjust";
-            this.buttonApplyYAdjust.Size = new System.Drawing.Size(24, 23);
-            this.buttonApplyYAdjust.TabIndex = 5;
-            this.buttonApplyYAdjust.Text = ">";
-            this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
-            this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
-            // 
-            // labelYAdjust
-            // 
-            this.labelYAdjust.AutoSize = true;
-            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
-            this.labelYAdjust.Name = "labelYAdjust";
-            this.labelYAdjust.Size = new System.Drawing.Size(41, 13);
-            this.labelYAdjust.TabIndex = 3;
-            this.labelYAdjust.Text = "Y Adj:";
-            // 
-            // textBoxYAdjust
-            // 
-            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
-            this.textBoxYAdjust.Name = "textBoxYAdjust";
-            this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
-            this.textBoxYAdjust.TabIndex = 4;
-            this.textBoxYAdjust.Text = "20";
-            // 
-            // buttonApplyYAdjust
-            // 
-            this.buttonApplyYAdjust.Location = new System.Drawing.Point(134, 42);
-            this.buttonApplyYAdjust.Name = "buttonApplyYAdjust";
-            this.buttonApplyYAdjust.Size = new System.Drawing.Size(24, 23);
-            this.buttonApplyYAdjust.TabIndex = 5;
-            this.buttonApplyYAdjust.Text = ">";
-            this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
-            this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
             // 
             // textBoxLogOutput
             // 
@@ -1213,14 +965,12 @@ namespace TTG_Tools
             this.Controls.Add(this.buttonSaveLogAs);
             this.Controls.Add(this.groupBoxMatchTextures);
             this.Controls.Add(this.groupBox4);
-            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.labelTexturePreview);
             this.Controls.Add(this.pictureBoxTexturePreview);
             this.Controls.Add(this.dataGridViewWithCoord);
             this.Controls.Add(this.dataGridViewWithTextures);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.menuStrip1);
-            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.groupBoxFntAdjust);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
@@ -1232,8 +982,6 @@ namespace TTG_Tools
             this.Text = "TTG Font Creator";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FontEditor_FormClosing);
             this.Load += new System.EventHandler(this.FontEditor_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWithTextures)).EndInit();
@@ -1242,8 +990,6 @@ namespace TTG_Tools
             this.contextMenuStripExp_imp_Coord.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxTexturePreview)).EndInit();
@@ -1258,14 +1004,6 @@ namespace TTG_Tools
 
         #endregion
 
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.TextBox textBox8;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.Button buttonCopyCoordinates;
-        private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.TextBox textBox9;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
@@ -1273,9 +1011,6 @@ namespace TTG_Tools
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.DataGridView dataGridViewWithTextures;
         internal System.Windows.Forms.DataGridView dataGridViewWithCoord;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button buttonClear;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripExport_Import;
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importDDSToolStripMenuItem;
@@ -1297,16 +1032,10 @@ namespace TTG_Tools
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.RadioButton rbNoKerning;
         private System.Windows.Forms.RadioButton rbKerning;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label labelFontName;
         private System.Windows.Forms.Label labelSearchChar;
         private System.Windows.Forms.TextBox textBoxSearchChar;
         private System.Windows.Forms.Button buttonPreviewChar;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.RadioButton radioButtonXstart;
-        private System.Windows.Forms.RadioButton radioButtonXend;
         private System.Windows.Forms.ToolStripMenuItem toolStripImportFNT;
         private System.Windows.Forms.ToolStripMenuItem removeDuplicatesCharsToolStripMenuItem;
         private System.Windows.Forms.GroupBox groupBox4;

@@ -279,128 +279,15 @@ namespace TTG_Tools
             }
         }
 
-        private void textBox8_TextChanged(object sender, EventArgs e)
-        {
-            label1.Text = "(" + textBox8.Text.Length.ToString() + ")";
-        }
+        
 
-        private void textBox9_TextChanged(object sender, EventArgs e)
-        {
-            label2.Text = "(" + textBox9.Text.Length.ToString() + ")";
-        }
+        
 
-        private void buttonClear_Click(object sender, EventArgs e)
-        {
-            textBox8.Text = "";
-            textBox9.Text = "";
-            label1.Text = "(0)";
-            label2.Text = "(0)";
-            checkBox1.Checked = true;
-            checkBox2.Checked = true;
-        }
+        
 
-        private void buttonCopyCoordinates_Click(object sender, EventArgs e)
-        {
-            string ch1 = textBox8.Text;
-            string ch2 = textBox9.Text;
-            if (ch1.Length == ch2.Length)
-            {
-                for (int i = 0; i < ch1.Length; i++)
-                {
-                    int f = Convert.ToInt32(ASCIIEncoding.GetEncoding(AppData.settings.ASCII_N).GetBytes(ch1[i].ToString())[0]);
-                    int s = Convert.ToInt32(ASCIIEncoding.GetEncoding(AppData.settings.ASCII_N).GetBytes(ch2[i].ToString())[0]);
-                    int first = 0;
-                    int second = 0;
-                    for (int j = 0; j < dataGridViewWithCoord.RowCount; j++)
-                    {
-                        if (Convert.ToInt32(dataGridViewWithCoord[0, j].Value) == f)
-                        {
-                            first = j;
-                        }
-                        if (Convert.ToInt32(dataGridViewWithCoord[0, j].Value) == s)
-                        {
-                            second = j;
-                        }
-                    }
+        
 
-                    CopyDataIndataGridViewWithCoord(6, first, second);
-                    CopyDataIndataGridViewWithCoord(7, first, second);
-                    CopyDataIndataGridViewWithCoord(8, first, second);
-                    CopyDataIndataGridViewWithCoord(9, first, second);
-                    CopyDataIndataGridViewWithCoord(10, first, second);
-                    CopyDataIndataGridViewWithCoord(11, first, second);
-                    CopyDataIndataGridViewWithCoord(12, first, second);
-
-                    if (checkBox1.Checked == true)
-                    {
-                        CopyDataIndataGridViewWithCoord(2, first, second);
-                        CopyDataIndataGridViewWithCoord(3, first, second);
-                    }
-                    if (checkBox2.Checked == true)
-                    {
-                        CopyDataIndataGridViewWithCoord(4, first, second);
-                        CopyDataIndataGridViewWithCoord(5, first, second);
-                    }
-                }
-            }
-            else if (ch1.Length == 1)
-            {
-                for (int i = 0; i < ch2.Length; i++)
-                {
-                    int f = Convert.ToInt32(ASCIIEncoding.GetEncoding(AppData.settings.ASCII_N).GetBytes(ch1[i].ToString())[0]);
-                    int s = Convert.ToInt32(ASCIIEncoding.GetEncoding(AppData.settings.ASCII_N).GetBytes(ch2[i].ToString())[0]);
-                    int first = 0;
-                    int second = 0;
-                    for (int j = 0; j < dataGridViewWithCoord.RowCount; j++)
-                    {
-                        if (Convert.ToInt32(dataGridViewWithCoord[0, j].Value) == f)
-                        {
-                            first = j;
-                        }
-                        if (Convert.ToInt32(dataGridViewWithCoord[0, j].Value) == s)
-                        {
-                            second = j;
-                        }
-                    }
-
-                    CopyDataIndataGridViewWithCoord(6, first, second);
-                    CopyDataIndataGridViewWithCoord(7, first, second);
-                    CopyDataIndataGridViewWithCoord(8, first, second);
-                    CopyDataIndataGridViewWithCoord(9, first, second);
-                    CopyDataIndataGridViewWithCoord(10, first, second);
-                    CopyDataIndataGridViewWithCoord(11, first, second);
-                    CopyDataIndataGridViewWithCoord(12, first, second);
-
-                    if (checkBox1.Checked == true)
-                    {
-                        CopyDataIndataGridViewWithCoord(2, first, second);
-                        CopyDataIndataGridViewWithCoord(3, first, second);
-                    }
-                    if (checkBox2.Checked == true)
-                    {
-                        CopyDataIndataGridViewWithCoord(4, first, second);
-                        CopyDataIndataGridViewWithCoord(5, first, second);
-                    }
-                }
-            }
-        }
-
-        private void CopyDataIndataGridViewWithCoord(int column, int first, int second)
-        {
-            // Check if cells exist before accessing them
-            if (dataGridViewWithCoord.RowCount > first && dataGridViewWithCoord.RowCount > second &&
-                dataGridViewWithCoord.ColumnCount > column)
-            {
-                var sourceCell = dataGridViewWithCoord[column, first];
-                var destCell = dataGridViewWithCoord[column, second];
-
-                if (sourceCell != null && destCell != null)
-                {
-                    destCell.Value = sourceCell.Value;
-                    destCell.Style.BackColor = System.Drawing.Color.Green;
-                }
-            }
-        }
+        
 
         private void contextMenuStripExport_Import_Opening(object sender, CancelEventArgs e)
         {
@@ -998,26 +885,7 @@ namespace TTG_Tools
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (Methods.IsNumeric(textBox1.Text))
-            {
-                int w = Convert.ToInt32(textBox1.Text);
-                for (int i = 0; i < dataGridViewWithCoord.RowCount; i++)
-                {
-                    if (radioButtonXend.Checked)
-                    {
-                        dataGridViewWithCoord[3, i].Value = Convert.ToInt32(dataGridViewWithCoord[3, i].Value) + w;
-                    }
-                    else
-                    {
-                        dataGridViewWithCoord[2, i].Value = Convert.ToInt32(dataGridViewWithCoord[2, i].Value) + w;
-                    }
-                    dataGridViewWithCoord[7, i].Value = Convert.ToInt32(dataGridViewWithCoord[7, i].Value) + w;
-                    dataGridViewWithCoord[12, i].Value = Convert.ToInt32(dataGridViewWithCoord[12, i].Value) + w;
-                }
-            }
-        }
+        
 
         private void rbNoSwizzle_CheckedChanged(object sender, EventArgs e)
         {
@@ -1122,4 +990,7 @@ namespace TTG_Tools
         }
     }
 }
+
+
+
 

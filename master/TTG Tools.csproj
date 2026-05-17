@@ -166,13 +166,27 @@
     <Compile Include="FontEditor.Designer.cs">
       <DependentUpon>FontEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="FontEditor.FileOperations.cs" />
-    <Compile Include="FontEditor.TextureOperations.cs" />
-    <Compile Include="FontEditor.UIHandlers.cs" />
-    <Compile Include="FontEditor.CharacterGenerator.cs" />
-    <Compile Include="FontEditor.FntImporter.cs" />
-    <Compile Include="FontEditor.MissingCharDetector.cs" />
-    <Compile Include="FontEditor.Utilities.cs" />
+    <Compile Include="FontEditor.FileOperations.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.TextureOperations.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.UIHandlers.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.CharacterGenerator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.FntImporter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.MissingCharDetector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FontEditor.Utilities.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FormSettings.cs">
       <SubType>Form</SubType>
     </Compile>

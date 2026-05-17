@@ -120,6 +120,9 @@
             this.labelYoffsetAdjust2 = new System.Windows.Forms.Label();
             this.textBoxYoffsetAdjust = new System.Windows.Forms.TextBox();
             this.buttonApplyYoffsetAdjust = new System.Windows.Forms.Button();
+            this.labelYAdjust = new System.Windows.Forms.Label();
+            this.textBoxYAdjust = new System.Windows.Forms.TextBox();
+            this.buttonApplyYAdjust = new System.Windows.Forms.Button();
             this.textBoxLogOutput = new System.Windows.Forms.TextBox();
             this.buttonSaveLogAs = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
@@ -1001,12 +1004,15 @@
             // 
             // groupBoxFntAdjust
             // 
+            this.groupBoxFntAdjust.Controls.Add(this.labelYAdjust);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxYAdjust);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYAdjust);
             this.groupBoxFntAdjust.Controls.Add(this.labelYoffsetAdjust2);
             this.groupBoxFntAdjust.Controls.Add(this.textBoxYoffsetAdjust);
             this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
-            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 662);
+            this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 658);
             this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
-            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 50);
+            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 70);
             this.groupBoxFntAdjust.TabIndex = 35;
             this.groupBoxFntAdjust.TabStop = false;
             this.groupBoxFntAdjust.Text = "FNT Adjust";
@@ -1037,6 +1043,33 @@
             this.buttonApplyYoffsetAdjust.Text = ">";
             this.buttonApplyYoffsetAdjust.UseVisualStyleBackColor = true;
             this.buttonApplyYoffsetAdjust.Click += new System.EventHandler(this.buttonApplyYoffsetAdjust_Click);
+            // 
+            // labelYAdjust
+            // 
+            this.labelYAdjust.AutoSize = true;
+            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
+            this.labelYAdjust.Name = "labelYAdjust";
+            this.labelYAdjust.Size = new System.Drawing.Size(41, 13);
+            this.labelYAdjust.TabIndex = 3;
+            this.labelYAdjust.Text = "Y Adj:";
+            // 
+            // textBoxYAdjust
+            // 
+            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
+            this.textBoxYAdjust.Name = "textBoxYAdjust";
+            this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
+            this.textBoxYAdjust.TabIndex = 4;
+            this.textBoxYAdjust.Text = "20";
+            // 
+            // buttonApplyYAdjust
+            // 
+            this.buttonApplyYAdjust.Location = new System.Drawing.Point(134, 42);
+            this.buttonApplyYAdjust.Name = "buttonApplyYAdjust";
+            this.buttonApplyYAdjust.Size = new System.Drawing.Size(24, 23);
+            this.buttonApplyYAdjust.TabIndex = 5;
+            this.buttonApplyYAdjust.Text = ">";
+            this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
+            this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
             // 
             // textBoxLogOutput
             // 
@@ -1171,6 +1204,9 @@
         private System.Windows.Forms.Label labelYoffsetAdjust2;
         private System.Windows.Forms.TextBox textBoxYoffsetAdjust;
         private System.Windows.Forms.Button buttonApplyYoffsetAdjust;
+        private System.Windows.Forms.Label labelYAdjust;
+        private System.Windows.Forms.TextBox textBoxYAdjust;
+        private System.Windows.Forms.Button buttonApplyYAdjust;
         private System.Windows.Forms.Label labelFontSizeAdjust;
         private System.Windows.Forms.TextBox textBoxFontSizeAdjust;
         private System.Windows.Forms.Button buttonGenerateMissingChars;

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -203,6 +204,58 @@ namespace TTG_Tools
             fillTableofCoordinates(font, false);
             edited = true;
             textBoxLogOutput.AppendText($"[YOffset] Applied adjustment: {adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
+        private void buttonApplyYAdjust_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+
+            string input = textBoxYAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid Y Adj value. Enter a number (e.g., 20, -10, +5).", "Error");
+                return;
+            }
+
+            if (font.NewFormat)
+            {
+                if (font.glyph.charsNew == null)
+                {
+                    MessageBox.Show("No character data loaded.", "Error");
+                    return;
+                }
+
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    if (font.glyph.charsNew[i] == null) continue;
+                    font.glyph.charsNew[i].YStart += adjustment;
+                    font.glyph.charsNew[i].YEnd += adjustment;
+                }
+            }
+            else
+            {
+                if (font.glyph.chars == null)
+                {
+                    MessageBox.Show("No character data loaded.", "Error");
+                    return;
+                }
+
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    font.glyph.chars[i].YStart += adjustment;
+                    font.glyph.chars[i].YEnd += adjustment;
+                }
+            }
+
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[Y Adj] Applied y= adjustment: {adjustment} to all {font.glyph.CharCount} characters.\r\n");
         }
 
         private void buttonPickFont_Click(object sender, EventArgs e)
@@ -684,6 +737,9 @@ namespace TTG_Tools
                 // Update preview
                 UpdateTexturePreview();
 
+                // Show a dedicated detail window with zoomed crop around the glyph.
+                ShowGlyphDetailPreview(foundRow, foundTexNum, searchChar);
+
                 textBoxLogOutput.AppendText($"  Found at row {foundRow + 1}, texture page {foundTexNum}\r\n");
 
                 // Log character details
@@ -694,8 +750,6 @@ namespace TTG_Tools
                     textBoxLogOutput.AppendText($"  XOffset={ch.XOffset} YOffset={ch.YOffset} XAdvance={ch.XAdvance}\r\n");
                 }
 
-                MessageBox.Show($"Found character '{searchChar}' at row {foundRow + 1} in texture {foundTexNum}.",
-                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -703,6 +757,124 @@ namespace TTG_Tools
                 MessageBox.Show($"Character '{searchChar}' (code: {charCode}) not found in this font.",
                     "Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void ShowGlyphDetailPreview(int rowIndex, int texNum, string searchChar)
+        {
+            if (basePreviewBitmap == null)
+            {
+                return;
+            }
+
+            float xStart;
+            float xEnd;
+            float yStart;
+            float yEnd;
+            int rowTexNum;
+
+            if (!TryGetGlyphRectFromRow(rowIndex, out xStart, out xEnd, out yStart, out yEnd, out rowTexNum))
+            {
+                return;
+            }
+
+            if (rowTexNum != texNum)
+            {
+                return;
+            }
+
+            int glyphLeft = Math.Max(0, Math.Min(basePreviewBitmap.Width - 1, (int)Math.Floor(xStart)));
+            int glyphTop = Math.Max(0, Math.Min(basePreviewBitmap.Height - 1, (int)Math.Floor(yStart)));
+            int glyphRight = Math.Max(glyphLeft + 1, Math.Min(basePreviewBitmap.Width, (int)Math.Ceiling(xEnd)));
+            int glyphBottom = Math.Max(glyphTop + 1, Math.Min(basePreviewBitmap.Height, (int)Math.Ceiling(yEnd)));
+
+            int glyphWidth = Math.Max(1, glyphRight - glyphLeft);
+            int glyphHeight = Math.Max(1, glyphBottom - glyphTop);
+            int margin = Math.Max(24, Math.Max(glyphWidth, glyphHeight) / 2);
+
+            int cropLeft = Math.Max(0, glyphLeft - margin);
+            int cropTop = Math.Max(0, glyphTop - margin);
+            int cropRight = Math.Min(basePreviewBitmap.Width, glyphRight + margin);
+            int cropBottom = Math.Min(basePreviewBitmap.Height, glyphBottom + margin);
+            int cropWidth = Math.Max(1, cropRight - cropLeft);
+            int cropHeight = Math.Max(1, cropBottom - cropTop);
+
+            Rectangle cropRect = new Rectangle(cropLeft, cropTop, cropWidth, cropHeight);
+            Bitmap cropped = new Bitmap(cropWidth, cropHeight);
+
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(cropped))
+            {
+                g.DrawImage(basePreviewBitmap, new Rectangle(0, 0, cropWidth, cropHeight), cropRect, GraphicsUnit.Pixel);
+
+                int rectX = glyphLeft - cropLeft;
+                int rectY = glyphTop - cropTop;
+                int rectW = Math.Max(1, glyphWidth);
+                int rectH = Math.Max(1, glyphHeight);
+                using (Pen pen = new Pen(Color.Red, 2f))
+                {
+                    g.DrawRectangle(pen, rectX, rectY, rectW, rectH);
+                }
+            }
+
+            const int scale = 1; // Keep exact 1:1 pixel mapping for edge inspection.
+            Bitmap zoomed = new Bitmap(cropWidth * scale, cropHeight * scale);
+
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(zoomed))
+            {
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+                g.SmoothingMode = SmoothingMode.None;
+                g.Clear(Color.Black);
+                g.DrawImage(cropped, new Rectangle(0, 0, zoomed.Width, zoomed.Height), new Rectangle(0, 0, cropWidth, cropHeight), GraphicsUnit.Pixel);
+            }
+
+            cropped.Dispose();
+
+            Form detailForm = new Form();
+            detailForm.Text = $"Glyph Detail U+{Convert.ToInt32(searchChar[0]):X4} '{searchChar}' (row {rowIndex + 1}, page {texNum})";
+            detailForm.StartPosition = FormStartPosition.Manual;
+
+            int preferredWidth = Math.Min(1100, zoomed.Width + 20);
+            int preferredHeight = Math.Min(900, zoomed.Height + 20);
+            int clientWidth = Math.Max(720, preferredWidth);
+            int clientHeight = Math.Max(420, preferredHeight);
+            detailForm.ClientSize = new Size(clientWidth, clientHeight);
+
+            Rectangle workingArea = Screen.FromControl(this).WorkingArea;
+            int desiredLeft = this.Left + 36;
+            int desiredTop = this.Top + 72;
+            int maxLeft = Math.Max(workingArea.Left, workingArea.Right - detailForm.Width);
+            int maxTop = Math.Max(workingArea.Top, workingArea.Bottom - detailForm.Height);
+            int popupLeft = Math.Max(workingArea.Left, Math.Min(desiredLeft, maxLeft));
+            int popupTop = Math.Max(workingArea.Top, Math.Min(desiredTop, maxTop));
+            detailForm.Location = new Point(popupLeft, popupTop);
+
+            Panel scrollPanel = new Panel();
+            scrollPanel.Dock = DockStyle.Fill;
+            scrollPanel.AutoScroll = true;
+            scrollPanel.BackColor = Color.Black;
+
+            PictureBox detailPicture = new PictureBox();
+            detailPicture.Location = new Point(0, 0);
+            detailPicture.Size = new Size(zoomed.Width, zoomed.Height);
+            detailPicture.BackColor = Color.Black;
+            detailPicture.SizeMode = PictureBoxSizeMode.Normal;
+            detailPicture.Image = zoomed;
+
+            scrollPanel.Controls.Add(detailPicture);
+            detailForm.Controls.Add(scrollPanel);
+            detailForm.FormClosed += (s, e) =>
+            {
+                if (detailPicture.Image != null)
+                {
+                    detailPicture.Image.Dispose();
+                    detailPicture.Image = null;
+                }
+                detailPicture.Dispose();
+                scrollPanel.Dispose();
+                detailForm.Dispose();
+            };
+
+            detailForm.Show(this);
         }
 
         private void textBoxSearchChar_KeyDown(object sender, KeyEventArgs e)

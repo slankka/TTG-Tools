@@ -51,7 +51,7 @@ namespace TTG_Tools
                     font.texSize = 0;
                     font.hasOneFloatValue = false;
                     font.LastZero = 0;
-                    font.NewSomeValue = 0;
+                    font.FntBaseLine = 0;
 
                     // Initialize default 6VSM elements for game runtime compatibility.
                     InitializeDefault6VsmElements(font);
@@ -158,6 +158,11 @@ namespace TTG_Tools
                             fntFaceName = faceName; // Always capture for ObjectName generation
                             if (!string.IsNullOrEmpty(faceName) && (string.IsNullOrEmpty(font.FontName) || font.FontName == "NewFont"))
                                 font.FontName = faceName;
+
+                            // Capture info size (point size) for export preservation
+                            string sizeStr = GetFntAttributeValue(strings[m], "size");
+                            if (!string.IsNullOrEmpty(sizeStr) && float.TryParse(sizeStr, out float infoSize))
+                                font.FntInfoSize = infoSize;
                         }
 
                         if (strings[m].ToLower().Contains("common lineheight"))
@@ -168,7 +173,7 @@ namespace TTG_Tools
                                 switch (splitted[k].ToLower())
                                 {
                                     case "lineheight":
-                                        font.BaseSize = Convert.ToSingle(splitted[k + 1]);
+                                        font.FntLineHeight = Convert.ToSingle(splitted[k + 1]);
 
                                         if(check_header != null && Encoding.ASCII.GetString(check_header) == "5VSM" && font.hasLineHeight)
                                         {
@@ -180,9 +185,9 @@ namespace TTG_Tools
                                         if (check_header != null && ((font.One == 0x31 && (Encoding.ASCII.GetString(check_header) == "5VSM"))
                                             || (Encoding.ASCII.GetString(check_header) == "6VSM")))
                                         {
-                                            font.NewSomeValue = Convert.ToSingle(splitted[k + 1]);
+                                            font.FntBaseLine = Convert.ToSingle(splitted[k + 1]);
                                         }
-                                        else font.BaseSize = Convert.ToSingle(splitted[k + 1]);
+                                        else font.FntLineHeight = Convert.ToSingle(splitted[k + 1]);
                                         break;
 
                                     case "pages":
@@ -231,6 +236,8 @@ namespace TTG_Tools
                                     break;
                                 }
                             }
+                            // Log FNT header values after parsing common block
+                            textBoxLogOutput.AppendText($"[FNT Import] info size={font.FntInfoSize}, common lineHeight={font.FntLineHeight}, common base={font.FntBaseLine}, header={Encoding.ASCII.GetString(check_header ?? new byte[0])}\r\n");
                         }
 
                         if (strings[m].Contains("page id"))
@@ -396,6 +403,10 @@ namespace TTG_Tools
                             string faceName = GetFntAttributeValue(strings[m], "face");
                             if (!string.IsNullOrEmpty(faceName) && (string.IsNullOrEmpty(font.FontName) || font.FontName == "NewFont"))
                                 font.FontName = faceName;
+
+                            string sizeStr = GetFntAttributeValue(strings[m], "size");
+                            if (!string.IsNullOrEmpty(sizeStr) && float.TryParse(sizeStr, out float infoSize))
+                                font.FntInfoSize = infoSize;
                         }
                         else if (strings[m].ToLower().Contains("unicode"))
                         {
@@ -411,7 +422,7 @@ namespace TTG_Tools
                                 switch (splitted[k].ToLower())
                                 {
                                     case "lineheight":
-                                        font.BaseSize = Convert.ToSingle(splitted[k + 1]);
+                                        font.FntLineHeight = Convert.ToSingle(splitted[k + 1]);
                                         break;
 
                                     case "pages":
@@ -435,6 +446,8 @@ namespace TTG_Tools
                                         break;
                                 }
                             }
+                            // Log FNT header values after parsing common block (old format)
+                            textBoxLogOutput.AppendText($"[FNT Import] info size={font.FntInfoSize}, common lineHeight={font.FntLineHeight}, common base={(font.FntBaseLine)}, header=old/ERTM\r\n");
                         }
 
                         if (strings[m].Contains("page id"))
@@ -587,6 +600,8 @@ namespace TTG_Tools
 
                     fillTableofCoordinates(font, true);
                     edited = true;
+
+                    PopulateFntAdjustFields();
 
                     // Enable Save/Export functions after successful import
                     saveToolStripMenuItem.Enabled = true;

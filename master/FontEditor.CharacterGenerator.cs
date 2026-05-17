@@ -96,9 +96,9 @@ namespace TTG_Tools
 
             // Save original font parameters before any modifications
             string originalFontName = font.FontName;
-            float originalBaseSize = font.BaseSize;
+            float originalBaseSize = font.FntLineHeight;
             float originalLineHeight = font.lineHeight;
-            float originalNewSomeValue = font.NewSomeValue;
+            float originalBaseLine = font.FntBaseLine;
             // On regeneration, use the saved original page count (before first generation added pages)
             int originalPages = isRegeneration && lastOriginalPagesCount >= 0
                 ? lastOriginalPagesCount
@@ -106,9 +106,9 @@ namespace TTG_Tools
 
             textBoxLogOutput.AppendText($"Original font parameters:\r\n");
             textBoxLogOutput.AppendText($"  FontName: {originalFontName}\r\n");
-            textBoxLogOutput.AppendText($"  BaseSize: {originalBaseSize}\r\n");
+            textBoxLogOutput.AppendText($"  FntLineHeight: {originalBaseSize}\r\n");
             textBoxLogOutput.AppendText($"  lineHeight: {originalLineHeight}\r\n");
-            textBoxLogOutput.AppendText($"  NewSomeValue: {originalNewSomeValue}\r\n");
+            textBoxLogOutput.AppendText($"  FntBaseLine: {originalBaseLine}\r\n");
             textBoxLogOutput.AppendText($"  Pages: {originalPages} (NewTex.Length={font.NewTex?.Length ?? 0}, glyph.Pages={font.glyph.Pages})\r\n\r\n");
 
             // If regenerating, remove previously added characters and clear their pages for redraw
@@ -704,7 +704,7 @@ namespace TTG_Tools
             textBoxLogOutput.AppendText("==========================================\r\n\r\n");
 
             // Save FNT file with character data
-            SaveFontWithNewPages(savePath, initialCharCount, originalFontName, originalBaseSize, originalLineHeight, originalNewSomeValue, originalPages);
+            SaveFontWithNewPages(savePath, initialCharCount, originalFontName, originalBaseSize, originalLineHeight, originalBaseLine, originalPages);
 
             // Save complete .font file (contains all data including original + new characters)
             Methods.DeleteCurrentFile(savePath);
@@ -779,11 +779,11 @@ namespace TTG_Tools
 
         private void SaveFontWithNewPages(string savePath, int startCharIndex = 0,
             string originalFontName = null, float originalBaseSize = 0,
-            float originalLineHeight = 0, float originalNewSomeValue = 0, int originalPages = 0)
+            float originalLineHeight = 0, float originalBaseLine = 0, int originalPages = 0)
         {
             // Use original font parameters for FNT file
             string fontName = originalFontName ?? font.FontName;
-            float baseSize = (originalNewSomeValue > 0) ? originalNewSomeValue : originalBaseSize;
+            float baseSize = (originalBaseLine > 0) ? originalBaseLine : originalBaseSize;
             float lineHeight = (originalLineHeight > 0) ? originalLineHeight : originalBaseSize;
 
             // Only list NEW pages in the FNT (pages that were generated, not the original ones)

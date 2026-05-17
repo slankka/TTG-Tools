@@ -109,6 +109,25 @@ namespace TTG_Tools
             this.buttonPickFont = new System.Windows.Forms.Button();
             this.textBoxGenFont = new System.Windows.Forms.TextBox();
             this.groupBoxFntAdjust = new System.Windows.Forms.GroupBox();
+            this.labelSizeAdj = new System.Windows.Forms.Label();
+            this.textBoxSizeAdj = new System.Windows.Forms.TextBox();
+            this.buttonSizeApply = new System.Windows.Forms.Button();
+            this.labelLineHeightAdj = new System.Windows.Forms.Label();
+            this.textBoxLineHeightAdj = new System.Windows.Forms.TextBox();
+            this.buttonLHApply = new System.Windows.Forms.Button();
+            this.labelBaseAdj = new System.Windows.Forms.Label();
+            this.textBoxBaseAdj = new System.Windows.Forms.TextBox();
+            this.buttonBaseApply = new System.Windows.Forms.Button();
+            this.labelHeightAdj = new System.Windows.Forms.Label();
+            this.textBoxHeightAdj = new System.Windows.Forms.TextBox();
+            this.buttonHeightApply = new System.Windows.Forms.Button();
+            this.labelChannelAdj = new System.Windows.Forms.Label();
+            this.textBoxChannelAdj = new System.Windows.Forms.TextBox();
+            this.buttonChannelApply = new System.Windows.Forms.Button();
+            this.buttonYoffsetUp = new System.Windows.Forms.Button();
+            this.buttonYoffsetDown = new System.Windows.Forms.Button();
+            this.buttonYadjUp = new System.Windows.Forms.Button();
+            this.buttonYadjDown = new System.Windows.Forms.Button();
             this.labelYAdjust = new System.Windows.Forms.Label();
             this.textBoxYAdjust = new System.Windows.Forms.TextBox();
             this.buttonApplyYAdjust = new System.Windows.Forms.Button();
@@ -869,15 +888,32 @@ namespace TTG_Tools
             // 
             // groupBoxFntAdjust
             // 
+            this.groupBoxFntAdjust.Controls.Add(this.labelSizeAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxSizeAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonSizeApply);
+            this.groupBoxFntAdjust.Controls.Add(this.labelLineHeightAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxLineHeightAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonLHApply);
+            this.groupBoxFntAdjust.Controls.Add(this.labelBaseAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxBaseAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonBaseApply);
+            this.groupBoxFntAdjust.Controls.Add(this.labelHeightAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxHeightAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonHeightApply);
+            this.groupBoxFntAdjust.Controls.Add(this.labelChannelAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.textBoxChannelAdj);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonChannelApply);
             this.groupBoxFntAdjust.Controls.Add(this.labelYAdjust);
             this.groupBoxFntAdjust.Controls.Add(this.textBoxYAdjust);
-            this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYAdjust);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonYadjUp);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonYadjDown);
             this.groupBoxFntAdjust.Controls.Add(this.labelYoffsetAdjust2);
             this.groupBoxFntAdjust.Controls.Add(this.textBoxYoffsetAdjust);
-            this.groupBoxFntAdjust.Controls.Add(this.buttonApplyYoffsetAdjust);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonYoffsetUp);
+            this.groupBoxFntAdjust.Controls.Add(this.buttonYoffsetDown);
             this.groupBoxFntAdjust.Location = new System.Drawing.Point(13, 416);
             this.groupBoxFntAdjust.Name = "groupBoxFntAdjust";
-            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 90);
+            this.groupBoxFntAdjust.Size = new System.Drawing.Size(185, 230);
             this.groupBoxFntAdjust.TabIndex = 35;
             this.groupBoxFntAdjust.TabStop = false;
             this.groupBoxFntAdjust.Text = "FNT Adjust";
@@ -885,7 +921,7 @@ namespace TTG_Tools
             // labelYAdjust
             // 
             this.labelYAdjust.AutoSize = true;
-            this.labelYAdjust.Location = new System.Drawing.Point(7, 46);
+            this.labelYAdjust.Location = new System.Drawing.Point(7, 190);
             this.labelYAdjust.Name = "labelYAdjust";
             this.labelYAdjust.Size = new System.Drawing.Size(36, 13);
             this.labelYAdjust.TabIndex = 3;
@@ -893,7 +929,7 @@ namespace TTG_Tools
             // 
             // textBoxYAdjust
             // 
-            this.textBoxYAdjust.Location = new System.Drawing.Point(80, 43);
+            this.textBoxYAdjust.Location = new System.Drawing.Point(60, 187);
             this.textBoxYAdjust.Name = "textBoxYAdjust";
             this.textBoxYAdjust.Size = new System.Drawing.Size(44, 21);
             this.textBoxYAdjust.TabIndex = 4;
@@ -909,18 +945,193 @@ namespace TTG_Tools
             this.buttonApplyYAdjust.UseVisualStyleBackColor = true;
             this.buttonApplyYAdjust.Click += new System.EventHandler(this.buttonApplyYAdjust_Click);
             // 
+            // labelSizeAdj
+            // 
+            this.labelSizeAdj.AutoSize = true;
+            this.labelSizeAdj.Location = new System.Drawing.Point(7, 20);
+            this.labelSizeAdj.Name = "labelSizeAdj";
+            this.labelSizeAdj.Size = new System.Drawing.Size(33, 13);
+            this.labelSizeAdj.TabIndex = 10;
+            this.labelSizeAdj.Text = "Size:";
+            // 
+            // textBoxSizeAdj
+            // 
+            this.textBoxSizeAdj.Location = new System.Drawing.Point(60, 17);
+            this.textBoxSizeAdj.Name = "textBoxSizeAdj";
+            this.textBoxSizeAdj.Size = new System.Drawing.Size(50, 21);
+            this.textBoxSizeAdj.TabIndex = 11;
+            this.textBoxSizeAdj.Text = "0";
+            // 
+            // buttonSizeApply
+            // 
+            this.buttonSizeApply.Location = new System.Drawing.Point(116, 16);
+            this.buttonSizeApply.Name = "buttonSizeApply";
+            this.buttonSizeApply.Size = new System.Drawing.Size(60, 23);
+            this.buttonSizeApply.TabIndex = 12;
+            this.buttonSizeApply.Text = "Apply";
+            this.buttonSizeApply.UseVisualStyleBackColor = true;
+            this.buttonSizeApply.Click += new System.EventHandler(this.buttonSizeApply_Click);
+            // 
+            // labelLineHeightAdj
+            // 
+            this.labelLineHeightAdj.AutoSize = true;
+            this.labelLineHeightAdj.Location = new System.Drawing.Point(7, 46);
+            this.labelLineHeightAdj.Name = "labelLineHeightAdj";
+            this.labelLineHeightAdj.Size = new System.Drawing.Size(49, 13);
+            this.labelLineHeightAdj.TabIndex = 13;
+            this.labelLineHeightAdj.Text = "LineHgt:";
+            // 
+            // textBoxLineHeightAdj
+            // 
+            this.textBoxLineHeightAdj.Location = new System.Drawing.Point(60, 43);
+            this.textBoxLineHeightAdj.Name = "textBoxLineHeightAdj";
+            this.textBoxLineHeightAdj.Size = new System.Drawing.Size(50, 21);
+            this.textBoxLineHeightAdj.TabIndex = 14;
+            this.textBoxLineHeightAdj.Text = "0";
+            // 
+            // buttonLHApply
+            // 
+            this.buttonLHApply.Location = new System.Drawing.Point(116, 42);
+            this.buttonLHApply.Name = "buttonLHApply";
+            this.buttonLHApply.Size = new System.Drawing.Size(60, 23);
+            this.buttonLHApply.TabIndex = 15;
+            this.buttonLHApply.Text = "Apply";
+            this.buttonLHApply.UseVisualStyleBackColor = true;
+            this.buttonLHApply.Click += new System.EventHandler(this.buttonLHApply_Click);
+            // 
+            // labelHeightAdj
+            // 
+            this.labelHeightAdj.AutoSize = true;
+            this.labelHeightAdj.Location = new System.Drawing.Point(7, 133);
+            this.labelHeightAdj.Name = "labelHeightAdj";
+            this.labelHeightAdj.Size = new System.Drawing.Size(43, 13);
+            this.labelHeightAdj.TabIndex = 16;
+            this.labelHeightAdj.Text = "Height:";
+            // 
+            // textBoxHeightAdj
+            // 
+            this.textBoxHeightAdj.Location = new System.Drawing.Point(60, 130);
+            this.textBoxHeightAdj.Name = "textBoxHeightAdj";
+            this.textBoxHeightAdj.Size = new System.Drawing.Size(50, 21);
+            this.textBoxHeightAdj.TabIndex = 17;
+            this.textBoxHeightAdj.Text = "0";
+            // 
+            // buttonHeightApply
+            // 
+            this.buttonHeightApply.Location = new System.Drawing.Point(116, 129);
+            this.buttonHeightApply.Name = "buttonHeightApply";
+            this.buttonHeightApply.Size = new System.Drawing.Size(60, 23);
+            this.buttonHeightApply.TabIndex = 18;
+            this.buttonHeightApply.Text = "Apply";
+            this.buttonHeightApply.UseVisualStyleBackColor = true;
+            this.buttonHeightApply.Click += new System.EventHandler(this.buttonHeightApply_Click);
+            // 
+            // labelChannelAdj
+            // 
+            this.labelChannelAdj.AutoSize = true;
+            this.labelChannelAdj.Location = new System.Drawing.Point(7, 104);
+            this.labelChannelAdj.Name = "labelChannelAdj";
+            this.labelChannelAdj.Size = new System.Drawing.Size(47, 13);
+            this.labelChannelAdj.TabIndex = 19;
+            this.labelChannelAdj.Text = "Chnl:";
+            // 
+            // textBoxChannelAdj
+            // 
+            this.textBoxChannelAdj.Location = new System.Drawing.Point(60, 101);
+            this.textBoxChannelAdj.Name = "textBoxChannelAdj";
+            this.textBoxChannelAdj.Size = new System.Drawing.Size(50, 21);
+            this.textBoxChannelAdj.TabIndex = 20;
+            this.textBoxChannelAdj.Text = "0";
+            // 
+            // buttonChannelApply
+            // 
+            this.buttonChannelApply.Location = new System.Drawing.Point(116, 100);
+            this.buttonChannelApply.Name = "buttonChannelApply";
+            this.buttonChannelApply.Size = new System.Drawing.Size(60, 23);
+            this.buttonChannelApply.TabIndex = 21;
+            this.buttonChannelApply.Text = "Apply";
+            this.buttonChannelApply.UseVisualStyleBackColor = true;
+            this.buttonChannelApply.Click += new System.EventHandler(this.buttonChannelApply_Click);
+            // 
+            // labelBaseAdj
+            // 
+            this.labelBaseAdj.AutoSize = true;
+            this.labelBaseAdj.Location = new System.Drawing.Point(7, 75);
+            this.labelBaseAdj.Name = "labelBaseAdj";
+            this.labelBaseAdj.Size = new System.Drawing.Size(37, 13);
+            this.labelBaseAdj.TabIndex = 26;
+            this.labelBaseAdj.Text = "Base:";
+            // 
+            // textBoxBaseAdj
+            // 
+            this.textBoxBaseAdj.Location = new System.Drawing.Point(60, 72);
+            this.textBoxBaseAdj.Name = "textBoxBaseAdj";
+            this.textBoxBaseAdj.Size = new System.Drawing.Size(50, 21);
+            this.textBoxBaseAdj.TabIndex = 27;
+            this.textBoxBaseAdj.Text = "0";
+            // 
+            // buttonBaseApply
+            // 
+            this.buttonBaseApply.Location = new System.Drawing.Point(116, 71);
+            this.buttonBaseApply.Name = "buttonBaseApply";
+            this.buttonBaseApply.Size = new System.Drawing.Size(60, 23);
+            this.buttonBaseApply.TabIndex = 28;
+            this.buttonBaseApply.Text = "Apply";
+            this.buttonBaseApply.UseVisualStyleBackColor = true;
+            this.buttonBaseApply.Click += new System.EventHandler(this.buttonBaseApply_Click);
+            // 
+            // buttonYoffsetUp
+            // 
+            this.buttonYoffsetUp.Location = new System.Drawing.Point(116, 158);
+            this.buttonYoffsetUp.Name = "buttonYoffsetUp";
+            this.buttonYoffsetUp.Size = new System.Drawing.Size(30, 23);
+            this.buttonYoffsetUp.TabIndex = 22;
+            this.buttonYoffsetUp.Text = "▲";
+            this.buttonYoffsetUp.UseVisualStyleBackColor = true;
+            this.buttonYoffsetUp.Click += new System.EventHandler(this.buttonYoffsetUp_Click);
+            // 
+            // buttonYoffsetDown
+            // 
+            this.buttonYoffsetDown.Location = new System.Drawing.Point(150, 158);
+            this.buttonYoffsetDown.Name = "buttonYoffsetDown";
+            this.buttonYoffsetDown.Size = new System.Drawing.Size(30, 23);
+            this.buttonYoffsetDown.TabIndex = 23;
+            this.buttonYoffsetDown.Text = "▼";
+            this.buttonYoffsetDown.UseVisualStyleBackColor = true;
+            this.buttonYoffsetDown.Click += new System.EventHandler(this.buttonYoffsetDown_Click);
+            // 
+            // buttonYadjUp
+            // 
+            this.buttonYadjUp.Location = new System.Drawing.Point(116, 186);
+            this.buttonYadjUp.Name = "buttonYadjUp";
+            this.buttonYadjUp.Size = new System.Drawing.Size(30, 23);
+            this.buttonYadjUp.TabIndex = 24;
+            this.buttonYadjUp.Text = "▲";
+            this.buttonYadjUp.UseVisualStyleBackColor = true;
+            this.buttonYadjUp.Click += new System.EventHandler(this.buttonYadjUp_Click);
+            // 
+            // buttonYadjDown
+            // 
+            this.buttonYadjDown.Location = new System.Drawing.Point(150, 186);
+            this.buttonYadjDown.Name = "buttonYadjDown";
+            this.buttonYadjDown.Size = new System.Drawing.Size(30, 23);
+            this.buttonYadjDown.TabIndex = 25;
+            this.buttonYadjDown.Text = "▼";
+            this.buttonYadjDown.UseVisualStyleBackColor = true;
+            this.buttonYadjDown.Click += new System.EventHandler(this.buttonYadjDown_Click);
+            // 
             // labelYoffsetAdjust2
             // 
             this.labelYoffsetAdjust2.AutoSize = true;
-            this.labelYoffsetAdjust2.Location = new System.Drawing.Point(7, 22);
+            this.labelYoffsetAdjust2.Location = new System.Drawing.Point(7, 163);
             this.labelYoffsetAdjust2.Name = "labelYoffsetAdjust2";
-            this.labelYoffsetAdjust2.Size = new System.Drawing.Size(67, 13);
+            this.labelYoffsetAdjust2.Size = new System.Drawing.Size(39, 13);
             this.labelYoffsetAdjust2.TabIndex = 0;
-            this.labelYoffsetAdjust2.Text = "YOffset Adj:";
+            this.labelYoffsetAdjust2.Text = "YOff:";
             // 
             // textBoxYoffsetAdjust
             // 
-            this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(80, 19);
+            this.textBoxYoffsetAdjust.Location = new System.Drawing.Point(60, 160);
             this.textBoxYoffsetAdjust.Name = "textBoxYoffsetAdjust";
             this.textBoxYoffsetAdjust.Size = new System.Drawing.Size(44, 21);
             this.textBoxYoffsetAdjust.TabIndex = 1;
@@ -1055,6 +1266,25 @@ namespace TTG_Tools
         private System.Windows.Forms.Label labelYoffsetAdjust2;
         private System.Windows.Forms.TextBox textBoxYoffsetAdjust;
         private System.Windows.Forms.Button buttonApplyYoffsetAdjust;
+        private System.Windows.Forms.Label labelSizeAdj;
+        private System.Windows.Forms.TextBox textBoxSizeAdj;
+        private System.Windows.Forms.Button buttonSizeApply;
+        private System.Windows.Forms.Label labelLineHeightAdj;
+        private System.Windows.Forms.TextBox textBoxLineHeightAdj;
+        private System.Windows.Forms.Button buttonLHApply;
+        private System.Windows.Forms.Label labelHeightAdj;
+        private System.Windows.Forms.TextBox textBoxHeightAdj;
+        private System.Windows.Forms.Button buttonHeightApply;
+        private System.Windows.Forms.Label labelChannelAdj;
+        private System.Windows.Forms.TextBox textBoxChannelAdj;
+        private System.Windows.Forms.Button buttonChannelApply;
+        private System.Windows.Forms.Label labelBaseAdj;
+        private System.Windows.Forms.TextBox textBoxBaseAdj;
+        private System.Windows.Forms.Button buttonBaseApply;
+        private System.Windows.Forms.Button buttonYoffsetUp;
+        private System.Windows.Forms.Button buttonYoffsetDown;
+        private System.Windows.Forms.Button buttonYadjUp;
+        private System.Windows.Forms.Button buttonYadjDown;
         private System.Windows.Forms.Label labelYAdjust;
         private System.Windows.Forms.TextBox textBoxYAdjust;
         private System.Windows.Forms.Button buttonApplyYAdjust;

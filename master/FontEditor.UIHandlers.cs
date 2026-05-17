@@ -782,7 +782,8 @@ namespace TTG_Tools
 
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                string info = "info face=\"" + font.FontName + "\" size=" + font.BaseSize + " bold=0 italic=0 charset=\"\" unicode=";
+                float exportSize = font.FntInfoSize > 0 ? font.FntInfoSize : font.FntLineHeight;
+                string info = "info face=\"" + font.FontName + "\" size=" + exportSize + " bold=0 italic=0 charset=\"\" unicode=";
                 switch (font.NewFormat)
                 {
                     case true:
@@ -794,16 +795,21 @@ namespace TTG_Tools
                         break;
                 }
 
-                info += "common lineHeight=" + font.BaseSize;
+                info += "common lineHeight=" + font.FntLineHeight;
 
                 if ((font.One == 0x31 && (Encoding.ASCII.GetString(check_header) == "5VSM"))
                         || (Encoding.ASCII.GetString(check_header) == "6VSM"))
                 {
-                    info += " base=" + font.NewSomeValue;
+                    info += " base=" + font.FntBaseLine;
                 }
-                else info += " base=" + font.BaseSize;
+                else info += " base=" + font.FntLineHeight;
 
                 info += " pages=" + font.TexCount + "\r\n";
+
+                // Log exported FNT header values
+                float loggedBase = (font.One == 0x31 && (Encoding.ASCII.GetString(check_header) == "5VSM"))
+                        || (Encoding.ASCII.GetString(check_header) == "6VSM") ? font.FntBaseLine : font.FntLineHeight;
+                textBoxLogOutput.AppendText($"[FNT Export] info size={exportSize}, common lineHeight={font.FntLineHeight}, common base={loggedBase}, FntInfoSize={font.FntInfoSize}, FntBaseLine={font.FntBaseLine}, One=0x{font.One:x2}, header={Encoding.ASCII.GetString(check_header ?? new byte[0])}\r\n");
 
                 if (File.Exists(sfd.FileName)) File.Delete(sfd.FileName);
                 FileStream fs = new FileStream(sfd.FileName, FileMode.CreateNew);
@@ -988,9 +994,248 @@ namespace TTG_Tools
                 }
             }
         }
+
+        // ======== FNT Adjust: Size ========
+        private void buttonSizeApply_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            if (float.TryParse(textBoxSizeAdj.Text, out float val))
+            {
+                font.FntInfoSize = val;
+                fillTableofCoordinates(font, false);
+                textBoxLogOutput.AppendText($"[Size] Set FntInfoSize to {val}\r\n");
+            }
+        }
+
+        // ======== FNT Adjust: LineHeight ========
+        private void buttonLHApply_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            if (float.TryParse(textBoxLineHeightAdj.Text, out float val))
+            {
+                font.FntLineHeight = val;
+                fillTableofCoordinates(font, false);
+                textBoxLogOutput.AppendText($"[LineHgt] Set FntLineHeight to {val}\r\n");
+            }
+        }
+
+        // ======== FNT Adjust: Height (batch) ========
+        private void buttonHeightApply_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            if (!float.TryParse(textBoxHeightAdj.Text, out float val)) return;
+
+            for (int i = 0; i < font.glyph.CharCount; i++)
+            {
+                if (font.NewFormat && font.glyph.charsNew != null && font.glyph.charsNew[i] != null)
+                    font.glyph.charsNew[i].CharHeight = val;
+                else if (font.glyph.chars != null && font.glyph.chars[i] != null)
+                    font.glyph.chars[i].CharHeight = val;
+            }
+            fillTableofCoordinates(font, false);
+            textBoxLogOutput.AppendText($"[Height] Set all chars CharHeight to {val}\r\n");
+        }
+
+        // ======== FNT Adjust: Channel (batch, NewFormat only) ========
+        private void buttonChannelApply_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            if (!int.TryParse(textBoxChannelAdj.Text, out int val)) return;
+            if (!font.NewFormat || font.glyph.charsNew == null)
+            {
+                MessageBox.Show("Channel adjustment is only supported for New Format fonts.", "Info");
+                return;
+            }
+            for (int i = 0; i < font.glyph.CharCount; i++)
+            {
+                if (font.glyph.charsNew[i] != null)
+                    font.glyph.charsNew[i].Channel = val;
+            }
+            fillTableofCoordinates(font, false);
+            textBoxLogOutput.AppendText($"[Chnl] Set all chars Channel to {val}\r\n");
+        }
+
+        // ======== FNT Adjust: Base ========
+        private void buttonBaseApply_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            if (!float.TryParse(textBoxBaseAdj.Text, out float val)) return;
+            font.FntBaseLine = val;
+            textBoxLogOutput.AppendText($"[Base] Set FntBaseLine (FNT base) to {val}\r\n");
+        }
+
+        // ======== FNT Adjust: YOffset ▲▼ (delta) ========
+        private void buttonYoffsetUp_Click(object sender, EventArgs e)
+        {
+            if (font == null || font.glyph.charsNew == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            string input = textBoxYoffsetAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid adjustment value. Enter a number (e.g., 1 or 5).", "Error");
+                return;
+            }
+            for (int i = 0; i < font.glyph.CharCount; i++)
+                font.glyph.charsNew[i].YOffset += adjustment;
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[YOffset] ▲ Applied +{adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
+        private void buttonYoffsetDown_Click(object sender, EventArgs e)
+        {
+            if (font == null || font.glyph.charsNew == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            string input = textBoxYoffsetAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid adjustment value. Enter a number (e.g., 1 or 5).", "Error");
+                return;
+            }
+            for (int i = 0; i < font.glyph.CharCount; i++)
+                font.glyph.charsNew[i].YOffset -= adjustment;
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[YOffset] ▼ Applied -{adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
+        // ======== FNT Adjust: Y Adj ▲▼ (delta) ========
+        private void buttonYadjUp_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            string input = textBoxYAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid Y Adj value. Enter a number (e.g., 1 or 5).", "Error");
+                return;
+            }
+            if (font.NewFormat)
+            {
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    if (font.glyph.charsNew[i] == null) continue;
+                    font.glyph.charsNew[i].YStart += adjustment;
+                    font.glyph.charsNew[i].YEnd += adjustment;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    font.glyph.chars[i].YStart += adjustment;
+                    font.glyph.chars[i].YEnd += adjustment;
+                }
+            }
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[Y Adj] ▲ Applied +{adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
+        private void buttonYadjDown_Click(object sender, EventArgs e)
+        {
+            if (font == null)
+            {
+                MessageBox.Show("No font loaded.", "Error");
+                return;
+            }
+            string input = textBoxYAdjust.Text.Trim();
+            if (input.StartsWith("+")) input = input.Substring(1);
+            if (!int.TryParse(input, out int adjustment))
+            {
+                MessageBox.Show("Invalid Y Adj value. Enter a number (e.g., 1 or 5).", "Error");
+                return;
+            }
+            if (font.NewFormat)
+            {
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    if (font.glyph.charsNew[i] == null) continue;
+                    font.glyph.charsNew[i].YStart -= adjustment;
+                    font.glyph.charsNew[i].YEnd -= adjustment;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < font.glyph.CharCount; i++)
+                {
+                    font.glyph.chars[i].YStart -= adjustment;
+                    font.glyph.chars[i].YEnd -= adjustment;
+                }
+            }
+            fillTableofCoordinates(font, false);
+            edited = true;
+            textBoxLogOutput.AppendText($"[Y Adj] ▼ Applied -{adjustment} to all {font.glyph.CharCount} characters.\r\n");
+        }
+
+        /// <summary>
+        /// Auto-populate FNT Adjust fields from current font data.
+        /// Call after font open or FNT import.
+        /// </summary>
+        internal void PopulateFntAdjustFields()
+        {
+            if (font == null) return;
+
+            // Size — FNT info size (point size) if available, otherwise FntLineHeight
+            textBoxSizeAdj.Text = (font.FntInfoSize > 0 ? font.FntInfoSize : font.FntLineHeight).ToString("0.###");
+
+            // LineHeight — same as Size (FNT common lineHeight)
+            textBoxLineHeightAdj.Text = font.FntLineHeight.ToString("0.###");
+
+            // Height — from first character
+            float firstCharHeight = 0;
+            if (font.NewFormat && font.glyph.charsNew != null && font.glyph.charsNew.Length > 0 && font.glyph.charsNew[0] != null)
+            {
+                firstCharHeight = font.glyph.charsNew[0].CharHeight;
+            }
+            else if (!font.NewFormat && font.glyph.chars != null && font.glyph.chars.Length > 0 && font.glyph.chars[0] != null)
+            {
+                firstCharHeight = font.glyph.chars[0].CharHeight;
+            }
+            textBoxHeightAdj.Text = firstCharHeight.ToString("0.###");
+
+            // Channel — from first character (NewFormat only)
+            int firstChannel = 0;
+            if (font.NewFormat && font.glyph.charsNew != null && font.glyph.charsNew.Length > 0 && font.glyph.charsNew[0] != null)
+            {
+                firstChannel = font.glyph.charsNew[0].Channel;
+            }
+            textBoxChannelAdj.Text = firstChannel.ToString();
+
+            // Base — FNT baseline (FntBaseLine in 5VSM/6VSM)
+            textBoxBaseAdj.Text = font.FntBaseLine.ToString("0.###");
+        }
     }
 }
-
-
-
-

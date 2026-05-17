@@ -1287,7 +1287,7 @@ namespace TTG_Tools.Graphics
                 bw.Write(tex.someValue);
             }
 
-            byte[] tmp = Encoding.ASCII.GetBytes(tex.ObjectName);
+            byte[] tmp = Encoding.UTF8.GetBytes(tex.ObjectName);
             int len = tmp.Length;
             int addLen = len;
 
@@ -1300,7 +1300,7 @@ namespace TTG_Tools.Graphics
             bw.Write(len);
             bw.Write(tmp);
 
-            tmp = Encoding.ASCII.GetBytes(tex.SubobjectName);
+            tmp = Encoding.UTF8.GetBytes(tex.SubobjectName);
             len = tmp.Length;
             addLen = len;
 
@@ -1573,7 +1573,7 @@ namespace TTG_Tools.Graphics
                 bw.Write(tex.platform.platform);
                 pos += 4;
 
-                byte[] tmp = Encoding.ASCII.GetBytes(tex.ObjectName);
+                byte[] tmp = Encoding.UTF8.GetBytes(tex.ObjectName);
                 int len = tmp.Length + 8;
                 bw.Write(len);
                 pos += 4;
@@ -1586,7 +1586,7 @@ namespace TTG_Tools.Graphics
                     pos += tmp.Length;
                 }
 
-                tmp = Encoding.ASCII.GetBytes(tex.SubObjectName);
+                tmp = Encoding.UTF8.GetBytes(tex.SubObjectName);
                 len = tmp.Length + 8;
                 bw.Write(len);
                 pos += 4;
@@ -2082,7 +2082,7 @@ namespace TTG_Tools.Graphics
                 Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                 poz += nameLen;
                 tex.BlockPos += nameLen;
-                tex.ObjectName = Encoding.ASCII.GetString(tmp);
+                tex.ObjectName = Encoding.UTF8.GetString(tmp);
 
                 tmp = new byte[4];
                 Array.Copy(binContent, poz, tmp, 0, tmp.Length);
@@ -2103,7 +2103,7 @@ namespace TTG_Tools.Graphics
                 Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                 poz += nameLen;
                 tex.BlockPos += nameLen;
-                tex.SubobjectName = Encoding.ASCII.GetString(tmp);
+                tex.SubobjectName = Encoding.UTF8.GetString(tmp);
 
                 tmp = new byte[8];
                 Array.Copy(binContent, poz, tmp, 0, tmp.Length);
@@ -2378,7 +2378,7 @@ namespace TTG_Tools.Graphics
 
             tmp = new byte[tmpInt];
             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-            tex.ObjectName = Encoding.ASCII.GetString(tmp);
+            tex.ObjectName = Encoding.UTF8.GetString(tmp);
             poz += tmpInt;
 
             tmp = new byte[4];
@@ -2393,7 +2393,7 @@ namespace TTG_Tools.Graphics
 
             tmp = new byte[tmpInt];
             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-            tex.SubObjectName = Encoding.ASCII.GetString(tmp);
+            tex.SubObjectName = Encoding.UTF8.GetString(tmp);
             poz += tmpInt;
 
             tmp = new byte[4];

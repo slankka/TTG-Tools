@@ -115,14 +115,14 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
             template.glyph.BlockCoordSize = 12;
             template.One = 0x31;
             template.FontName = string.IsNullOrEmpty(fontName) ? "NewFont" : fontName;
-            template.BaseSize = 32;
+            template.FntLineHeight = 32;
             template.hasLineHeight = false;
             template.blockSize = true;
             template.headerSize = 0;
             template.texSize = 0;
             template.hasOneFloatValue = false;
             template.LastZero = 0;
-            template.NewSomeValue = 0;
+            template.FntBaseLine = 0;
             template.TexCount = 0;
             template.feedFace = null;
 
@@ -278,7 +278,7 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                             font.blockSize = wiiFontData.IsBlockSizeFont;
                             font.hasScaleValue = wiiFontData.HasScaleValue;
                             font.FontName = wiiFontData.FontName;
-                            font.BaseSize = wiiFontData.BaseSize;
+                            font.FntLineHeight = wiiFontData.BaseSize;
                             font.TexCount = Math.Max(1, wiiFontData.TexCount);
                             font.glyph.CharCount = wiiFontData.CharCount;
                             font.glyph.chars = new FontClass.ClassFont.TRect[font.glyph.CharCount];
@@ -319,6 +319,7 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                             fillTableofCoordinates(font, false);
                             fillTableofTextures(font);
                             UpdateTexturePreview();
+                            PopulateFntAdjustFields();
                             saveToolStripMenuItem.Enabled = true;
                             saveAsToolStripMenuItem.Enabled = true;
                             exportCoordinatesToolStripMenuItem1.Enabled = true;
@@ -506,6 +507,9 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                             }
                         }
 
+                        // Restore FntInfoSize from elements if present
+                        RestoreFntInfoSizeFromElements(font);
+
                         tmpHeader = new byte[poz];
                         Array.Copy(binContent, 0, tmpHeader, 0, tmpHeader.Length);
 
@@ -535,7 +539,7 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
 
                             tmp = new byte[nameLen];
                             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
-                            font.FontName = Encoding.ASCII.GetString(tmp);
+                            font.FontName = Encoding.UTF8.GetString(tmp);
                             poz += nameLen;
                         }
 
@@ -550,13 +554,13 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                             Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                             poz += 4;
 
-                            font.NewSomeValue = BitConverter.ToSingle(tmp, 0);
+                            font.FntBaseLine = BitConverter.ToSingle(tmp, 0);
                         }
 
                         tmp = new byte[4];
                         Array.Copy(binContent, poz, tmp, 0, tmp.Length);
                         poz += 4;
-                        font.BaseSize = BitConverter.ToSingle(tmp, 0);
+                        font.FntLineHeight = BitConverter.ToSingle(tmp, 0);
 
                         tmp = new byte[4];
                         Array.Copy(binContent, poz, tmp, 0, tmp.Length);
@@ -796,7 +800,8 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                         if (textBoxLogOutput != null && !textBoxLogOutput.IsDisposed)
                         {
                             textBoxLogOutput.AppendText($"[OpenFontDiag] NewFormat={font.NewFormat}, CharCount={font.glyph.CharCount}, TexCount={font.TexCount}\r\n");
-                            textBoxLogOutput.AppendText($"[OpenFontDiag] FontUnknowns one=0x{font.One:x2}, newSomeValue={font.NewSomeValue}, baseSize={font.BaseSize}, lineHeight={font.lineHeight}, halfValue={font.halfValue}, oneValue={font.oneValue}, hasScaleValue={font.hasScaleValue}, hasOneFloatValue={font.hasOneFloatValue}, hasLineHeight={font.hasLineHeight}, lastZero=0x{font.LastZero:x2}, feedFace={FormatBytesPreview(font.feedFace)}\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] FontUnknowns one=0x{font.One:x2}, FntBaseLine={font.FntBaseLine}, FntLineHeight={font.FntLineHeight}, lineHeight={font.lineHeight}, halfValue={font.halfValue}, oneValue={font.oneValue}, hasScaleValue={font.hasScaleValue}, hasOneFloatValue={font.hasOneFloatValue}, hasLineHeight={font.hasLineHeight}, lastZero=0x{font.LastZero:x2}, feedFace={FormatBytesPreview(font.feedFace)}\r\n");
+                            textBoxLogOutput.AppendText($"[OpenFontDiag] ✦ FNT mapping: FntLineHeight (lineHgt)={font.FntLineHeight}, FntBaseLine (base)={font.FntBaseLine}, lineHeight field={font.lineHeight}, FntInfoSize={font.FntInfoSize}\r\n");
                             textBoxLogOutput.AppendText($"[OpenFontDiag] TextureHeaderStartPoz=0x{poz:x}\r\n");
                         }
 
@@ -907,6 +912,8 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                         fillTableofCoordinates(font, false);
                         fillTableofTextures(font);
                         UpdateTexturePreview();
+
+                        PopulateFntAdjustFields();
 
                         saveToolStripMenuItem.Enabled = true;
                         saveAsToolStripMenuItem.Enabled = true;
@@ -1046,6 +1053,8 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
                 bw.Write(0); // offset 12: texSize placeholder
 
                 // Write elements section (preserved from original file)
+                // Persist FntInfoSize (FNT info size) in elements before writing
+                StoreFntInfoSizeInElements(font);
                 int countElements = (font.binElements != null) ? font.binElements.Length : 0;
                 bw.Write(countElements); // offset 16: countElements
 
@@ -1067,7 +1076,7 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
             {
                 font.FontName = "NewFont";
             }
-            int len = Encoding.ASCII.GetBytes(font.FontName).Length;
+            int len = Encoding.UTF8.GetBytes(font.FontName).Length;
 
             // Record position BEFORE writing FontName (this is where headerSize should start counting from)
             long headerSizeStartPosition = bw.BaseStream.Position;
@@ -1084,17 +1093,17 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
             }
 
             bw.Write(len);
-            bw.Write(Encoding.ASCII.GetBytes(font.FontName));
+            bw.Write(Encoding.UTF8.GetBytes(font.FontName));
 
             bw.Write(font.One);
 
             if ((font.One == 0x31 && (Encoding.ASCII.GetString(check_header) == "5VSM"))
                         || (Encoding.ASCII.GetString(check_header) == "6VSM"))
             {
-                bw.Write(font.NewSomeValue);
+                bw.Write(font.FntBaseLine);
             }
 
-            bw.Write(font.BaseSize);
+            bw.Write(font.FntLineHeight);
 
             if(font.feedFace != null)
             {
@@ -1196,6 +1205,7 @@ private ClassesStructs.FontClass.ClassFont CreateEmptyNewFormatTemplateFont(stri
 
                 // Debug output for texture information before saving
                 textBoxLogOutput.AppendText("\r\n=== SaveFont Debug Info ===\r\n");
+                textBoxLogOutput.AppendText($"Save path: {((FileStream)bw.BaseStream).Name}\r\n");
                 textBoxLogOutput.AppendText($"font.NewTex.Length: {actualNewTexCount}\r\n");
                 textBoxLogOutput.AppendText($"font.glyph.CharCount: {font.glyph.CharCount}\r\n");
                 textBoxLogOutput.AppendText($"font.TexCount: {font.TexCount}\r\n");

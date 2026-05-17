@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -171,6 +172,65 @@ namespace TTG_Tools
 
             // Template includes AddInfo GUID; keep write/read rules aligned.
             AddInfo = true;
+        }
+
+        // GUID prefix for FNT info size element: "FNTISIZE" as 8 bytes
+        private static readonly byte[] FntInfoSizeElementGuid = new byte[]
+            { 0x46, 0x4E, 0x54, 0x49, 0x53, 0x49, 0x5A, 0x45 };
+
+        /// <summary>
+        /// Append/update the FntInfoSize element in binElements before save.
+        /// Removes any previous FntInfoSize element and adds a new one.
+        /// </summary>
+        private void StoreFntInfoSizeInElements(ClassesStructs.FontClass.ClassFont font)
+        {
+            if (font.binElements == null) return;
+
+            // Remove any existing FntInfoSize element
+            var cleaned = new List<byte[]>();
+            foreach (var el in font.binElements)
+            {
+                if (el == null || el.Length < 12) continue;
+                bool match = true;
+                for (int i = 0; i < 8; i++)
+                {
+                    if (el[i] != FntInfoSizeElementGuid[i]) { match = false; break; }
+                }
+                if (!match) cleaned.Add(el);
+            }
+
+            // Append new element: 8-byte GUID + 4-byte float (FntInfoSize)
+            byte[] newElement = new byte[12];
+            Array.Copy(FntInfoSizeElementGuid, 0, newElement, 0, 8);
+            byte[] floatBytes = BitConverter.GetBytes(font.FntInfoSize);
+            Array.Copy(floatBytes, 0, newElement, 8, 4);
+            cleaned.Add(newElement);
+
+            font.binElements = cleaned.ToArray();
+        }
+
+        /// <summary>
+        /// Scan binElements for the FntInfoSize marker and extract the stored value.
+        /// Call after loading elements from .font file.
+        /// </summary>
+        private void RestoreFntInfoSizeFromElements(ClassesStructs.FontClass.ClassFont font)
+        {
+            if (font.binElements == null) return;
+
+            foreach (var el in font.binElements)
+            {
+                if (el == null || el.Length < 12) continue;
+                bool match = true;
+                for (int i = 0; i < 8; i++)
+                {
+                    if (el[i] != FntInfoSizeElementGuid[i]) { match = false; break; }
+                }
+                if (match)
+                {
+                    font.FntInfoSize = BitConverter.ToSingle(el, 8);
+                    return;
+                }
+            }
         }
 
         private static byte[][] GetDefault6VsmElementTemplate()

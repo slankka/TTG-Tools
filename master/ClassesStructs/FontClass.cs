@@ -63,9 +63,10 @@
                 public float halfValue; //Shows in some fonts
                 public float oneValue; //Scale font. Use since Hector and newer games
                 public byte One;
-                public float NewSomeValue; //Since Game of Thrones if 0x31 byte
+                public float FntBaseLine; // FNT common base — vertical position of text within the frame (prevents character overlap)
+                public float FntInfoSize; // FNT info size attribute (point size), preserved across import/export
                 public byte[] feedFace; //some data from WD: Michonne
-                public float BaseSize; //Common char size in text line
+                public float FntLineHeight; // FNT common lineHeight — line spacing (prevents lines being too close/overlapping)
                 public float lineHeight; //For Back to the Future for consoles PS4 and Xbox360
                 public int BlockTexSize; //Size of block Textures
                 public int TexCount; //Count textures
